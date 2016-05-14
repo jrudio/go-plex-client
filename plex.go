@@ -5,7 +5,6 @@ package plex
 import (
 	"encoding/json"
 	"errors"
-	"io/ioutil"
 	"net/url"
 	"runtime"
 )
@@ -99,24 +98,14 @@ func (p *Plex) Test() (bool, error) {
 }
 
 // KillTranscodeSession stops a transcode session with a session key
-func (p *Plex) KillTranscodeSession(sessionKey string) (string, error) {
-	// func (p *Plex) KillTranscodeSession(sessionKey string) (killTranscodeResponse, error) {
-	var result string
-	// var result killTranscodeResponse
+func (p *Plex) KillTranscodeSession(sessionKey string) (bool, error) {
+	var result bool
 
 	if sessionKey == "" {
 		return result, errors.New("Missing sessionKey")
 	}
 
 	query := p.URL + "/video/:/transcode/universal/stop?session=" + sessionKey
-
-	// resp, respErr := requestInfo.options(query)
-
-	// if respErr != nil {
-	// 	return result, respErr
-	// }
-
-	// resp.Body.Close()
 
 	resp, respErr := requestInfo.get(query)
 
@@ -126,16 +115,11 @@ func (p *Plex) KillTranscodeSession(sessionKey string) (string, error) {
 
 	defer resp.Body.Close()
 
-	body, err := ioutil.ReadAll(resp.Body)
-
-	if err != nil {
-		return result, err
+	if resp.StatusCode == 200 {
+		result = true
 	}
 
-	result = string(body)
-
 	return result, nil
-	// return result, json.NewDecoder(resp.Body).Decode(&result)
 }
 
 // GetTranscodeSessions retrieves a list of all active transcode sessions
