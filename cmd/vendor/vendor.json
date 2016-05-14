@@ -1,0 +1,17 @@
+{
+	"comment": "",
+	"ignore": "test",
+	"package": [
+		{
+			"checksumSHA1": "Jdfdu7iP4WaFKgV3HpnmgkA1vFo=",
+			"path": "github.com/codegangsta/cli",
+			"revision": "ff84ca213d003974c6900fdbde23332111d661c6",
+			"revisionTime": "2016-05-01T14:34:16Z"
+		},
+		{
+			"path": "github.com/jrudio/go-plex-client",
+			"revision": ""
+		}
+	],
+	"rootPath": "github.com/jrudio/go-plex-client/cmd"
+}
