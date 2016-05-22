@@ -1,6 +1,7 @@
 package plex
 
 import (
+	"bytes"
 	"net/http"
 	"time"
 )
@@ -44,8 +45,8 @@ func (r *request) get(query string) (*http.Response, error) {
 	req.Header.Add("X-Plex-Product", r.Product)
 	req.Header.Add("X-Plex-Version", r.Version)
 	req.Header.Add("X-Plex-Device", r.Device)
-	req.Header.Add("X-Plex-Container-Size", r.ContainerSize)
-	req.Header.Add("X-Plex-Container-Start", r.ContainerStart)
+	// req.Header.Add("X-Plex-Container-Size", r.ContainerSize)
+	// req.Header.Add("X-Plex-Container-Start", r.ContainerStart)
 	req.Header.Add("X-Plex-Token", r.Token)
 
 	resp, err := client.Do(req)
@@ -68,6 +69,72 @@ func (r *request) delete(query string) (*http.Response, error) {
 		return &http.Response{}, reqErr
 	}
 
+	req.Header.Add("Accept", r.Accept)
+	req.Header.Add("X-Plex-Platform", r.Platform)
+	req.Header.Add("X-Plex-Platform-Version", r.PlatformVersion)
+	req.Header.Add("X-Plex-Provides", r.Provides)
+	req.Header.Add("X-Plex-Client-Identifier", r.ClientIdentifier)
+	req.Header.Add("X-Plex-Product", r.Product)
+	req.Header.Add("X-Plex-Version", r.Version)
+	req.Header.Add("X-Plex-Device", r.Device)
+	req.Header.Add("X-Plex-Container-Size", r.ContainerSize)
+	req.Header.Add("X-Plex-Container-Start", r.ContainerStart)
+	req.Header.Add("X-Plex-Token", r.Token)
+
+	resp, err := client.Do(req)
+
+	if err != nil {
+		return &http.Response{}, err
+	}
+
+	return resp, nil
+}
+
+func (r *request) post(query string, body []byte) (*http.Response, error) {
+	client := http.Client{
+		Timeout: 3 * time.Second,
+	}
+
+	req, reqErr := http.NewRequest("POST", query, bytes.NewBuffer(body))
+
+	if reqErr != nil {
+		return &http.Response{}, reqErr
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Add("Accept", r.Accept)
+	req.Header.Add("X-Plex-Platform", r.Platform)
+	req.Header.Add("X-Plex-Platform-Version", r.PlatformVersion)
+	req.Header.Add("X-Plex-Provides", r.Provides)
+	req.Header.Add("X-Plex-Client-Identifier", r.ClientIdentifier)
+	req.Header.Add("X-Plex-Product", r.Product)
+	req.Header.Add("X-Plex-Version", r.Version)
+	req.Header.Add("X-Plex-Device", r.Device)
+	req.Header.Add("X-Plex-Container-Size", r.ContainerSize)
+	req.Header.Add("X-Plex-Container-Start", r.ContainerStart)
+	req.Header.Add("X-Plex-Token", r.Token)
+
+	resp, err := client.Do(req)
+
+	if err != nil {
+		return &http.Response{}, err
+	}
+
+	return resp, nil
+}
+
+func (r *request) put(query string) (*http.Response, error) {
+	client := http.Client{
+		Timeout: 3 * time.Second,
+	}
+
+	req, reqErr := http.NewRequest("PUT", query, nil)
+
+	if reqErr != nil {
+		return &http.Response{}, reqErr
+	}
+
+	req.Header.Set("Content-Type", "application/json")
 	req.Header.Add("Accept", r.Accept)
 	req.Header.Add("X-Plex-Platform", r.Platform)
 	req.Header.Add("X-Plex-Platform-Version", r.PlatformVersion)
