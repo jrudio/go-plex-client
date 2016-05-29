@@ -1,12 +1,17 @@
 package plex
 
-import "encoding/xml"
+import (
+	"encoding/xml"
+	"net/http"
+)
 
 // Plex contains fields that are required to make
 // an api call to your plex server
 type Plex struct {
-	URL   string
-	Token string
+	URL        string
+	Token      string
+	HTTPClient http.Client
+	headers    headers
 }
 
 // SearchResults a list of media returned when searching
