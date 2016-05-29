@@ -6,7 +6,7 @@ import "encoding/xml"
 // an api call to your plex server
 type Plex struct {
 	URL   string
-	token string
+	Token string
 }
 
 // SearchResults a list of media returned when searching
