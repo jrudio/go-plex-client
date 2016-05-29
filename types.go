@@ -529,6 +529,7 @@ type currentSessions struct {
 		User struct {
 			ID    string `xml:"id,attr"`
 			Title string `xml:"title,attr"`
+			Thumb string `xml:"thumb,attr"`
 		} `xml:"User"`
 		Player struct {
 			Address           string `xml:"address,attr"`
