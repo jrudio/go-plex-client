@@ -79,3 +79,252 @@ func TestPlexTest(t *testing.T) {
 		return
 	}
 }
+
+func TestGetMediaInfo(t *testing.T) {
+	testData := `
+		{
+			"_elementType": "abc123",
+			"allowSync": "abc123",
+			"identifier": "abc123",
+			"librarySectionID": "abc123",
+			"librarySectionTitle": "abc123",
+			"librarySectionUUID": "abc123",
+			"mediaTagPrefix": "abc123",
+			"mediaTagVersion": "abc123",
+			"_children": [
+				{
+					"_elementType": "abc123",
+					"ratingKey": 797,
+					"key": "abc123",
+					"guid": "abc123",
+					"librarySectionID": 2,
+					"studio": "abc123",
+					"type": "abc123",
+					"title": "abc123",
+					"contentRating": "PG-13",
+					"summary": "As his wedding day approaches, Ben heads to Miami with his soon-to-be brother-in-law James to bring down a drug dealer who's supplying the dealers of Atlanta with product.",
+					"rating": "abc123",
+					"viewCount": 4,
+					"lastViewedAt": 1464768458,
+					"year": 2016,
+					"tagline": "The brothers-in-law are back",
+					"thumb": "abc123",
+					"art": "abc123",
+					"duration": 6090091,
+					"originallyAvailableAt": "2016-01-15",
+					"addedAt": 1460520144,
+					"updatedAt": 1460520159,
+					"chapterSource": "abc123",
+					"primaryExtraKey": "abc123",
+					"_children": [
+						{
+							"_elementType": "abc123",
+							"videoResolution": "abc123",
+							"id": 1893,
+							"duration": 6090091,
+							"bitrate": 6166,
+							"width": 1280,
+							"height": 536,
+							"aspectRatio": "abc123",
+							"audioChannels": 6,
+							"audioCodec": "abc123",
+							"videoCodec": "abc123",
+							"container": "abc123",
+							"videoFrameRate": "abc123",
+							"audioProfile": "abc123",
+							"videoProfile": "abc123",
+							"_children": [
+								{
+									"_elementType": "abc123",
+									"id": "abc123",
+									"key": "abc123",
+									"duration": 6090091,
+									"file": "abc123",
+									"size": 4693741813,
+									"audioProfile": "abc123",
+									"container": "abc123",
+									"videoProfile": "abc123",
+									"_children": [
+										{
+											"_elementType": "abc123",
+											"id": 3922,
+											"streamType": 1,
+											"default": true,
+											"codec": "abc123",
+											"index": 0,
+											"bitrate": 4654,
+											"language": "abc123",
+											"languageCode": "abc123",
+											"bitDepth": 8,
+											"cabac": true,
+											"chromaSubsampling": "abc123",
+											"codecID": "abc123",
+											"duration": 6090090,
+											"frameRate": "abc123",
+											"frameRateMode": "abc123",
+											"hasScalingMatrix": false,
+											"height": 536,
+											"level": 41,
+											"pixelFormat": "abc123",
+											"profile": "abc123",
+											"refFrames": 5,
+											"scanType": "abc123",
+											"width": 1280
+										},
+										{
+											"_elementType": "abc123",
+											"id": 3923,
+											"streamType": 2,
+											"selected": true,
+											"default": true,
+											"codec": "abc123",
+											"index": 1,
+											"channels": 6,
+											"bitrate": 1509,
+											"language": "abc123",
+											"languageCode": "abc123",
+											"audioChannelLayout": "abc123",
+											"bitDepth": 24,
+											"bitrateMode": "abc123",
+											"codecID": "abc123",
+											"duration": 6090091,
+											"profile": "abc123",
+											"samplingRate": 48000
+										}
+									]
+								}
+							]
+						},
+						{
+							"_elementType": "abc123",
+							"id": 47,
+							"tag": "abc123",
+							"count": 25
+						},
+						{
+							"_elementType": "abc123",
+							"id": 133,
+							"tag": "abc123",
+							"count": 22
+						},
+						{
+							"_elementType": "abc123",
+							"id": 2041,
+							"tag": "Phil Hay"
+						},
+						{
+							"_elementType": "abc123",
+							"id": 2042,
+							"tag": "Matt Manfredi"
+						},
+						{
+							"_elementType": "abc123",
+							"id": 2040,
+							"tag": "Tim Story"
+						},
+						{
+							"_elementType": "abc123",
+							"id": 136,
+							"tag": "abc123",
+							"count": 61
+						},
+						{
+							"_elementType": "abc123",
+							"id": 2043,
+							"tag": "abc123",
+							"role": "abc123",
+							"thumb": "http://image.tmdb.org/t/p/original/nTYKqSQzJ9VlYKgqoES7WIDHywi.jpg"
+						},
+						{
+							"_elementType": "abc123",
+							"id": 2044,
+							"tag": "abc123",
+							"role": "abc123",
+							"thumb": "http://image.tmdb.org/t/p/original/dzdn1tyWkC4EjlBVKvpAhg5osYA.jpg"
+						},
+						{
+							"_elementType": "abc123",
+							"id": 2045,
+							"tag": "abc123",
+							"role": "abc123",
+							"thumb": "http://image.tmdb.org/t/p/original/bEaxBT4JSoab2OFSvQwrNAnoNsU.jpg"
+						},
+						{
+							"_elementType": "abc123",
+							"id": 2046,
+							"tag": "abc123",
+							"role": "abc123",
+							"thumb": "http://image.tmdb.org/t/p/original/9H87Ss6qcnxpQHtBhiMKYNSGr1g.jpg"
+						},
+						{
+							"_elementType": "abc123",
+							"id": 575,
+							"tag": "abc123",
+							"count": 2,
+							"role": "abc123",
+							"thumb": "http://image.tmdb.org/t/p/original/rEebZHRju1WtSOdvQJB5je5ZNGj.jpg"
+						},
+						{
+							"_elementType": "abc123",
+							"id": 2047,
+							"tag": "abc123",
+							"role": "abc123",
+							"thumb": "http://image.tmdb.org/t/p/original/8AaJIsIb7yJcfwcgbD7qsT6ameq.jpg"
+						},
+						{
+							"_elementType": "abc123",
+							"id": 2048,
+							"tag": "abc123",
+							"role": "abc123",
+							"thumb": "http://image.tmdb.org/t/p/original/7bd8Qtmz25PtMuVN8uSzTp8wemx.jpg"
+						},
+						{
+							"_elementType": "abc123",
+							"id": 2049,
+							"tag": "abc123",
+							"role": "abc123",
+							"thumb": "http://image.tmdb.org/t/p/original/nTJQPpn8OBkFM31rukjxM32rA0F.jpg"
+						},
+						{
+							"_elementType": "abc123",
+							"id": 2050,
+							"tag": "abc123",
+							"role": "abc123",
+							"thumb": "http://image.tmdb.org/t/p/original/sCeY5nuPUhfwWElxNtXuwRYKMBr.jpg"
+						},
+						{
+							"_elementType": "abc123",
+							"id": 2051,
+							"tag": "abc123",
+							"role": "abc123",
+							"thumb": "http://image.tmdb.org/t/p/original/ycNO8wU6H75wDDfojMCTjoxtEmt.jpg"
+						},
+						{
+							"_elementType": "abc123",
+							"id": 2052,
+							"tag": "abc123",
+							"role": "abc123",
+							"thumb": "http://image.tmdb.org/t/p/original/hQyyGPUHmbp5A4f9vI7z0dQGpuY.jpg"
+						},
+						{
+							"_elementType": "abc123",
+							"id": 2053,
+							"tag": "abc123",
+							"role": "Amir"
+						}
+					]
+				}
+			]
+		}
+	`
+
+	query := "blahblah"
+
+	_, _plex := newTestServer(200, testData)
+
+	_, err := _plex.GetMediaInfo(query)
+
+	if err != nil {
+		t.Error(err.Error())
+	}
+}

@@ -80,6 +80,43 @@ func (p *Plex) Search(title string) (SearchResults, error) {
 	return results, nil
 }
 
+// GetMediaInfo can get a show's season titles. My use-case would be getting the season titles after using Search()
+// It should be of the form "library/metadata/797"
+func (p *Plex) GetMediaInfo(key string) (searchResultsMoreInfo, error) {
+	if key == "" {
+		return searchResultsMoreInfo{}, errors.New("ERROR: A key is required")
+	}
+
+	newKey, err := url.QueryUnescape(key)
+
+	if err != nil {
+		return searchResultsMoreInfo{}, err
+	}
+
+	query := fmt.Sprintf("%s/%s", p.URL, newKey)
+
+	resp, respErr := p.get(query)
+
+	if respErr != nil {
+		return searchResultsMoreInfo{}, respErr
+	}
+
+	// Unauthorized
+	if resp.StatusCode == 401 {
+		return searchResultsMoreInfo{}, errors.New("You are not authorized to access that server")
+	}
+
+	defer resp.Body.Close()
+
+	var results searchResultsMoreInfo
+
+	if err := json.NewDecoder(resp.Body).Decode(&results); err != nil {
+		return searchResultsMoreInfo{}, err
+	}
+
+	return results, nil
+}
+
 // Test your connection to your Plex Media Server
 func (p *Plex) Test() (bool, error) {
 
