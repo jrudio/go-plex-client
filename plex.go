@@ -81,19 +81,12 @@ func (p *Plex) Search(title string) (SearchResults, error) {
 }
 
 // GetMediaInfo can get a show's season titles. My use-case would be getting the season titles after using Search()
-// It should be of the form "library/metadata/797"
 func (p *Plex) GetMediaInfo(key string) (searchResultsMoreInfo, error) {
 	if key == "" {
 		return searchResultsMoreInfo{}, errors.New("ERROR: A key is required")
 	}
 
-	newKey, err := url.QueryUnescape(key)
-
-	if err != nil {
-		return searchResultsMoreInfo{}, err
-	}
-
-	query := fmt.Sprintf("%s/%s", p.URL, newKey)
+	query := fmt.Sprintf("%s/library/metadata/%s", p.URL, key)
 
 	resp, respErr := p.get(query)
 
