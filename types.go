@@ -11,7 +11,6 @@ type Plex struct {
 	URL        string
 	Token      string
 	HTTPClient http.Client
-	headers    headers
 }
 
 // SearchResults a list of media returned when searching
@@ -59,94 +58,48 @@ type SearchResults struct {
 	MediaTagVersion string `json:"mediaTagVersion"`
 }
 
+// Using xml because plex kept spitting out different types when using json
 type searchResultsMoreInfo struct {
-	Children []struct {
-		Children []struct {
-			Children []struct {
-				Children []struct {
-					ElementType       string `json:"_elementType"`
-					BitDepth          int    `json:"bitDepth"`
-					Bitrate           int    `json:"bitrate"`
-					Cabac             bool   `json:"cabac"`
-					ChromaSubsampling string `json:"chromaSubsampling"`
-					Codec             string `json:"codec"`
-					CodecID           string `json:"codecID"`
-					Default           bool   `json:"default"`
-					Duration          int    `json:"duration"`
-					FrameRate         string `json:"frameRate"`
-					FrameRateMode     string `json:"frameRateMode"`
-					HasScalingMatrix  bool   `json:"hasScalingMatrix"`
-					Height            int    `json:"height"`
-					ID                int    `json:"id"`
-					Index             int    `json:"index"`
-					Language          string `json:"language"`
-					LanguageCode      string `json:"languageCode"`
-					Level             int    `json:"level"`
-					PixelFormat       string `json:"pixelFormat"`
-					Profile           string `json:"profile"`
-					RefFrames         int    `json:"refFrames"`
-					ScanType          string `json:"scanType"`
-					StreamType        int    `json:"streamType"`
-					Width             int    `json:"width"`
-				} `json:"_children"`
-				ElementType  string `json:"_elementType"`
-				AudioProfile string `json:"audioProfile"`
-				Container    string `json:"container"`
-				Duration     int    `json:"duration"`
-				File         string `json:"file"`
-				ID           string `json:"id"`
-				Key          string `json:"key"`
-				Size         int    `json:"size"`
-				VideoProfile string `json:"videoProfile"`
-			} `json:"_children"`
-			ElementType     string `json:"_elementType"`
-			AspectRatio     string `json:"aspectRatio"`
-			AudioChannels   int    `json:"audioChannels"`
-			AudioCodec      string `json:"audioCodec"`
-			AudioProfile    string `json:"audioProfile"`
-			Bitrate         int    `json:"bitrate"`
-			Container       string `json:"container"`
-			Duration        int    `json:"duration"`
-			Height          int    `json:"height"`
-			ID              int    `json:"id"`
-			VideoCodec      string `json:"videoCodec"`
-			VideoFrameRate  string `json:"videoFrameRate"`
-			VideoProfile    string `json:"videoProfile"`
-			VideoResolution string `json:"videoResolution"`
-			Width           int    `json:"width"`
-		} `json:"_children"`
-		ElementType           string `json:"_elementType"`
-		AddedAt               int    `json:"addedAt"`
-		Art                   string `json:"art"`
-		ChapterSource         string `json:"chapterSource"`
-		ContentRating         string `json:"contentRating"`
-		Duration              int    `json:"duration"`
-		GUID                  string `json:"guid"`
-		Key                   string `json:"key"`
-		LastViewedAt          int    `json:"lastViewedAt"`
-		LibrarySectionID      int    `json:"librarySectionID"`
-		OriginallyAvailableAt string `json:"originallyAvailableAt"`
-		PrimaryExtraKey       string `json:"primaryExtraKey"`
-		Rating                string `json:"rating"`
-		RatingKey             int    `json:"ratingKey"`
-		Studio                string `json:"studio"`
-		Summary               string `json:"summary"`
-		Tagline               string `json:"tagline"`
-		Thumb                 string `json:"thumb"`
-		Title                 string `json:"title"`
-		Type                  string `json:"type"`
-		UpdatedAt             int    `json:"updatedAt"`
-		ViewCount             int    `json:"viewCount"`
-		Year                  int    `json:"year"`
-	} `json:"_children"`
-	ElementType         string `json:"_elementType"`
-	AllowSync           string `json:"allowSync"`
-	Identifier          string `json:"identifier"`
-	LibrarySectionID    string `json:"librarySectionID"`
-	LibrarySectionTitle string `json:"librarySectionTitle"`
-	LibrarySectionUUID  string `json:"librarySectionUUID"`
-	MediaTagPrefix      string `json:"mediaTagPrefix"`
-	MediaTagVersion     string `json:"mediaTagVersion"`
+	XMLName             xml.Name `json:"MediaContainer" xml:"MediaContainer"`
+	Size                string   `json:"size" xml:"size,attr"`
+	AllowSync           string   `json:"allowSync" xml:"allowSync,attr"`
+	Art                 string   `json:"art" xml:"art,attr"`
+	Banner              string   `json:"banner" xml:"banner,attr"`
+	Identifier          string   `json:"identifier" xml:"identifier,attr"`
+	Key                 string   `json:"key" xml:"key,attr"`
+	LibrarySectionID    string   `json:"librarySectionID" xml:"librarySectionID,attr"`
+	LibrarySectionTitle string   `json:"librarySectionTitle" xml:"librarySectionTitle,attr"`
+	LibrarySectionUUID  string   `json:"librarySectionUUID" xml:"librarySectionUUID,attr"`
+	MediaTagPrefix      string   `json:"mediaTagPrefix" xml:"mediaTagPrefix,attr"`
+	MediaTagVersion     string   `json:"mediaTagVersion" xml:"mediaTagVersion,attr"`
+	Nocache             string   `json:"nocache" xml:"nocache,attr"`
+	ParentIndex         string   `json:"parentIndex" xml:"parentIndex,attr"`
+	ParentTitle         string   `json:"parentTitle" xml:"parentTitle,attr"`
+	ParentYear          string   `json:"parentYear" xml:"parentYear,attr"`
+	Summary             string   `json:"summary" xml:"summary,attr"`
+	Theme               string   `json:"theme" xml:"theme,attr"`
+	Thumb               string   `json:"thumb" xml:"thumb,attr"`
+	Title1              string   `json:"title1" xml:"title1,attr"`
+	Title2              string   `json:"title2" xml:"title2,attr"`
+	ViewGroup           string   `json:"viewGroup" xml:"viewGroup,attr"`
+	ViewMode            string   `json:"viewMode" xml:"viewMode,attr"`
+	Directory           []struct {
+		LeafCount       string `json:"leafCount" xml:"leafCount,attr"`
+		Thumb           string `json:"thumb" xml:"thumb,attr"`
+		ViewedLeafCount string `json:"viewedLeafCount" xml:"viewedLeafCount,attr"`
+		Key             string `json:"key" xml:"key,attr"`
+		Title           string `json:"title" xml:"title,attr"`
+		RatingKey       string `json:"ratingKey" xml:"ratingKey,attr"`
+		ParentRatingKey string `json:"parentRatingKey" xml:"parentRatingKey,attr"`
+		Type            string `json:"type" xml:"type,attr"`
+		ParentKey       string `json:"parentKey" xml:"parentKey,attr"`
+		Summary         string `json:"summary" xml:"summary,attr"`
+		Index           string `json:"index" xml:"index,attr"`
+		ViewCount       string `json:"viewCount" xml:"viewCount,attr"`
+		LastViewedAt    string `json:"lastViewedAt" xml:"lastViewedAt,attr"`
+		AddedAt         string `json:"addedAt" xml:"addedAt,attr"`
+		UpdatedAt       string `json:"updatedAt" xml:"updatedAt,attr"`
+	} `json:"directory" xml:"Directory"`
 }
 
 type plexResponse struct {

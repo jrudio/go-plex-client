@@ -15,9 +15,18 @@ import (
 	"time"
 )
 
-const (
-	plexURL = "https://plex.tv"
-)
+const plexURL = "https://plex.tv"
+
+var defaultHeaders = headers{
+	Platform:        runtime.GOOS,
+	PlatformVersion: "0.0.0",
+	Product:         "Go Plex Client",
+	Version:         "0.0.1",
+	Device:          runtime.GOOS + " " + runtime.GOARCH,
+	ContainerSize:   "Plex-Container-Size=50",
+	ContainerStart:  "X-Plex-Container-Start=0",
+	Accept:          "application/json",
+}
 
 // New creates a new plex instance that is required to
 // to make requests to your Plex Media Server
@@ -31,16 +40,6 @@ func New(baseURL, token string) (*Plex, error) {
 	return &Plex{
 		URL:   baseURL,
 		Token: token,
-		headers: headers{
-			Platform:        runtime.GOOS,
-			PlatformVersion: "0.0.0",
-			Product:         "Go Plex Client",
-			Version:         "0.0.1",
-			Device:          runtime.GOOS + " " + runtime.GOARCH,
-			ContainerSize:   "Plex-Container-Size=50",
-			ContainerStart:  "X-Plex-Container-Start=0",
-			Accept:          "application/json",
-		},
 		HTTPClient: http.Client{
 			Timeout: 3 * time.Second,
 		},
@@ -58,7 +57,7 @@ func (p *Plex) Search(title string) (SearchResults, error) {
 
 	var results SearchResults
 
-	resp, respErr := p.get(query)
+	resp, respErr := p.get(query, defaultHeaders)
 
 	if respErr != nil {
 		return SearchResults{}, respErr
@@ -86,9 +85,12 @@ func (p *Plex) GetMediaInfo(key string) (searchResultsMoreInfo, error) {
 		return searchResultsMoreInfo{}, errors.New("ERROR: A key is required")
 	}
 
-	query := fmt.Sprintf("%s/library/metadata/%s", p.URL, key)
+	query := fmt.Sprintf("%s/library/metadata/%s/children", p.URL, key)
 
-	resp, respErr := p.get(query)
+	newHeaders := defaultHeaders
+	newHeaders.Accept = "application/xml"
+
+	resp, respErr := p.get(query, newHeaders)
 
 	if respErr != nil {
 		return searchResultsMoreInfo{}, respErr
@@ -103,17 +105,25 @@ func (p *Plex) GetMediaInfo(key string) (searchResultsMoreInfo, error) {
 
 	var results searchResultsMoreInfo
 
-	if err := json.NewDecoder(resp.Body).Decode(&results); err != nil {
+	if err := xml.NewDecoder(resp.Body).Decode(&results); err != nil {
 		return searchResultsMoreInfo{}, err
 	}
 
 	return results, nil
 }
 
+// GetThumbnail returns the response of a request to pms thumbnail
+// My ideal use case would be to proxy a request to pms without exposing the plex token
+func (p *Plex) GetThumbnail(key, thumbnailID string) (*http.Response, error) {
+	query := fmt.Sprintf("%s/library/metadata/%s/thumb/%s", p.URL, key, thumbnailID)
+
+	return p.get(query, defaultHeaders)
+}
+
 // Test your connection to your Plex Media Server
 func (p *Plex) Test() (bool, error) {
 
-	resp, respErr := p.get(p.URL)
+	resp, respErr := p.get(p.URL, defaultHeaders)
 
 	if respErr != nil {
 		return false, respErr
@@ -140,7 +150,7 @@ func (p *Plex) KillTranscodeSession(sessionKey string) (bool, error) {
 
 	query := p.URL + "/video/:/transcode/universal/stop?session=" + sessionKey
 
-	resp, respErr := p.get(query)
+	resp, respErr := p.get(query, defaultHeaders)
 
 	if respErr != nil {
 		return false, respErr
@@ -164,7 +174,7 @@ func (p *Plex) GetTranscodeSessions() (transcodeSessionsResponse, error) {
 
 	query := p.URL + "/transcode/sessions"
 
-	resp, respErr := p.get(query)
+	resp, respErr := p.get(query, defaultHeaders)
 
 	if respErr != nil {
 		return result, respErr
@@ -189,7 +199,7 @@ func (p *Plex) GetPlexTokens(token string) (devicesResponse, error) {
 
 	query := plexURL + "/devices.json"
 
-	resp, respErr := p.get(query)
+	resp, respErr := p.get(query, defaultHeaders)
 
 	if respErr != nil {
 		return result, respErr
@@ -213,7 +223,7 @@ func (p *Plex) DeletePlexToken(token string) (bool, error) {
 
 	query := plexURL + "/devices/" + token + ".json"
 
-	resp, respErr := p.get(query)
+	resp, respErr := p.get(query, defaultHeaders)
 
 	if respErr != nil {
 		return result, respErr
@@ -238,7 +248,11 @@ func (p *Plex) GetFriends() ([]friends, error) {
 
 	query := plexURL + "/api/users"
 
-	resp, respErr := p.get(query)
+	newHeaders := defaultHeaders
+
+	defaultHeaders.Accept = "application/xml"
+
+	resp, respErr := p.get(query, newHeaders)
 
 	if respErr != nil {
 		return []friends{}, respErr
@@ -281,7 +295,7 @@ func (p *Plex) RemoveFriend(id string) (bool, error) {
 
 	query := plexURL + "/api/friends/" + id
 
-	resp, respErr := p.delete(query)
+	resp, respErr := p.delete(query, defaultHeaders)
 
 	if respErr != nil {
 		return false, respErr
@@ -331,7 +345,7 @@ func (p *Plex) InviteFriend(params InviteFriendParams) (bool, error) {
 		return false, jsonErr
 	}
 
-	resp, respErr := p.post(query, jsonBody)
+	resp, respErr := p.post(query, jsonBody, defaultHeaders)
 
 	if respErr != nil {
 		return false, respErr
@@ -395,7 +409,7 @@ func (p *Plex) UpdateFriendAccess(userID string, params UpdateFriendParams) (boo
 
 	query = parsedQuery.String()
 
-	resp, respErr := p.put(query)
+	resp, respErr := p.put(query, defaultHeaders)
 
 	if respErr != nil {
 		return false, respErr
@@ -414,7 +428,7 @@ func (p *Plex) UpdateFriendAccess(userID string, params UpdateFriendParams) (boo
 func (p *Plex) RemoveFriendAccessToLibrary(userID, machineID, serverID string) (bool, error) {
 	query := fmt.Sprintf("%s/api/servers/%s/shared_servers/%s", plexURL, machineID, serverID)
 
-	resp, respErr := p.delete(query)
+	resp, respErr := p.delete(query, defaultHeaders)
 
 	if respErr != nil {
 		return false, respErr
@@ -436,7 +450,7 @@ func (p *Plex) CheckUsernameOrEmail(usernameOrEmail string) (bool, error) {
 
 	query := fmt.Sprintf("%s/api/users/validate?invited_email=%s", plexURL, usernameOrEmail)
 
-	resp, respErr := p.post(query, nil)
+	resp, respErr := p.post(query, nil, defaultHeaders)
 
 	if respErr != nil {
 		return false, respErr
@@ -462,7 +476,7 @@ func (p *Plex) GetServers() ([]pmsDevices, error) {
 
 	query := plexURL + "/pms/resources.xml?includeHttps=1"
 
-	resp, respErr := p.get(query)
+	resp, respErr := p.get(query, defaultHeaders)
 
 	if respErr != nil {
 		return []pmsDevices{}, respErr
@@ -494,10 +508,13 @@ func (p *Plex) GetServers() ([]pmsDevices, error) {
 // GetSectionIDs of your plex server. This is useful when inviting a user
 // as you can restrict the invited user to a library (i.e. Movie's, TV Shows)
 func (p *Plex) GetSectionIDs(machineID string) (sectionIDResponse, error) {
-
 	query := fmt.Sprintf("%s/api/servers/%s", plexURL, machineID)
 
-	resp, respErr := p.get(query)
+	newHeaders := defaultHeaders
+
+	newHeaders.Accept = "accept/xml"
+
+	resp, respErr := p.get(query, newHeaders)
 
 	if respErr != nil {
 		return sectionIDResponse{}, respErr
@@ -522,7 +539,7 @@ func (p *Plex) GetLibraries() (librarySections, error) {
 
 	query := fmt.Sprintf("%s/library/sections", p.URL)
 
-	resp, respErr := p.get(query)
+	resp, respErr := p.get(query, defaultHeaders)
 
 	if respErr != nil {
 		return librarySections{}, respErr
@@ -550,7 +567,7 @@ func (p *Plex) GetLibraryLabels(sectionKey, sectionIndex string) (libraryLabels,
 
 	query := fmt.Sprintf("%s/library/sections/%s/labels?type=%s", p.URL, sectionKey, sectionIndex)
 
-	resp, respErr := p.get(query)
+	resp, respErr := p.get(query, defaultHeaders)
 
 	if respErr != nil {
 		return libraryLabels{}, respErr
@@ -592,7 +609,7 @@ func (p *Plex) AddLabelToMedia(_type, id, label, locked string) (bool, error) {
 
 	query = parsedQuery.String()
 
-	resp, respErr := p.put(query)
+	resp, respErr := p.put(query, defaultHeaders)
 
 	if respErr != nil {
 		return false, respErr
@@ -625,7 +642,7 @@ func (p *Plex) RemoveLabelFromMedia(_type, id, label, locked string) (bool, erro
 
 	query = parsedQuery.String()
 
-	resp, respErr := p.put(query)
+	resp, respErr := p.put(query, defaultHeaders)
 
 	if respErr != nil {
 		return false, respErr
@@ -638,21 +655,16 @@ func (p *Plex) RemoveLabelFromMedia(_type, id, label, locked string) (bool, erro
 
 // GetSessions of devices currently consuming media
 func (p *Plex) GetSessions() (currentSessions, error) {
-	acceptType := p.headers.Accept
-
-	// Request default type
-	p.headers.Accept = ""
+	newHeaders := defaultHeaders
+	newHeaders.Accept = "application/xml"
 
 	query := fmt.Sprintf("%s/status/sessions", p.URL)
 
-	resp, respErr := p.get(query)
+	resp, respErr := p.get(query, newHeaders)
 
 	if respErr != nil {
 		return currentSessions{}, respErr
 	}
-
-	// Return value to what it was before we touched it
-	p.headers.Accept = acceptType
 
 	defer resp.Body.Close()
 
