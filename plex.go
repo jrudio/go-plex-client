@@ -112,6 +112,42 @@ func (p *Plex) GetMediaInfo(key string) (searchResultsMoreInfo, error) {
 	return results, nil
 }
 
+// GetEpisodes returns episodes of a season of a show
+func (p *Plex) GetEpisodes(key string) (searchResultsEpisode, error) {
+	if key == "" {
+		return searchResultsEpisode{}, errors.New("Key is required")
+	}
+
+	query := fmt.Sprintf("%s/library/metadata/%s/children", p.URL, key)
+
+	resp, respErr := p.get(query, defaultHeaders)
+
+	if respErr != nil {
+		return searchResultsEpisode{}, respErr
+	}
+
+	// Unauthorized
+	if resp.StatusCode == 401 {
+		return searchResultsEpisode{}, errors.New("You are not authorized to access that server")
+	}
+
+	defer resp.Body.Close()
+
+	var results searchResultsEpisode
+
+	if err := json.NewDecoder(resp.Body).Decode(&results); err != nil {
+		return searchResultsEpisode{}, err
+	}
+
+	return results, nil
+
+}
+
+// GetAllEpisodes returns all episodes of a show
+func (p *Plex) GetAllEpisodes(key string) (searchResultsEpisode, error) {
+	return searchResultsEpisode{}, nil
+}
+
 // GetThumbnail returns the response of a request to pms thumbnail
 // My ideal use case would be to proxy a request to pms without exposing the plex token
 func (p *Plex) GetThumbnail(key, thumbnailID string) (*http.Response, error) {
@@ -654,7 +690,7 @@ func (p *Plex) RemoveLabelFromMedia(_type, id, label, locked string) (bool, erro
 }
 
 // GetSessions of devices currently consuming media
-func (p *Plex) GetSessions() (currentSessions, error) {
+func (p *Plex) GetSessions() (CurrentSessions, error) {
 	newHeaders := defaultHeaders
 	newHeaders.Accept = "application/xml"
 
@@ -663,19 +699,19 @@ func (p *Plex) GetSessions() (currentSessions, error) {
 	resp, respErr := p.get(query, newHeaders)
 
 	if respErr != nil {
-		return currentSessions{}, respErr
+		return CurrentSessions{}, respErr
 	}
 
 	defer resp.Body.Close()
 
 	if resp.StatusCode != 200 {
-		return currentSessions{}, errors.New(resp.Status)
+		return CurrentSessions{}, errors.New(resp.Status)
 	}
 
-	var result currentSessions
+	var result CurrentSessions
 
 	if err := xml.NewDecoder(resp.Body).Decode(&result); err != nil {
-		return currentSessions{}, err
+		return CurrentSessions{}, err
 	}
 
 	return result, nil
