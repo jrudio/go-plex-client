@@ -79,10 +79,43 @@ func (p *Plex) Search(title string) (SearchResults, error) {
 	return results, nil
 }
 
-// GetMediaInfo can get a show's season titles. My use-case would be getting the season titles after using Search()
-func (p *Plex) GetMediaInfo(key string) (searchResultsMoreInfo, error) {
+// GetMetadata can get some media info
+func (p *Plex) GetMetadata(key string) (mediaMetadata, error) {
 	if key == "" {
-		return searchResultsMoreInfo{}, errors.New("ERROR: A key is required")
+		return mediaMetadata{}, errors.New("ERROR: A key is required")
+	}
+
+	query := fmt.Sprintf("%s/library/metadata/%s", p.URL, key)
+
+	newHeaders := defaultHeaders
+	newHeaders.Accept = "application/xml"
+
+	resp, respErr := p.get(query, newHeaders)
+
+	if respErr != nil {
+		return mediaMetadata{}, respErr
+	}
+
+	// Unauthorized
+	if resp.StatusCode == 401 {
+		return mediaMetadata{}, errors.New("You are not authorized to access that server")
+	}
+
+	defer resp.Body.Close()
+
+	var results mediaMetadata
+
+	if err := xml.NewDecoder(resp.Body).Decode(&results); err != nil {
+		return mediaMetadata{}, err
+	}
+
+	return results, nil
+}
+
+// GetMetadataChildren can get a show's season titles. My use-case would be getting the season titles after using Search()
+func (p *Plex) GetMetadataChildren(key string) (mediaMetadataChildren, error) {
+	if key == "" {
+		return mediaMetadataChildren{}, errors.New("ERROR: A key is required")
 	}
 
 	query := fmt.Sprintf("%s/library/metadata/%s/children", p.URL, key)
@@ -93,23 +126,74 @@ func (p *Plex) GetMediaInfo(key string) (searchResultsMoreInfo, error) {
 	resp, respErr := p.get(query, newHeaders)
 
 	if respErr != nil {
-		return searchResultsMoreInfo{}, respErr
+		return mediaMetadataChildren{}, respErr
 	}
 
 	// Unauthorized
 	if resp.StatusCode == 401 {
-		return searchResultsMoreInfo{}, errors.New("You are not authorized to access that server")
+		return mediaMetadataChildren{}, errors.New("You are not authorized to access that server")
 	}
 
 	defer resp.Body.Close()
 
-	var results searchResultsMoreInfo
+	var results mediaMetadataChildren
 
 	if err := xml.NewDecoder(resp.Body).Decode(&results); err != nil {
-		return searchResultsMoreInfo{}, err
+		return mediaMetadataChildren{}, err
 	}
 
 	return results, nil
+}
+
+// GetMediaTypeID returns plex's media type id
+func GetMediaTypeID(mediaType string) string {
+	switch mediaType {
+	case "movie":
+		return "1"
+	case "show":
+		return "2"
+	case "season":
+		return "3"
+	case "episode":
+		return "4"
+	case "trailer":
+		return "5"
+	case "comic":
+		return "6"
+	case "person":
+		return "7"
+	case "artist":
+		return "8"
+	case "album":
+		return "9"
+	case "track":
+		return "10"
+	case "photoAlbum":
+		return "11"
+	case "picture":
+		return "12"
+	case "photo":
+		return "13"
+	case "clip":
+		return "14"
+	case "playlistItem":
+		return "15"
+	default:
+		return mediaType
+	}
+}
+
+// GetMediaType is a helper function that returns the media type. Usually, used after GetMetadata().
+func GetMediaType(info mediaMetadata) string {
+	if dType := info.Directory.Type; dType != "" {
+		return dType
+	}
+
+	if vType := info.Video.Type; vType != "" {
+		return vType
+	}
+
+	return ""
 }
 
 // GetEpisodes returns episodes of a season of a show
@@ -623,10 +707,12 @@ func (p *Plex) GetLibraryLabels(sectionKey, sectionIndex string) (libraryLabels,
 }
 
 // AddLabelToMedia restrict access to certain media. Requires a Plex Pass.
+// mediaType is the media type (1), id is the ratingKey or media id, label is your label, locked is unknown
+// 1. A reference to the plex media types: https://github.com/Arcanemagus/plex-api/wiki/MediaTypes
 // XXX: Currently plex is capitalizing the first letter
-func (p *Plex) AddLabelToMedia(_type, id, label, locked string) (bool, error) {
+func (p *Plex) AddLabelToMedia(mediaType, sectionID, id, label, locked string) (bool, error) {
 
-	query := fmt.Sprintf("%s/library/sections/3/all", p.URL)
+	query := fmt.Sprintf("%s/library/sections/%s/all", p.URL, sectionID)
 
 	parsedQuery, parseErr := url.Parse(query)
 
@@ -636,10 +722,10 @@ func (p *Plex) AddLabelToMedia(_type, id, label, locked string) (bool, error) {
 
 	vals := parsedQuery.Query()
 
-	vals.Add("type", _type)
+	vals.Add("type", mediaType)
 	vals.Add("id", id)
 	vals.Add("label[0].tag.tag", label)
-	vals.Add("label.locked", locked)
+	// vals.Add("label.locked", locked)
 
 	parsedQuery.RawQuery = vals.Encode()
 
@@ -657,9 +743,9 @@ func (p *Plex) AddLabelToMedia(_type, id, label, locked string) (bool, error) {
 }
 
 // RemoveLabelFromMedia to remove a label from a piece of media Requires a Plex Pass.
-func (p *Plex) RemoveLabelFromMedia(_type, id, label, locked string) (bool, error) {
+func (p *Plex) RemoveLabelFromMedia(mediaType, sectionID, id, label, locked string) (bool, error) {
 
-	query := fmt.Sprintf("%s/library/sections/3/all", p.URL)
+	query := fmt.Sprintf("%s/library/sections/%s/all", p.URL, sectionID)
 
 	parsedQuery, parseErr := url.Parse(query)
 
@@ -669,7 +755,7 @@ func (p *Plex) RemoveLabelFromMedia(_type, id, label, locked string) (bool, erro
 
 	vals := parsedQuery.Query()
 
-	vals.Add("type", _type)
+	vals.Add("type", mediaType)
 	vals.Add("id", id)
 	vals.Add("label[].tag.tag-", label)
 	vals.Add("label.locked", locked)
