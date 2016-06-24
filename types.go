@@ -1031,5 +1031,23 @@ type CurrentSessions struct {
 			Vendor            string `xml:"vendor,attr"`
 			Version           string `xml:"version,attr"`
 		} `xml:"Player"`
+		TranscodeSession struct {
+			Key           string `xml:"key,attr"`
+			Throttled     string `xml:"throttled,attr"`
+			Progress      string `xml:"progress,attr"`
+			Speed         string `xml:"speed,attr"`
+			Duration      string `xml:"duration,attr"`
+			Remaining     string `xml:"remaining,attr"`
+			Context       string `xml:"context,attr"`
+			VideoDecision string `xml:"videoDecision,attr"`
+			AudioDecision string `xml:"audioDecision,attr"`
+			Protocol      string `xml:"protocol,attr"`
+			Container     string `xml:"container,attr"`
+			VideoCodec    string `xml:"videoCodec,attr"`
+			AudioCodec    string `xml:"audioCodec,attr"`
+			AudioChannels string `xml:"audioChannels,attr"`
+			Width         string `xml:"width,attr"`
+			Height        string `xml:"height,attr"`
+		} `xml:"TranscodeSession"`
 	} `xml:"Track"`
 }
