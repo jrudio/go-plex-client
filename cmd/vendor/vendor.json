@@ -3,14 +3,14 @@
 	"ignore": "test",
 	"package": [
 		{
-			"checksumSHA1": "Jdfdu7iP4WaFKgV3HpnmgkA1vFo=",
-			"path": "github.com/codegangsta/cli",
-			"revision": "ff84ca213d003974c6900fdbde23332111d661c6",
-			"revisionTime": "2016-05-01T14:34:16Z"
-		},
-		{
 			"path": "github.com/jrudio/go-plex-client",
 			"revision": ""
+		},
+		{
+			"checksumSHA1": "jm802xmRmtkUSVCED5SiDwIe0Jo=",
+			"path": "github.com/urfave/cli",
+			"revision": "168c95418e66e019fe17b8f4f5c45aa62ff80e23",
+			"revisionTime": "2016-08-01T03:09:57Z"
 		}
 	],
 	"rootPath": "github.com/jrudio/go-plex-client/cmd"
