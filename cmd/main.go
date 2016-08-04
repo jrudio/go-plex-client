@@ -3,19 +3,20 @@ package main
 import (
 	"os"
 
-	"github.com/codegangsta/cli"
+	"fmt"
+	"github.com/jrudio/go-plex-client"
+	"github.com/urfave/cli"
 )
 
 var (
-	cmd     = commands{}
-	title   string
-	baseURL string
+	cmd      = commands{}
+	title    string
+	baseURL  string
+	token    string
+	plexConn *plex.Plex
 )
 
 func main() {
-
-	// flag.StringVar(&title, "title", "", "Enter the title of media to search within Plex")
-
 	app := cli.NewApp()
 
 	app.Flags = []cli.Flag{
@@ -23,6 +24,11 @@ func main() {
 			Name:        "url, u",
 			Usage:       "Plex url or ip",
 			Destination: &baseURL,
+		},
+		cli.StringFlag{
+			Name:        "token, tkn",
+			Usage:       "abc123",
+			Destination: &token,
 		},
 	}
 
@@ -38,30 +44,22 @@ func main() {
 			Usage:  "End a transcode session",
 			Action: cmd.endTranscode,
 		},
+		{
+			Name:    "server-info",
+			Aliases: []string{"si"},
+			Usage:   "Print info about your servers - ip, machine id, access tokens, etc",
+			Action:  cmd.getServersInfo,
+		},
 	}
 
 	app.Run(os.Args)
+}
 
-	// Display the search results
-	// results, resultErr := Plex.Search(title)
+func initPlex(c *cli.Context) {
+	var err error
 
-	// if resultErr != nil {
-	// 	log.Println(resultErr.Error())
-	// 	return
-	// }
-
-	// Last 4 results are not relevant
-	// itemCount := len(results.Children) - 4
-
-	// log.Println("Found")
-	// log.Println(itemCount)
-	// log.Println("items")
-
-	// for ii, r := range results.Children {
-	// 	if ii >= itemCount {
-	// 		break
-	// 	}
-
-	// 	log.Println(r.Title)
-	// }
+	if plexConn, err = plex.New(c.GlobalString("url"), c.GlobalString("token")); err != nil {
+		fmt.Println(err.Error())
+		os.Exit(1)
+	}
 }
