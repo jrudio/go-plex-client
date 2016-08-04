@@ -58,8 +58,8 @@ type SearchResults struct {
 	MediaTagVersion string `json:"mediaTagVersion"`
 }
 
-// Using xml because plex kept spitting out different types when using json
-type mediaMetadata struct {
+// MediaMetadata using xml because plex kept spitting out different types when using json
+type MediaMetadata struct {
 	XMLName             xml.Name `json:"MediaContainer" xml:"MediaContainer"`
 	Size                string   `json:"size" xml:"size,attr"`
 	AllowSync           string   `json:"allowSync" xml:"allowSync,attr"`
@@ -203,7 +203,8 @@ type mediaMetadata struct {
 	} `json:"directory" xml:"Directory"`
 }
 
-type mediaMetadataChildren struct {
+// MediaMetadataChildren returns metadata about a piece of media (tv show, movie, music, etc)
+type MediaMetadataChildren struct {
 	XMLName             xml.Name `json:"MediaContainer" xml:"MediaContainer"`
 	Size                string   `json:"size" xml:"size,attr"`
 	AllowSync           string   `json:"allowSync" xml:"allowSync,attr"`
@@ -345,7 +346,8 @@ type mediaMetadataChildren struct {
 	} `json:"directory" xml:"Directory"`
 }
 
-type searchResultsEpisode struct {
+// SearchResultsEpisode contains metadata about an episode
+type SearchResultsEpisode struct {
 	Children []struct {
 		Children []struct {
 			Children []struct {
@@ -491,7 +493,8 @@ type killTranscodeResponse struct {
 	ElementType string `json:"_elementType"`
 }
 
-type devicesResponse struct {
+// DevicesResponse  metadata of a device that has connected to your server
+type DevicesResponse struct {
 	ID         int    `json:"id"`
 	LastSeenAt string `json:"lastSeenAt"`
 	Name       string `json:"name"`
@@ -499,7 +502,8 @@ type devicesResponse struct {
 	Version    string `json:"version"`
 }
 
-type friends struct {
+// Friends are the plex accounts that have access to your server
+type Friends struct {
 	ID                        int    `xml:"id,attr"`
 	Title                     string `xml:"title,attr"`
 	Thumb                     string `xml:"thumb,attr"`
@@ -537,7 +541,7 @@ type friendsResponse struct {
 	MachineIdentifier string    `xml:"machineIdentifier,attr"`
 	TotalSize         string    `xml:"totalSize,attr"`
 	Size              int       `xml:"size,attr"`
-	User              []friends `xml:"User"`
+	User              []Friends `xml:"User"`
 }
 
 type resultResponse struct {
@@ -611,10 +615,11 @@ type inviteFriendSharingSettings struct {
 type resourcesResponse struct {
 	XMLName xml.Name     `xml:"MediaContainer"`
 	Size    int          `xml:"size,attr"`
-	Device  []pmsDevices `xml:"Device"`
+	Device  []PMSDevices `xml:"Device"`
 }
 
-type pmsDevices struct {
+// PMSDevices is the result of the https://plex.tv/pms/resources endpoint
+type PMSDevices struct {
 	Name                 string `json:"name" xml:"name,attr"`
 	Product              string `json:"product" xml:"product,attr"`
 	ProductVersion       string `json:"productVersion" xml:"productVersion,attr"`
@@ -640,8 +645,33 @@ type pmsDevices struct {
 	} `json:"connection" xml:"Connection"`
 }
 
-// Library
-type sectionIDResponse struct {
+// ServerInfo is the result of the https://plex.tv/api/servers endpoint
+type ServerInfo struct {
+	XMLName           xml.Name `xml:"MediaContainer"`
+	FriendlyName      string   `xml:"friendlyName,attr"`
+	Identifier        string   `xml:"identifier,attr"`
+	MachineIdentifier string   `xml:"machineIdentifier,attr"`
+	Size              int      `xml:"size,attr"`
+	Server            []struct {
+		AccessToken       string `xml:"accessToken,attr"`
+		Name              string `xml:"name,attr"`
+		Address           string `xml:"address,attr"`
+		Port              string `xml:"port,attr"`
+		Version           string `xml:"version,attr"`
+		Scheme            string `xml:"scheme,attr"`
+		Host              string `xml:"host,attr"`
+		LocalAddresses    string `xml:"localAddresses,attr"`
+		MachineIdentifier string `xml:"machineIdentifier,attr"`
+		CreatedAt         string `xml:"createdAt,attr"`
+		UpdatedAt         string `xml:"updatedAt,attr"`
+		Owned             string `xml:"owned,attr"`
+		Synced            string `xml:"synced,attr"`
+	} `xml:"Server"`
+}
+
+// SectionIDResponse the section id (or library id) of your server
+// useful when inviting a user to the server
+type SectionIDResponse struct {
 	XMLName           xml.Name `xml:"MediaContainer"`
 	FriendlyName      string   `xml:"friendlyName,attr"`
 	Identifier        string   `xml:"identifier,attr"`
@@ -669,7 +699,8 @@ type sectionIDResponse struct {
 	} `xml:"Server"`
 }
 
-type librarySections struct {
+// LibrarySections metadata of your library contents
+type LibrarySections struct {
 	ElementType     string `json:"_elementType"`
 	AllowSync       string `json:"allowSync"`
 	Identifier      string `json:"identifier"`
@@ -701,7 +732,8 @@ type librarySections struct {
 	} `json:"_children"`
 }
 
-type libraryLabels struct {
+// LibraryLabels are the existing labels set on your server
+type LibraryLabels struct {
 	ElementType     string `json:"_elementType"`
 	AllowSync       string `json:"allowSync"`
 	Art             string `json:"art"`
@@ -742,7 +774,8 @@ type request struct {
 
 // Sessions
 
-type transcodeSessionsResponse struct {
+// TranscodeSessionsResponse is the result for transcode session endpoint /transcode/sessions
+type TranscodeSessionsResponse struct {
 	Children []struct {
 		ElementType   string  `json:"_elementType"`
 		AudioChannels int     `json:"audioChannels"`

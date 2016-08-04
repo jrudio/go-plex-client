@@ -7,8 +7,28 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"os"
 	"testing"
 )
+
+var (
+	plexHost  string
+	plexToken string
+	plexConn  *Plex
+)
+
+func init() {
+	plexHost = os.Getenv("PLEX_HOST")
+	plexToken = os.Getenv("PLEX_TOKEN")
+
+	if plexHost != "" {
+		var err error
+		if plexConn, err = New(plexHost, plexToken); err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
+	}
+}
 
 func newTestServer(code int, body string) (*httptest.Server, *Plex) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -90,4 +110,20 @@ func TestGetMetadata(t *testing.T) {
 	if err != nil {
 		t.Error(err.Error())
 	}
+}
+
+func TestGetServersInfo(t *testing.T) {
+	if plexConn == nil {
+		t.Error("GetServerInfo requires a plex connection")
+		return
+	}
+
+	info, err := plexConn.GetServersInfo()
+
+	if err != nil {
+		t.Error(err.Error())
+		return
+	}
+
+	fmt.Println(info.Size)
 }

@@ -80,9 +80,9 @@ func (p *Plex) Search(title string) (SearchResults, error) {
 }
 
 // GetMetadata can get some media info
-func (p *Plex) GetMetadata(key string) (mediaMetadata, error) {
+func (p *Plex) GetMetadata(key string) (MediaMetadata, error) {
 	if key == "" {
-		return mediaMetadata{}, errors.New("ERROR: A key is required")
+		return MediaMetadata{}, errors.New("ERROR: A key is required")
 	}
 
 	query := fmt.Sprintf("%s/library/metadata/%s", p.URL, key)
@@ -93,29 +93,29 @@ func (p *Plex) GetMetadata(key string) (mediaMetadata, error) {
 	resp, respErr := p.get(query, newHeaders)
 
 	if respErr != nil {
-		return mediaMetadata{}, respErr
+		return MediaMetadata{}, respErr
 	}
 
 	// Unauthorized
 	if resp.StatusCode == 401 {
-		return mediaMetadata{}, errors.New("You are not authorized to access that server")
+		return MediaMetadata{}, errors.New("You are not authorized to access that server")
 	}
 
 	defer resp.Body.Close()
 
-	var results mediaMetadata
+	var results MediaMetadata
 
 	if err := xml.NewDecoder(resp.Body).Decode(&results); err != nil {
-		return mediaMetadata{}, err
+		return MediaMetadata{}, err
 	}
 
 	return results, nil
 }
 
 // GetMetadataChildren can get a show's season titles. My use-case would be getting the season titles after using Search()
-func (p *Plex) GetMetadataChildren(key string) (mediaMetadataChildren, error) {
+func (p *Plex) GetMetadataChildren(key string) (MediaMetadataChildren, error) {
 	if key == "" {
-		return mediaMetadataChildren{}, errors.New("ERROR: A key is required")
+		return MediaMetadataChildren{}, errors.New("ERROR: A key is required")
 	}
 
 	query := fmt.Sprintf("%s/library/metadata/%s/children", p.URL, key)
@@ -126,20 +126,20 @@ func (p *Plex) GetMetadataChildren(key string) (mediaMetadataChildren, error) {
 	resp, respErr := p.get(query, newHeaders)
 
 	if respErr != nil {
-		return mediaMetadataChildren{}, respErr
+		return MediaMetadataChildren{}, respErr
 	}
 
 	// Unauthorized
 	if resp.StatusCode == 401 {
-		return mediaMetadataChildren{}, errors.New("You are not authorized to access that server")
+		return MediaMetadataChildren{}, errors.New("You are not authorized to access that server")
 	}
 
 	defer resp.Body.Close()
 
-	var results mediaMetadataChildren
+	var results MediaMetadataChildren
 
 	if err := xml.NewDecoder(resp.Body).Decode(&results); err != nil {
-		return mediaMetadataChildren{}, err
+		return MediaMetadataChildren{}, err
 	}
 
 	return results, nil
@@ -184,7 +184,7 @@ func GetMediaTypeID(mediaType string) string {
 }
 
 // GetMediaType is a helper function that returns the media type. Usually, used after GetMetadata().
-func GetMediaType(info mediaMetadata) string {
+func GetMediaType(info MediaMetadata) string {
 	if dType := info.Directory.Type; dType != "" {
 		return dType
 	}
@@ -197,9 +197,9 @@ func GetMediaType(info mediaMetadata) string {
 }
 
 // GetEpisodes returns episodes of a season of a show
-func (p *Plex) GetEpisodes(key string) (searchResultsEpisode, error) {
+func (p *Plex) GetEpisodes(key string) (SearchResultsEpisode, error) {
 	if key == "" {
-		return searchResultsEpisode{}, errors.New("Key is required")
+		return SearchResultsEpisode{}, errors.New("Key is required")
 	}
 
 	query := fmt.Sprintf("%s/library/metadata/%s/children", p.URL, key)
@@ -207,20 +207,20 @@ func (p *Plex) GetEpisodes(key string) (searchResultsEpisode, error) {
 	resp, respErr := p.get(query, defaultHeaders)
 
 	if respErr != nil {
-		return searchResultsEpisode{}, respErr
+		return SearchResultsEpisode{}, respErr
 	}
 
 	// Unauthorized
 	if resp.StatusCode == 401 {
-		return searchResultsEpisode{}, errors.New("You are not authorized to access that server")
+		return SearchResultsEpisode{}, errors.New("You are not authorized to access that server")
 	}
 
 	defer resp.Body.Close()
 
-	var results searchResultsEpisode
+	var results SearchResultsEpisode
 
 	if err := json.NewDecoder(resp.Body).Decode(&results); err != nil {
-		return searchResultsEpisode{}, err
+		return SearchResultsEpisode{}, err
 	}
 
 	return results, nil
@@ -228,8 +228,8 @@ func (p *Plex) GetEpisodes(key string) (searchResultsEpisode, error) {
 }
 
 // GetAllEpisodes returns all episodes of a show
-func (p *Plex) GetAllEpisodes(key string) (searchResultsEpisode, error) {
-	return searchResultsEpisode{}, nil
+func (p *Plex) GetAllEpisodes(key string) (SearchResultsEpisode, error) {
+	return SearchResultsEpisode{}, nil
 }
 
 // GetThumbnail returns the response of a request to pms thumbnail
@@ -289,8 +289,8 @@ func (p *Plex) KillTranscodeSession(sessionKey string) (bool, error) {
 }
 
 // GetTranscodeSessions retrieves a list of all active transcode sessions
-func (p *Plex) GetTranscodeSessions() (transcodeSessionsResponse, error) {
-	var result transcodeSessionsResponse
+func (p *Plex) GetTranscodeSessions() (TranscodeSessionsResponse, error) {
+	var result TranscodeSessionsResponse
 
 	query := p.URL + "/transcode/sessions"
 
@@ -314,8 +314,8 @@ func (p *Plex) GetTranscodeSessions() (transcodeSessionsResponse, error) {
 }
 
 // GetPlexTokens not sure if it works
-func (p *Plex) GetPlexTokens(token string) (devicesResponse, error) {
-	var result devicesResponse
+func (p *Plex) GetPlexTokens(token string) (DevicesResponse, error) {
+	var result DevicesResponse
 
 	query := plexURL + "/devices.json"
 
@@ -362,7 +362,7 @@ func (p *Plex) DeletePlexToken(token string) (bool, error) {
 }
 
 // GetFriends returns all of your plex friends
-func (p *Plex) GetFriends() ([]friends, error) {
+func (p *Plex) GetFriends() ([]Friends, error) {
 
 	var plexFriendsResp friendsResponse
 
@@ -375,33 +375,33 @@ func (p *Plex) GetFriends() ([]friends, error) {
 	resp, respErr := p.get(query, newHeaders)
 
 	if respErr != nil {
-		return []friends{}, respErr
+		return []Friends{}, respErr
 	}
 
 	defer resp.Body.Close()
 
 	if resp.StatusCode == 401 {
-		return []friends{}, errors.New("You are not authorized to access this server")
+		return []Friends{}, errors.New("You are not authorized to access this server")
 	} else if resp.StatusCode != 200 {
 		statusCode := strconv.Itoa(resp.StatusCode)
-		return []friends{}, errors.New("Server replied with " + statusCode + " status code")
+		return []Friends{}, errors.New("Server replied with " + statusCode + " status code")
 	}
 
 	respBytes, err := ioutil.ReadAll(resp.Body)
 
 	if err != nil {
-		return []friends{}, err
+		return []Friends{}, err
 	}
 
 	err = xml.Unmarshal(respBytes, &plexFriendsResp)
 
 	if err != nil {
-		return []friends{}, err
+		return []Friends{}, err
 	}
 
 	friendCount := plexFriendsResp.Size
 
-	plexFriends := make([]friends, friendCount)
+	plexFriends := make([]Friends, friendCount)
 
 	for ii, f := range plexFriendsResp.User {
 		plexFriends[ii] = f
@@ -591,15 +591,15 @@ func (p *Plex) CheckUsernameOrEmail(usernameOrEmail string) (bool, error) {
 	return result.Code == 0, nil
 }
 
-// GetServers A list of your Plex servers
-func (p *Plex) GetServers() ([]pmsDevices, error) {
+// GetServers returns a list of your Plex servers
+func (p *Plex) GetServers() ([]PMSDevices, error) {
 
 	query := plexURL + "/pms/resources.xml?includeHttps=1"
 
 	resp, respErr := p.get(query, defaultHeaders)
 
 	if respErr != nil {
-		return []pmsDevices{}, respErr
+		return []PMSDevices{}, respErr
 	}
 
 	defer resp.Body.Close()
@@ -609,10 +609,10 @@ func (p *Plex) GetServers() ([]pmsDevices, error) {
 	if err := xml.NewDecoder(resp.Body).Decode(result); err != nil {
 		fmt.Println(err.Error())
 
-		return []pmsDevices{}, err
+		return []PMSDevices{}, err
 	}
 
-	var servers []pmsDevices
+	var servers []PMSDevices
 
 	for _, r := range result.Device {
 		if r.Provides != "server" {
@@ -625,9 +625,32 @@ func (p *Plex) GetServers() ([]pmsDevices, error) {
 	return servers, nil
 }
 
+// GetServersInfo returns info about your Plex servers
+func (p *Plex) GetServersInfo() (ServerInfo, error) {
+	query := plexURL + "/api/servers"
+
+	resp, respErr := p.get(query, defaultHeaders)
+
+	if respErr != nil {
+		return ServerInfo{}, respErr
+	}
+
+	defer resp.Body.Close()
+
+	result := ServerInfo{}
+
+	if err := xml.NewDecoder(resp.Body).Decode(&result); err != nil {
+		fmt.Println(err.Error())
+
+		return ServerInfo{}, err
+	}
+
+	return result, nil
+}
+
 // GetSectionIDs of your plex server. This is useful when inviting a user
 // as you can restrict the invited user to a library (i.e. Movie's, TV Shows)
-func (p *Plex) GetSectionIDs(machineID string) (sectionIDResponse, error) {
+func (p *Plex) GetSectionIDs(machineID string) (SectionIDResponse, error) {
 	query := fmt.Sprintf("%s/api/servers/%s", plexURL, machineID)
 
 	newHeaders := defaultHeaders
@@ -637,17 +660,17 @@ func (p *Plex) GetSectionIDs(machineID string) (sectionIDResponse, error) {
 	resp, respErr := p.get(query, newHeaders)
 
 	if respErr != nil {
-		return sectionIDResponse{}, respErr
+		return SectionIDResponse{}, respErr
 	}
 
 	defer resp.Body.Close()
 
-	var result sectionIDResponse
+	var result SectionIDResponse
 
 	if err := xml.NewDecoder(resp.Body).Decode(&result); err != nil {
 		fmt.Println(err.Error())
 
-		return sectionIDResponse{}, err
+		return SectionIDResponse{}, err
 	}
 
 	return result, nil
@@ -655,31 +678,31 @@ func (p *Plex) GetSectionIDs(machineID string) (sectionIDResponse, error) {
 
 // GetLibraries of your Plex server. My ideal use-case would be
 // to get library count to determine label index
-func (p *Plex) GetLibraries() (librarySections, error) {
+func (p *Plex) GetLibraries() (LibrarySections, error) {
 
 	query := fmt.Sprintf("%s/library/sections", p.URL)
 
 	resp, respErr := p.get(query, defaultHeaders)
 
 	if respErr != nil {
-		return librarySections{}, respErr
+		return LibrarySections{}, respErr
 	}
 
 	defer resp.Body.Close()
 
-	var result librarySections
+	var result LibrarySections
 
 	if err := json.NewDecoder(resp.Body).Decode(result); err != nil {
 		fmt.Println(err.Error())
 
-		return librarySections{}, err
+		return LibrarySections{}, err
 	}
 
 	return result, nil
 }
 
 // GetLibraryLabels of your plex server
-func (p *Plex) GetLibraryLabels(sectionKey, sectionIndex string) (libraryLabels, error) {
+func (p *Plex) GetLibraryLabels(sectionKey, sectionIndex string) (LibraryLabels, error) {
 
 	if sectionIndex == "" {
 		sectionIndex = "1"
@@ -690,17 +713,17 @@ func (p *Plex) GetLibraryLabels(sectionKey, sectionIndex string) (libraryLabels,
 	resp, respErr := p.get(query, defaultHeaders)
 
 	if respErr != nil {
-		return libraryLabels{}, respErr
+		return LibraryLabels{}, respErr
 	}
 
 	defer resp.Body.Close()
 
-	var result libraryLabels
+	var result LibraryLabels
 
 	if err := json.NewDecoder(resp.Body).Decode(result); err != nil {
 		fmt.Println(err.Error())
 
-		return libraryLabels{}, err
+		return LibraryLabels{}, err
 	}
 
 	return result, nil
