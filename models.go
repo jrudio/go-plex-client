@@ -645,6 +645,53 @@ type PMSDevices struct {
 	} `json:"connection" xml:"Connection"`
 }
 
+// BaseAPIResponse info about the Plex Media Server
+type BaseAPIResponse struct {
+	Children []struct {
+		ElementType string `json:"_elementType"`
+		Count       string `json:"count"`
+		Key         string `json:"key"`
+		Title       string `json:"title"`
+	} `json:"_children"`
+	ElementType                   string `json:"_elementType"`
+	AllowCameraUpload             string `json:"allowCameraUpload"`
+	AllowChannelAccess            string `json:"allowChannelAccess"`
+	AllowSharing                  string `json:"allowSharing"`
+	AllowSync                     string `json:"allowSync"`
+	BackgroundProcessing          string `json:"backgroundProcessing"`
+	Certificate                   string `json:"certificate"`
+	CompanionProxy                string `json:"companionProxy"`
+	EventStream                   string `json:"eventStream "`
+	FriendlyName                  string `json:"friendlyName"`
+	HubSearch                     string `json:"hubSearch"`
+	MachineIdentifier             string `json:"machineIdentifier"`
+	Multiuser                     string `json:"multiuser"`
+	MyPlex                        string `json:"myPlex"`
+	MyPlexMappingState            string `json:"myPlexMappingState"`
+	MyPlexSigninState             string `json:"myPlexSigninState"`
+	MyPlexSubscription            string `json:"myPlexSubscription"`
+	MyPlexUsername                string `json:"myPlexUsername"`
+	OwnerFeatures                 string `json:"ownerFeatures"`
+	Platform                      string `json:"platform"`
+	PlatformVersion               string `json:"platformVersion"`
+	PluginHost                    string `json:"pluginHost"`
+	ReadOnlyLibraries             string `json:"readOnlyLibraries"`
+	RequestParametersInCookie     string `json:"requestParametersInCookie"`
+	Sync                          string `json:"sync"`
+	TranscoderActiveVideoSessions string `json:"transcoderActiveVideoSessions"`
+	TranscoderAudio               string `json:"transcoderAudio"`
+	TranscoderLyrics              string `json:"transcoderLyrics"`
+	TranscoderPhoto               string `json:"transcoderPhoto"`
+	TranscoderSubtitles           string `json:"transcoderSubtitles"`
+	TranscoderVideo               string `json:"transcoderVideo"`
+	TranscoderVideoBitrates       string `json:"transcoderVideoBitrates"`
+	TranscoderVideoQualities      string `json:"transcoderVideoQualities"`
+	TranscoderVideoResolutions    string `json:"transcoderVideoResolutions"`
+	UpdatedAt                     string `json:"updatedAt"`
+	Updater                       string `json:"updater"`
+	Version                       string `json:"version"`
+}
+
 // ServerInfo is the result of the https://plex.tv/api/servers endpoint
 type ServerInfo struct {
 	XMLName           xml.Name `xml:"MediaContainer"`
@@ -678,25 +725,28 @@ type SectionIDResponse struct {
 	MachineIdentifier string   `xml:"machineIdentifier,attr"`
 	Size              int      `xml:"size,attr"`
 	Server            []struct {
-		Name              string `xml:"name,attr"`
-		Address           string `xml:"address,attr"`
-		Port              string `xml:"port,attr"`
-		Version           string `xml:"version,attr"`
-		Scheme            string `xml:"scheme,attr"`
-		Host              string `xml:"host,attr"`
-		LocalAddresses    string `xml:"localAddresses,attr"`
-		MachineIdentifier string `xml:"machineIdentifier,attr"`
-		CreatedAt         int    `xml:"createdAt,attr"`
-		UpdatedAt         int    `xml:"updatedAt,attr"`
-		Owned             int    `xml:"owned,attr"`
-		Synced            string `xml:"synced,attr"`
-		Section           []struct {
-			ID    int    `xml:"id,attr"`
-			Key   string `xml:"key,attr"`
-			Type  string `xml:"type,attr"`
-			Title string `xml:"title,attr"`
-		} `xml:"Section"`
+		Name              string           `xml:"name,attr"`
+		Address           string           `xml:"address,attr"`
+		Port              string           `xml:"port,attr"`
+		Version           string           `xml:"version,attr"`
+		Scheme            string           `xml:"scheme,attr"`
+		Host              string           `xml:"host,attr"`
+		LocalAddresses    string           `xml:"localAddresses,attr"`
+		MachineIdentifier string           `xml:"machineIdentifier,attr"`
+		CreatedAt         int              `xml:"createdAt,attr"`
+		UpdatedAt         int              `xml:"updatedAt,attr"`
+		Owned             int              `xml:"owned,attr"`
+		Synced            string           `xml:"synced,attr"`
+		Section           []ServerSections `xml:"Section"`
 	} `xml:"Server"`
+}
+
+// ServerSections contains information of your library sections
+type ServerSections struct {
+	ID    int    `xml:"id,attr"`
+	Key   string `xml:"key,attr"`
+	Type  string `xml:"type,attr"`
+	Title string `xml:"title,attr"`
 }
 
 // LibrarySections metadata of your library contents

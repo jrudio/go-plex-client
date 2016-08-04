@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/jrudio/go-plex-client"
 	"github.com/urfave/cli"
 )
 
@@ -79,6 +80,35 @@ func (cmd *commands) getServersInfo(c *cli.Context) error {
 		fmt.Println("\tVersion:", server.Version)
 		fmt.Println("\tAccess token:", server.AccessToken)
 		fmt.Println("\tOwned:", server.Owned)
+		fmt.Println("\t=========================")
+	}
+
+	return nil
+}
+
+func (cmd *commands) getSections(c *cli.Context) error {
+	initPlex(c)
+
+	// Grab machine id of the server we are connected to
+	machineID, err := plexConn.GetMachineID()
+
+	if err != nil {
+		fmt.Println(err.Error())
+		return err
+	}
+
+	var sections []plex.ServerSections
+	sections, err = plexConn.GetSections(machineID)
+
+	if err != nil {
+		fmt.Println(err.Error())
+		return err
+	}
+	for _, section := range sections {
+		fmt.Println("Section title:", section.Title)
+		fmt.Println("\tID:", section.ID)
+		fmt.Println("\tKey:", section.Key)
+		fmt.Println("\tType:", section.Type)
 		fmt.Println("\t=========================")
 	}
 

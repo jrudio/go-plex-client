@@ -597,9 +597,32 @@ func (p *Plex) GetServersInfo() (ServerInfo, error) {
 	return result, nil
 }
 
-// GetSectionIDs of your plex server. This is useful when inviting a user
+// GetMachineID returns the machine id of the currently connected server
+func (p *Plex) GetMachineID() (string, error) {
+	newHeaders := defaultHeaders
+
+	resp, err := p.get(p.URL, newHeaders)
+
+	if err != nil {
+		return "", err
+	}
+
+	defer resp.Body.Close()
+
+	var result BaseAPIResponse
+
+	if err = json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		fmt.Println(err.Error())
+
+		return "", err
+	}
+
+	return result.MachineIdentifier, nil
+}
+
+// GetSections of your plex server. This is useful when inviting a user
 // as you can restrict the invited user to a library (i.e. Movie's, TV Shows)
-func (p *Plex) GetSectionIDs(machineID string) (SectionIDResponse, error) {
+func (p *Plex) GetSections(machineID string) ([]ServerSections, error) {
 	query := fmt.Sprintf("%s/api/servers/%s", plexURL, machineID)
 
 	newHeaders := defaultHeaders
@@ -609,7 +632,7 @@ func (p *Plex) GetSectionIDs(machineID string) (SectionIDResponse, error) {
 	resp, respErr := p.get(query, newHeaders)
 
 	if respErr != nil {
-		return SectionIDResponse{}, respErr
+		return []ServerSections{}, respErr
 	}
 
 	defer resp.Body.Close()
@@ -619,10 +642,19 @@ func (p *Plex) GetSectionIDs(machineID string) (SectionIDResponse, error) {
 	if err := xml.NewDecoder(resp.Body).Decode(&result); err != nil {
 		fmt.Println(err.Error())
 
-		return SectionIDResponse{}, err
+		return []ServerSections{}, err
 	}
 
-	return result, nil
+	// Look for our server via the machine id
+	for _, server := range result.Server {
+		if server.MachineIdentifier != machineID {
+			continue
+		}
+
+		return server.Section, nil
+	}
+
+	return []ServerSections{}, nil
 }
 
 // GetLibraries of your Plex server. My ideal use-case would be

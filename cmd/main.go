@@ -50,6 +50,11 @@ func main() {
 			Usage:   "Print info about your servers - ip, machine id, access tokens, etc",
 			Action:  cmd.getServersInfo,
 		},
+		{
+			Name:   "sections",
+			Usage:  "Print info about your server's sections",
+			Action: cmd.getSections,
+		},
 	}
 
 	app.Run(os.Args)
