@@ -1,7 +1,7 @@
 package plex
 
 import (
-	// "encoding/xml"
+	"encoding/xml"
 	"errors"
 	"fmt"
 	"net/http"
@@ -126,4 +126,16 @@ func TestGetServersInfo(t *testing.T) {
 	}
 
 	fmt.Println(info.Size)
+}
+
+func TestCheckUsernameOrEmailResponse(t *testing.T) {
+	testData := []byte(`<?xml version="1.0" encoding="UTF-8"?>
+		<Response code="0" status="Valid user"/>
+	`)
+
+	result := new(resultResponse)
+
+	if err := xml.Unmarshal(testData, result); err != nil {
+		t.Error(err.Error())
+	}
 }

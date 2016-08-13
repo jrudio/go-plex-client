@@ -382,7 +382,7 @@ func (p *Plex) RemoveFriend(id string) (bool, error) {
 		return false, err
 	}
 
-	return result.Code == 0, nil
+	return result.Response.Code == 0, nil
 }
 
 // InviteFriend to access your Plex server. Add restrictions to media or give them full access.
@@ -537,7 +537,7 @@ func (p *Plex) CheckUsernameOrEmail(usernameOrEmail string) (bool, error) {
 		return false, err
 	}
 
-	return result.Code == 0, nil
+	return result.Response.Code == 0, nil
 }
 
 // GetServers returns a list of your Plex servers

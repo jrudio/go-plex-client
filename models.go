@@ -545,9 +545,11 @@ type friendsResponse struct {
 }
 
 type resultResponse struct {
-	XMLName xml.Name `xml:"Response"`
-	Code    int      `xml:"code,attr"`
-	Status  string   `xml:"status,attr"`
+	XMLName  xml.Name `xml:"Response"`
+	Response struct {
+		Code   int    `xml:"code,attr"`
+		Status string `xml:"status,attr"`
+	} `xml:"Response"`
 }
 
 type inviteFriendResponse struct {
