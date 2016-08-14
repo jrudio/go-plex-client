@@ -104,6 +104,7 @@ func (p *Plex) post(query string, body []byte, h headers) (*http.Response, error
 	// req.Header.Add("X-Plex-Container-Size", h.ContainerSize)
 	// req.Header.Add("X-Plex-Container-Start", h.ContainerStart)
 	req.Header.Add("X-Plex-Token", p.Token)
+	req.Header.Add("Content-Type", h.ContentType)
 
 	resp, err := client.Do(req)
 
