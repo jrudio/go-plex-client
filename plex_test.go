@@ -139,3 +139,39 @@ func TestCheckUsernameOrEmailResponse(t *testing.T) {
 		t.Error(err.Error())
 	}
 }
+
+func TestSectionIDResponse(t *testing.T) {
+	testData := []byte(`
+		<?xml version="1.0" encoding="UTF-8"?>
+		<MediaContainer friendlyName="myPlex" identifier="com.plexapp.plugins.myplex" machineIdentifier="abc" size="3">
+			<Server name="justin-server" address="173.60.127.196" port="32400" version="1.0.3.2461-35f0caa" scheme="http" host="1234" localAddresses="192.168.1.200" machineIdentifier="abc123" createdAt="1448443623" updatedAt="1471056069" owned="1" synced="0">
+				<Section id="abc123" key="2" type="movie" title="Movies"/>
+				<Section id="abc123" key="3" type="artist" title="Music"/>
+				<Section id="abc123" key="1" type="show" title="TV Shows"/>
+			</Server>
+		</MediaContainer>
+	`)
+
+	result := new(SectionIDResponse)
+
+	if err := xml.Unmarshal(testData, result); err != nil {
+		t.Error(err.Error())
+	}
+}
+
+func TestInviteFriendResponse(t *testing.T) {
+	testData := []byte(`
+		<?xml version="1.0" encoding="UTF-8"?>
+		<MediaContainer friendlyName="myPlex" identifier="com.plexapp.plugins.myplex" machineIdentifier="abc123" size="1">
+		<SharedServer id="1234" username="bob-guest" email="bob@gmail.com" userID="1234" accessToken="abc123" name="bob-server" acceptedAt="1465796576" invitedAt="1465691504" allowSync="0" allowCameraUpload="0" allowChannels="0" owned="0">
+			<Section id="1234" key="1" title="TV Shows" type="show" shared="1"/>
+		</SharedServer>
+		</MediaContainer>
+	`)
+
+	result := new(inviteFriendResponse)
+
+	if err := xml.Unmarshal(testData, result); err != nil {
+		t.Error(err.Error())
+	}
+}

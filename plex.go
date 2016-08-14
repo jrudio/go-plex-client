@@ -17,15 +17,18 @@ import (
 
 const plexURL = "https://plex.tv"
 
-var defaultHeaders = headers{
-	Platform:        runtime.GOOS,
-	PlatformVersion: "0.0.0",
-	Product:         "Go Plex Client",
-	Version:         "0.0.1",
-	Device:          runtime.GOOS + " " + runtime.GOARCH,
-	ContainerSize:   "Plex-Container-Size=50",
-	ContainerStart:  "X-Plex-Container-Start=0",
-	Accept:          "application/json",
+func defaultHeaders() headers {
+	return headers{
+		Platform:        runtime.GOOS,
+		PlatformVersion: "0.0.0",
+		Product:         "Go Plex Client",
+		Version:         "0.0.1",
+		Device:          runtime.GOOS + " " + runtime.GOARCH,
+		ContainerSize:   "Plex-Container-Size=50",
+		ContainerStart:  "X-Plex-Container-Start=0",
+		Accept:          "application/json",
+		ContentType:     "application/json",
+	}
 }
 
 // New creates a new plex instance that is required to
@@ -57,7 +60,7 @@ func (p *Plex) Search(title string) (SearchResults, error) {
 
 	var results SearchResults
 
-	resp, respErr := p.get(query, defaultHeaders)
+	resp, respErr := p.get(query, defaultHeaders())
 
 	if respErr != nil {
 		return SearchResults{}, respErr
@@ -87,7 +90,7 @@ func (p *Plex) GetMetadata(key string) (MediaMetadata, error) {
 
 	query := fmt.Sprintf("%s/library/metadata/%s", p.URL, key)
 
-	newHeaders := defaultHeaders
+	newHeaders := defaultHeaders()
 	newHeaders.Accept = "application/xml"
 
 	resp, respErr := p.get(query, newHeaders)
@@ -120,7 +123,7 @@ func (p *Plex) GetMetadataChildren(key string) (MediaMetadataChildren, error) {
 
 	query := fmt.Sprintf("%s/library/metadata/%s/children", p.URL, key)
 
-	newHeaders := defaultHeaders
+	newHeaders := defaultHeaders()
 	newHeaders.Accept = "application/xml"
 
 	resp, respErr := p.get(query, newHeaders)
@@ -153,7 +156,7 @@ func (p *Plex) GetEpisodes(key string) (SearchResultsEpisode, error) {
 
 	query := fmt.Sprintf("%s/library/metadata/%s/children", p.URL, key)
 
-	resp, respErr := p.get(query, defaultHeaders)
+	resp, respErr := p.get(query, defaultHeaders())
 
 	if respErr != nil {
 		return SearchResultsEpisode{}, respErr
@@ -186,13 +189,13 @@ func (p *Plex) GetAllEpisodes(key string) (SearchResultsEpisode, error) {
 func (p *Plex) GetThumbnail(key, thumbnailID string) (*http.Response, error) {
 	query := fmt.Sprintf("%s/library/metadata/%s/thumb/%s", p.URL, key, thumbnailID)
 
-	return p.get(query, defaultHeaders)
+	return p.get(query, defaultHeaders())
 }
 
 // Test your connection to your Plex Media Server
 func (p *Plex) Test() (bool, error) {
 
-	resp, respErr := p.get(p.URL, defaultHeaders)
+	resp, respErr := p.get(p.URL, defaultHeaders())
 
 	if respErr != nil {
 		return false, respErr
@@ -219,7 +222,7 @@ func (p *Plex) KillTranscodeSession(sessionKey string) (bool, error) {
 
 	query := p.URL + "/video/:/transcode/universal/stop?session=" + sessionKey
 
-	resp, respErr := p.get(query, defaultHeaders)
+	resp, respErr := p.get(query, defaultHeaders())
 
 	if respErr != nil {
 		return false, respErr
@@ -243,7 +246,7 @@ func (p *Plex) GetTranscodeSessions() (TranscodeSessionsResponse, error) {
 
 	query := p.URL + "/transcode/sessions"
 
-	resp, respErr := p.get(query, defaultHeaders)
+	resp, respErr := p.get(query, defaultHeaders())
 
 	if respErr != nil {
 		return result, respErr
@@ -268,7 +271,7 @@ func (p *Plex) GetPlexTokens(token string) (DevicesResponse, error) {
 
 	query := plexURL + "/devices.json"
 
-	resp, respErr := p.get(query, defaultHeaders)
+	resp, respErr := p.get(query, defaultHeaders())
 
 	if respErr != nil {
 		return result, respErr
@@ -292,7 +295,7 @@ func (p *Plex) DeletePlexToken(token string) (bool, error) {
 
 	query := plexURL + "/devices/" + token + ".json"
 
-	resp, respErr := p.get(query, defaultHeaders)
+	resp, respErr := p.get(query, defaultHeaders())
 
 	if respErr != nil {
 		return result, respErr
@@ -317,9 +320,9 @@ func (p *Plex) GetFriends() ([]Friends, error) {
 
 	query := plexURL + "/api/users"
 
-	newHeaders := defaultHeaders
+	newHeaders := defaultHeaders()
 
-	defaultHeaders.Accept = "application/xml"
+	newHeaders.Accept = "application/xml"
 
 	resp, respErr := p.get(query, newHeaders)
 
@@ -364,7 +367,7 @@ func (p *Plex) RemoveFriend(id string) (bool, error) {
 
 	query := plexURL + "/api/friends/" + id
 
-	resp, respErr := p.delete(query, defaultHeaders)
+	resp, respErr := p.delete(query, defaultHeaders())
 
 	if respErr != nil {
 		return false, respErr
@@ -414,7 +417,7 @@ func (p *Plex) InviteFriend(params InviteFriendParams) (bool, error) {
 		return false, jsonErr
 	}
 
-	resp, respErr := p.post(query, jsonBody, defaultHeaders)
+	resp, respErr := p.post(query, jsonBody, defaultHeaders())
 
 	if respErr != nil {
 		return false, respErr
@@ -478,7 +481,7 @@ func (p *Plex) UpdateFriendAccess(userID string, params UpdateFriendParams) (boo
 
 	query = parsedQuery.String()
 
-	resp, respErr := p.put(query, defaultHeaders)
+	resp, respErr := p.put(query, defaultHeaders())
 
 	if respErr != nil {
 		return false, respErr
@@ -497,7 +500,7 @@ func (p *Plex) UpdateFriendAccess(userID string, params UpdateFriendParams) (boo
 func (p *Plex) RemoveFriendAccessToLibrary(userID, machineID, serverID string) (bool, error) {
 	query := fmt.Sprintf("%s/api/servers/%s/shared_servers/%s", plexURL, machineID, serverID)
 
-	resp, respErr := p.delete(query, defaultHeaders)
+	resp, respErr := p.delete(query, defaultHeaders())
 
 	if respErr != nil {
 		return false, respErr
@@ -519,7 +522,7 @@ func (p *Plex) CheckUsernameOrEmail(usernameOrEmail string) (bool, error) {
 
 	query := fmt.Sprintf("%s/api/users/validate?invited_email=%s", plexURL, usernameOrEmail)
 
-	resp, respErr := p.post(query, nil, defaultHeaders)
+	resp, respErr := p.post(query, nil, defaultHeaders())
 
 	if respErr != nil {
 		return false, respErr
@@ -545,7 +548,7 @@ func (p *Plex) GetServers() ([]PMSDevices, error) {
 
 	query := plexURL + "/pms/resources.xml?includeHttps=1"
 
-	resp, respErr := p.get(query, defaultHeaders)
+	resp, respErr := p.get(query, defaultHeaders())
 
 	if respErr != nil {
 		return []PMSDevices{}, respErr
@@ -578,7 +581,7 @@ func (p *Plex) GetServers() ([]PMSDevices, error) {
 func (p *Plex) GetServersInfo() (ServerInfo, error) {
 	query := plexURL + "/api/servers"
 
-	resp, respErr := p.get(query, defaultHeaders)
+	resp, respErr := p.get(query, defaultHeaders())
 
 	if respErr != nil {
 		return ServerInfo{}, respErr
@@ -599,7 +602,7 @@ func (p *Plex) GetServersInfo() (ServerInfo, error) {
 
 // GetMachineID returns the machine id of the currently connected server
 func (p *Plex) GetMachineID() (string, error) {
-	newHeaders := defaultHeaders
+	newHeaders := defaultHeaders()
 
 	resp, err := p.get(p.URL, newHeaders)
 
@@ -625,7 +628,7 @@ func (p *Plex) GetMachineID() (string, error) {
 func (p *Plex) GetSections(machineID string) ([]ServerSections, error) {
 	query := fmt.Sprintf("%s/api/servers/%s", plexURL, machineID)
 
-	newHeaders := defaultHeaders
+	newHeaders := defaultHeaders()
 
 	newHeaders.Accept = "accept/xml"
 
@@ -663,7 +666,7 @@ func (p *Plex) GetLibraries() (LibrarySections, error) {
 
 	query := fmt.Sprintf("%s/library/sections", p.URL)
 
-	resp, respErr := p.get(query, defaultHeaders)
+	resp, respErr := p.get(query, defaultHeaders())
 
 	if respErr != nil {
 		return LibrarySections{}, respErr
@@ -691,7 +694,7 @@ func (p *Plex) GetLibraryLabels(sectionKey, sectionIndex string) (LibraryLabels,
 
 	query := fmt.Sprintf("%s/library/sections/%s/labels?type=%s", p.URL, sectionKey, sectionIndex)
 
-	resp, respErr := p.get(query, defaultHeaders)
+	resp, respErr := p.get(query, defaultHeaders())
 
 	if respErr != nil {
 		return LibraryLabels{}, respErr
@@ -735,7 +738,7 @@ func (p *Plex) AddLabelToMedia(mediaType, sectionID, id, label, locked string) (
 
 	query = parsedQuery.String()
 
-	resp, respErr := p.put(query, defaultHeaders)
+	resp, respErr := p.put(query, defaultHeaders())
 
 	if respErr != nil {
 		return false, respErr
@@ -768,7 +771,7 @@ func (p *Plex) RemoveLabelFromMedia(mediaType, sectionID, id, label, locked stri
 
 	query = parsedQuery.String()
 
-	resp, respErr := p.put(query, defaultHeaders)
+	resp, respErr := p.put(query, defaultHeaders())
 
 	if respErr != nil {
 		return false, respErr
@@ -781,7 +784,7 @@ func (p *Plex) RemoveLabelFromMedia(mediaType, sectionID, id, label, locked stri
 
 // GetSessions of devices currently consuming media
 func (p *Plex) GetSessions() (CurrentSessions, error) {
-	newHeaders := defaultHeaders
+	newHeaders := defaultHeaders()
 	newHeaders.Accept = "application/xml"
 
 	query := fmt.Sprintf("%s/status/sessions", p.URL)

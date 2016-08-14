@@ -818,6 +818,7 @@ type headers struct {
 	ContainerStart   string
 	Token            string
 	Accept           string
+	ContentType      string
 }
 
 type request struct {
