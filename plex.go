@@ -404,9 +404,11 @@ func (p *Plex) InviteFriend(params InviteFriendParams) (bool, error) {
 		LibrarySectionIDs: params.LibraryIDs,
 	}
 
-	settings := inviteFriendSharingSettings{
-		FilterMovies:     fmt.Sprintf("label=%s", label),
-		FilterTelevision: fmt.Sprintf("label=%s", label),
+	settings := inviteFriendSharingSettings{}
+
+	if label != "" {
+		settings.FilterMovies = fmt.Sprintf("label=%s", label)
+		settings.FilterTelevision = fmt.Sprintf("label=%s", label)
 	}
 
 	restrictions.SharingSettings = settings
