@@ -562,7 +562,7 @@ type inviteFriendResponse struct {
 		ID                string `xml:"id,attr"`
 		Username          string `xml:"username,attr"`
 		Email             string `xml:"email,attr"`
-		UserID            string `xml:"userID,attr"`
+		UserID            int    `xml:"userID,attr"`
 		AccessToken       string `xml:"accessToken,attr"`
 		Name              string `xml:"name,attr"`
 		AcceptedAt        string `xml:"acceptedAt,attr"`

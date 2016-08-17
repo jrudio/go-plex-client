@@ -389,9 +389,9 @@ func (p *Plex) RemoveFriend(id string) (bool, error) {
 }
 
 // InviteFriend to access your Plex server. Add restrictions to media or give them full access.
-func (p *Plex) InviteFriend(params InviteFriendParams) (bool, error) {
-
+func (p *Plex) InviteFriend(params InviteFriendParams) (int, error) {
 	usernameOrEmail := url.QueryEscape(params.UsernameOrEmail)
+
 	label := url.QueryEscape(params.Label)
 
 	query := fmt.Sprintf("%s/api/servers/%s/shared_servers", plexURL, params.MachineID)
@@ -416,13 +416,13 @@ func (p *Plex) InviteFriend(params InviteFriendParams) (bool, error) {
 	jsonBody, jsonErr := json.Marshal(restrictions)
 
 	if jsonErr != nil {
-		return false, jsonErr
+		return 0, jsonErr
 	}
 
 	resp, respErr := p.post(query, jsonBody, defaultHeaders())
 
 	if respErr != nil {
-		return false, respErr
+		return 0, respErr
 	}
 
 	defer resp.Body.Close()
@@ -430,20 +430,20 @@ func (p *Plex) InviteFriend(params InviteFriendParams) (bool, error) {
 	result := new(inviteFriendResponse)
 
 	if err := xml.NewDecoder(resp.Body).Decode(result); err != nil {
-		return false, err
-	}
-
-	if resp.StatusCode != 200 {
-		return false, nil
+		return 0, err
 	}
 
 	sharedServer := result.SharedServer
 
-	if sharedServer.Username != usernameOrEmail && sharedServer.Email != usernameOrEmail {
-		return false, nil
+	if resp.StatusCode != 200 {
+		return 0, errors.New("non-200 response code")
 	}
 
-	return true, nil
+	if sharedServer.Username != usernameOrEmail && sharedServer.Email != usernameOrEmail {
+		return 0, errors.New("username or email does not match expected output")
+	}
+
+	return sharedServer.UserID, nil
 }
 
 // UpdateFriendAccess limit your friends access to your plex server
