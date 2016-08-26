@@ -676,9 +676,13 @@ func (p *Plex) GetLibraries() (LibrarySections, error) {
 
 	defer resp.Body.Close()
 
+	if resp.StatusCode != http.StatusOK {
+		return LibrarySections{}, errors.New(resp.Status)
+	}
+
 	var result LibrarySections
 
-	if err := json.NewDecoder(resp.Body).Decode(result); err != nil {
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
 		fmt.Println(err.Error())
 
 		return LibrarySections{}, err
@@ -704,9 +708,13 @@ func (p *Plex) GetLibraryLabels(sectionKey, sectionIndex string) (LibraryLabels,
 
 	defer resp.Body.Close()
 
+	if resp.StatusCode != http.StatusOK {
+		return LibraryLabels{}, errors.New(resp.Status)
+	}
+
 	var result LibraryLabels
 
-	if err := json.NewDecoder(resp.Body).Decode(result); err != nil {
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
 		fmt.Println(err.Error())
 
 		return LibraryLabels{}, err
