@@ -691,6 +691,61 @@ func (p *Plex) GetLibraries() (LibrarySections, error) {
 	return result, nil
 }
 
+func (p *Plex) CreateLibrary(name, location, libraryType, agent, scanner string) error {
+	// all params are required
+	if name == "" {
+		return errors.New("name is required")
+	}
+
+	if location == "" {
+		return errors.New("location is required")
+	}
+
+	if libraryType == "" {
+		return errors.New("libraryType is required")
+	}
+
+	if agent == "" {
+		return errors.New("agent is required")
+	}
+
+	if scanner == "" {
+		return errors.New("scanner is required")
+	}
+
+	query := p.URL + "/library/sections"
+
+	parsedQuery, err := url.Parse(query)
+
+	if err != nil {
+		return err
+	}
+
+	queryValues := parsedQuery.Query()
+
+	queryValues.Add("name", name)
+	queryValues.Add("location", location)
+	queryValues.Add("type", libraryType)
+	queryValues.Add("agent", agent)
+	queryValues.Add("scanner", scanner)
+
+	parsedQuery.RawQuery = queryValues.Encode()
+
+	query = parsedQuery.String()
+
+	resp, err := p.post(query, nil, defaultHeaders())
+
+	if err != nil {
+		return err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return errors.New(resp.Status)
+	}
+
+	return nil
+}
+
 // GetLibraryLabels of your plex server
 func (p *Plex) GetLibraryLabels(sectionKey, sectionIndex string) (LibraryLabels, error) {
 
