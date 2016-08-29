@@ -691,7 +691,8 @@ func (p *Plex) GetLibraries() (LibrarySections, error) {
 	return result, nil
 }
 
-func (p *Plex) CreateLibrary(name, location, libraryType, agent, scanner string) error {
+// CreateLibrary will create a new library on your Plex server
+func (p *Plex) CreateLibrary(name, location, libraryType, agent, scanner, language string) error {
 	// all params are required
 	if name == "" {
 		return errors.New("name is required")
@@ -713,6 +714,10 @@ func (p *Plex) CreateLibrary(name, location, libraryType, agent, scanner string)
 		return errors.New("scanner is required")
 	}
 
+	if language == "" {
+		language = "en"
+	}
+
 	query := p.URL + "/library/sections"
 
 	parsedQuery, err := url.Parse(query)
@@ -725,6 +730,7 @@ func (p *Plex) CreateLibrary(name, location, libraryType, agent, scanner string)
 
 	queryValues.Add("name", name)
 	queryValues.Add("location", location)
+	queryValues.Add("language", language)
 	queryValues.Add("type", libraryType)
 	queryValues.Add("agent", agent)
 	queryValues.Add("scanner", scanner)
@@ -738,6 +744,27 @@ func (p *Plex) CreateLibrary(name, location, libraryType, agent, scanner string)
 	if err != nil {
 		return err
 	}
+
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusCreated {
+		return errors.New(resp.Status)
+	}
+
+	return nil
+}
+
+// DeleteLibrary removes the library from your Plex server via library key (or id)
+func (p *Plex) DeleteLibrary(key string) error {
+	query := fmt.Sprintf("%s/library/sections/%s", p.URL, key)
+
+	resp, err := p.delete(query, defaultHeaders())
+
+	if err != nil {
+		return err
+	}
+
+	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
 		return errors.New(resp.Status)
