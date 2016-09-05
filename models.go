@@ -493,6 +493,16 @@ type killTranscodeResponse struct {
 	ElementType string `json:"_elementType"`
 }
 
+// CreateLibraryParams params required to create a library
+type CreateLibraryParams struct {
+	Name        string
+	Location    string
+	LibraryType string
+	Agent       string
+	Scanner     string
+	Language    string
+}
+
 // DevicesResponse  metadata of a device that has connected to your server
 type DevicesResponse struct {
 	ID         int    `json:"id"`

@@ -692,30 +692,30 @@ func (p *Plex) GetLibraries() (LibrarySections, error) {
 }
 
 // CreateLibrary will create a new library on your Plex server
-func (p *Plex) CreateLibrary(name, location, libraryType, agent, scanner, language string) error {
+func (p *Plex) CreateLibrary(params CreateLibraryParams) error {
 	// all params are required
-	if name == "" {
+	if params.Name == "" {
 		return errors.New("name is required")
 	}
 
-	if location == "" {
+	if params.Location == "" {
 		return errors.New("location is required")
 	}
 
-	if libraryType == "" {
+	if params.LibraryType == "" {
 		return errors.New("libraryType is required")
 	}
 
-	if agent == "" {
+	if params.Agent == "" {
 		return errors.New("agent is required")
 	}
 
-	if scanner == "" {
+	if params.Scanner == "" {
 		return errors.New("scanner is required")
 	}
 
-	if language == "" {
-		language = "en"
+	if params.Language == "" {
+		params.Language = "en"
 	}
 
 	query := p.URL + "/library/sections"
@@ -728,12 +728,12 @@ func (p *Plex) CreateLibrary(name, location, libraryType, agent, scanner, langua
 
 	queryValues := parsedQuery.Query()
 
-	queryValues.Add("name", name)
-	queryValues.Add("location", location)
-	queryValues.Add("language", language)
-	queryValues.Add("type", libraryType)
-	queryValues.Add("agent", agent)
-	queryValues.Add("scanner", scanner)
+	queryValues.Add("name", params.Name)
+	queryValues.Add("location", params.Location)
+	queryValues.Add("language", params.Language)
+	queryValues.Add("type", params.LibraryType)
+	queryValues.Add("agent", params.Agent)
+	queryValues.Add("scanner", params.Scanner)
 
 	parsedQuery.RawQuery = queryValues.Encode()
 

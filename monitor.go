@@ -20,7 +20,7 @@ type Monitor struct {
 // ListInterface allows any datastore for users
 type ListInterface interface {
 	User(id int) (MonitoredUser, error)
-	AddUser(id int, ratingKey string) error
+	AddUser(id int, username, ratingKey string) error
 	RemoveUser(id int) error
 	SetField(id int, field string, value string) error
 	Count() int

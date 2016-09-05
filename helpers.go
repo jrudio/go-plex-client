@@ -1,5 +1,7 @@
 package plex
 
+import "errors"
+
 // GetMediaTypeID returns plex's media type id
 func GetMediaTypeID(mediaType string) string {
 	switch mediaType {
@@ -49,4 +51,41 @@ func GetMediaType(info MediaMetadata) string {
 	}
 
 	return ""
+}
+
+// LibraryParamsFromMediaType is a helper for CreateLibraryParams
+func LibraryParamsFromMediaType(mediaType string) (CreateLibraryParams, error) {
+	var params CreateLibraryParams
+
+	params.LibraryType = mediaType
+
+	switch mediaType {
+	case "movie":
+		params.Agent = "com.plexapp.agents.imdb"
+		params.Scanner = "Plex Movie Scanner"
+
+		return params, nil
+	case "show":
+		params.Agent = "com.plexapp.agents.thetvdb"
+		params.Scanner = "Plex Series Scanner"
+
+		return params, nil
+	case "music":
+		params.Agent = "com.plexapp.agents.lastfm"
+		params.Scanner = "Plex Music Scanner"
+
+		return params, nil
+	case "photo":
+		params.Agent = "com.plexapp.agents.none"
+		params.Scanner = "Plex Photo Scanner"
+
+		return params, nil
+	case "homevideo":
+		params.Agent = "com.plexapp.agents.none"
+		params.Scanner = "Plex Video Files Scanner"
+
+		return params, nil
+	default:
+		return params, errors.New("unknown library type")
+	}
 }
