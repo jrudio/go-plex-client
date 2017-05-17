@@ -39,6 +39,8 @@ type Webhook struct {
 		Title                string `json:"title"`
 		GrandparentKey       string `json:"grandparentKey"`
 		ParentKey            string `json:"parentKey"`
+		GrandparentTitle     string `json:"grandparentTitle"`
+		ParentTitle          string `json:"parentTitle"`
 		Summary              string `json:"summary"`
 		Index                int    `json:"index"`
 		ParentIndex          int    `json:"parentIndex"`
