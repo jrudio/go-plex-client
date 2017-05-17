@@ -78,7 +78,7 @@ func (wh *WebhookEvents) Handler(w http.ResponseWriter, r *http.Request) {
 		fn, ok := wh.events[hookEvent.Event]
 
 		if !ok {
-			fmt.Printf("unknown event name: %v", hookEvent.Event)
+			fmt.Printf("unknown event name: %v\n", hookEvent.Event)
 			return
 		}
 
@@ -120,31 +120,31 @@ func NewWebhook() *WebhookEvents {
 }
 
 // OnPlay executes when the webhook receives a play event
-func (wh *WebhookEvents) OnPlay(fn func(w Webhook)) {
-	wh.newWebhookEvent("media.play", fn)
+func (wh *WebhookEvents) OnPlay(fn func(w Webhook)) error {
+	return wh.newWebhookEvent("media.play", fn)
 }
 
 // OnPause executes when the webhook receives a pause event
-func (wh *WebhookEvents) OnPause(fn func(w Webhook)) {
-	wh.newWebhookEvent("media.pause", fn)
+func (wh *WebhookEvents) OnPause(fn func(w Webhook)) error {
+	return wh.newWebhookEvent("media.pause", fn)
 }
 
 // OnResume executes when the webhook receives a resume event
-func (wh *WebhookEvents) OnResume(fn func(w Webhook)) {
-	wh.newWebhookEvent("media.resume", fn)
+func (wh *WebhookEvents) OnResume(fn func(w Webhook)) error {
+	return wh.newWebhookEvent("media.resume", fn)
 }
 
 // OnStop executes when the webhook receives a stop event
-func (wh *WebhookEvents) OnStop(fn func(w Webhook)) {
-	wh.newWebhookEvent("media.stop", fn)
+func (wh *WebhookEvents) OnStop(fn func(w Webhook)) error {
+	return wh.newWebhookEvent("media.stop", fn)
 }
 
 // OnScrobble executes when the webhook receives a scrobble event
-func (wh *WebhookEvents) OnScrobble(fn func(w Webhook)) {
-	wh.newWebhookEvent("media.scrobble", fn)
+func (wh *WebhookEvents) OnScrobble(fn func(w Webhook)) error {
+	return wh.newWebhookEvent("media.scrobble", fn)
 }
 
 // OnRate executes when the webhook receives a rate event
-func (wh *WebhookEvents) OnRate(fn func(w Webhook)) {
-	wh.newWebhookEvent("media.rate", fn)
+func (wh *WebhookEvents) OnRate(fn func(w Webhook)) error {
+	return wh.newWebhookEvent("media.rate", fn)
 }

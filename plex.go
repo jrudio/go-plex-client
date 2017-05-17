@@ -901,3 +901,32 @@ func (p *Plex) GetSessions() (CurrentSessions, error) {
 
 	return result, nil
 }
+
+// TerminateSession will end a streaming session
+func (p *Plex) TerminateSession(sessionID string, reason string) error {
+	if reason == "" {
+		reason = "The server owner has ended the stream"
+	}
+
+	sessionID = url.QueryEscape(sessionID)
+	reason = url.QueryEscape(reason)
+
+	query := fmt.Sprintf("%s/status/sessions/terminate?sessionId=%s&reason=%s", p.URL, sessionID, reason)
+
+	newHeaders := defaultHeaders()
+	newHeaders.Accept = "application/xml"
+
+	resp, err := p.get(query, newHeaders)
+
+	if err != nil {
+		return fmt.Errorf("[Plex Go Client] %v", err)
+	}
+
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("[Plex Go Client] terminate session returned status code: %d", resp.StatusCode)
+	}
+
+	return nil
+}
