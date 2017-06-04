@@ -16,46 +16,54 @@ type Plex struct {
 // SearchResults a list of media returned when searching
 // for media via your plex server
 type SearchResults struct {
-	Children []struct {
-		Children []struct {
-			ElementType string `json:"_elementType"`
-			Tag         string `json:"tag"`
-		} `json:"_children"`
-		ElementType           string `json:"_elementType"`
-		AddedAt               int    `json:"addedAt"`
-		AllowSync             string `json:"allowSync"`
-		Art                   string `json:"art"`
-		Banner                string `json:"banner"`
-		ChildCount            int    `json:"childCount"`
-		ContentRating         string `json:"contentRating"`
-		Duration              int    `json:"duration"`
-		Index                 int    `json:"index"`
-		Key                   string `json:"key"`
-		LastViewedAt          int    `json:"lastViewedAt"`
-		LeafCount             int    `json:"leafCount"`
-		LibrarySectionID      string `json:"librarySectionID"`
-		LibrarySectionTitle   string `json:"librarySectionTitle"`
-		LibrarySectionUUID    string `json:"librarySectionUUID"`
-		OriginallyAvailableAt string `json:"originallyAvailableAt"`
-		Personal              string `json:"personal"`
-		Rating                string `json:"rating"`
-		RatingKey             int    `json:"ratingKey"`
-		SourceTitle           string `json:"sourceTitle"`
-		Studio                string `json:"studio"`
-		Summary               string `json:"summary"`
-		Theme                 string `json:"theme"`
-		Thumb                 string `json:"thumb"`
-		Title                 string `json:"title"`
-		Type                  string `json:"type"`
-		UpdatedAt             int    `json:"updatedAt"`
-		ViewCount             int    `json:"viewCount"`
-		ViewedLeafCount       int    `json:"viewedLeafCount"`
-		Year                  int    `json:"year"`
-	} `json:"_children"`
-	ElementType     string `json:"_elementType"`
-	Identifier      string `json:"identifier"`
-	MediaTagPrefix  string `json:"mediaTagPrefix"`
-	MediaTagVersion string `json:"mediaTagVersion"`
+	MediaContainer struct {
+		Metadata []struct {
+			Genre []struct {
+				Tag string `json:"tag"`
+			} `json:"Genre"`
+			Role []struct {
+				Tag string `json:"tag"`
+			} `json:"Role"`
+			AddedAt               int64   `json:"addedAt"`
+			AllowSync             bool    `json:"allowSync"`
+			Art                   string  `json:"art"`
+			Banner                string  `json:"banner"`
+			ChildCount            int64   `json:"childCount"`
+			ContentRating         string  `json:"contentRating"`
+			Duration              int64   `json:"duration"`
+			Index                 int64   `json:"index"`
+			Key                   string  `json:"key"`
+			LastViewedAt          int64   `json:"lastViewedAt"`
+			LeafCount             int64   `json:"leafCount"`
+			LibrarySectionID      int64   `json:"librarySectionID"`
+			LibrarySectionTitle   string  `json:"librarySectionTitle"`
+			LibrarySectionUUID    string  `json:"librarySectionUUID"`
+			OriginallyAvailableAt string  `json:"originallyAvailableAt"`
+			Personal              bool    `json:"personal"`
+			Rating                float64 `json:"rating"`
+			RatingKey             string  `json:"ratingKey"`
+			SourceTitle           string  `json:"sourceTitle"`
+			Studio                string  `json:"studio"`
+			Summary               string  `json:"summary"`
+			Theme                 string  `json:"theme"`
+			Thumb                 string  `json:"thumb"`
+			Title                 string  `json:"title"`
+			Type                  string  `json:"type"`
+			UpdatedAt             int64   `json:"updatedAt"`
+			ViewCount             int64   `json:"viewCount"`
+			ViewedLeafCount       int64   `json:"viewedLeafCount"`
+			Year                  int64   `json:"year"`
+		} `json:"Metadata"`
+		Provider []struct {
+			Key   string `json:"key"`
+			Title string `json:"title"`
+			Type  string `json:"type"`
+		} `json:"Provider"`
+		Identifier      string `json:"identifier"`
+		MediaTagPrefix  string `json:"mediaTagPrefix"`
+		MediaTagVersion int64  `json:"mediaTagVersion"`
+		Size            int64  `json:"size"`
+	} `json:"MediaContainer"`
 }
 
 // MediaMetadata using xml because plex kept spitting out different types when using json
