@@ -116,33 +116,33 @@ func (p *Plex) GetMetadata(key string) (MediaMetadata, error) {
 }
 
 // GetMetadataChildren can get a show's season titles. My use-case would be getting the season titles after using Search()
-func (p *Plex) GetMetadataChildren(key string) (MediaMetadataChildren, error) {
+func (p *Plex) GetMetadataChildren(key string) (MetadataChildren, error) {
 	if key == "" {
-		return MediaMetadataChildren{}, errors.New("ERROR: A key is required")
+		return MetadataChildren{}, errors.New("ERROR: A key is required")
 	}
 
 	query := fmt.Sprintf("%s/library/metadata/%s/children", p.URL, key)
 
 	newHeaders := defaultHeaders()
-	newHeaders.Accept = "application/xml"
+	newHeaders.Accept = "application/json"
 
 	resp, respErr := p.get(query, newHeaders)
 
 	if respErr != nil {
-		return MediaMetadataChildren{}, respErr
+		return MetadataChildren{}, respErr
 	}
 
 	// Unauthorized
 	if resp.StatusCode == 401 {
-		return MediaMetadataChildren{}, errors.New("You are not authorized to access that server")
+		return MetadataChildren{}, errors.New("You are not authorized to access that server")
 	}
 
 	defer resp.Body.Close()
 
-	var results MediaMetadataChildren
+	var results MetadataChildren
 
-	if err := xml.NewDecoder(resp.Body).Decode(&results); err != nil {
-		return MediaMetadataChildren{}, err
+	if err := json.NewDecoder(resp.Body).Decode(&results); err != nil {
+		return MetadataChildren{}, err
 	}
 
 	return results, nil
