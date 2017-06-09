@@ -49,6 +49,22 @@ func newTestServer(code int, body string) (*httptest.Server, *Plex) {
 	return server, plex
 }
 
+func TestSignIn(t *testing.T) {
+	username := os.Getenv("PLEX_USERNAME")
+	password := os.Getenv("PLEX_PASSWORD")
+	plex, err := SignIn(plexURL, username, password)
+
+	if err != nil {
+		t.Error(err.Error())
+		return
+	}
+
+	if plex.Token == "" {
+		t.Error("Received an empty token")
+		return
+	}
+}
+
 func TestGetSessions(t *testing.T) {
 	testData := string(`
     <MediaContainer size="2">

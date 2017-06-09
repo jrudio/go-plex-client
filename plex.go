@@ -19,15 +19,16 @@ const plexURL = "https://plex.tv"
 
 func defaultHeaders() headers {
 	return headers{
-		Platform:        runtime.GOOS,
-		PlatformVersion: "0.0.0",
-		Product:         "Go Plex Client",
-		Version:         "0.0.1",
-		Device:          runtime.GOOS + " " + runtime.GOARCH,
-		ContainerSize:   "Plex-Container-Size=50",
-		ContainerStart:  "X-Plex-Container-Start=0",
-		Accept:          "application/json",
-		ContentType:     "application/json",
+		Platform:         runtime.GOOS,
+		PlatformVersion:  "0.0.0",
+		Product:          "Go Plex Client",
+		Version:          "0.0.1",
+		Device:           runtime.GOOS + " " + runtime.GOARCH,
+		ContainerSize:    "Plex-Container-Size=50",
+		ContainerStart:   "X-Plex-Container-Start=0",
+		Accept:           "application/json",
+		ContentType:      "application/json",
+		ClientIdentifier: "goplexclient", // This should be generated as a UUID for each client
 	}
 }
 
@@ -47,6 +48,57 @@ func New(baseURL, token string) (*Plex, error) {
 			Timeout: 3 * time.Second,
 		},
 	}, err
+}
+
+// Creates a plex instance using a user name and password instead of an auth
+// token.
+func SignIn(baseURL, username, password string) (*Plex, error) {
+	if baseURL == "" {
+		return &Plex{}, errors.New("url is required")
+	}
+
+	if _, err := url.ParseRequestURI(baseURL); err != nil {
+		return &Plex{}, err
+	}
+
+	p := Plex{
+		URL: baseURL,
+		HTTPClient: http.Client{
+			Timeout: 3 * time.Second,
+		},
+	}
+
+	query := p.URL + "/users/sign_in.json"
+
+	// Encode login in the specific format they require
+	body := url.Values{}
+	body.Add("user[login]", username)
+	body.Add("user[password]", password)
+
+	newHeaders := defaultHeaders()
+	// Doesn't like having a content type, even form-data
+	newHeaders.ContentType = ""
+	resp, respErr := p.post(query, []byte(body.Encode()), newHeaders)
+
+	if respErr != nil {
+		return &Plex{}, respErr
+	}
+	if resp.StatusCode != 201 {
+		return &Plex{}, errors.New(resp.Status)
+	}
+
+	bodyBytes, _ := ioutil.ReadAll(resp.Body)
+	defer resp.Body.Close()
+
+	var signInResponse SignInResponse
+
+	err := json.Unmarshal(bodyBytes, &signInResponse)
+	if err != nil {
+		return &Plex{}, err
+	}
+	p.Token = signInResponse.User.AuthToken
+
+	return &p, err
 }
 
 // Search your Plex Server for media
