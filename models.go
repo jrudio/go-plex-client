@@ -729,7 +729,7 @@ type User struct {
 	Entitlements []string `json:"entitlements"`
 	ConfirmedAt  string   `json:"confirmedAt"`
 	ForumID      int      `json:"forumId"`
-	RemeberMe    bool     `json:"rememberMe"`
+	RememberMe   bool     `json:"rememberMe"`
 }
 
 type SignInResponse struct {
