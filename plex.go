@@ -57,7 +57,9 @@ func SignIn(baseURL, username, password string) (*Plex, error) {
 		return &Plex{}, errors.New("url is required")
 	}
 
-	_, err := url.ParseRequestURI(baseURL)
+	if _, err := url.ParseRequestURI(baseURL); err != nil {
+		return &Plex{}, err
+	}
 
 	p := Plex{
 		URL: baseURL,
@@ -90,7 +92,7 @@ func SignIn(baseURL, username, password string) (*Plex, error) {
 
 	var signInResponse SignInResponse
 
-	err = json.Unmarshal(bodyBytes, &signInResponse)
+	err := json.Unmarshal(bodyBytes, &signInResponse)
 	if err != nil {
 		return &Plex{}, err
 	}
