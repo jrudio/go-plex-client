@@ -4,6 +4,7 @@ import (
 	"os"
 
 	"fmt"
+
 	"github.com/jrudio/go-plex-client"
 	"github.com/urfave/cli"
 )
@@ -18,6 +19,10 @@ var (
 
 func main() {
 	app := cli.NewApp()
+
+	app.Name = "plex-cli"
+	app.Usage = "Interact with your plex server and plex.tv from the command line"
+	app.Version = "0.0.1"
 
 	app.Flags = []cli.Flag{
 		cli.StringFlag{
@@ -34,10 +39,10 @@ func main() {
 
 	app.Commands = []cli.Command{
 		{
-			Name:    "test",
-			Aliases: []string{"t"},
-			Usage:   "Test your connection to your Plex Media Server",
-			Action:  cmd.test,
+			Name: "test",
+			// Aliases: []string{"t"},
+			Usage:  "Test your connection to your Plex Media Server",
+			Action: cmd.test,
 		},
 		{
 			Name:   "end",
@@ -45,10 +50,10 @@ func main() {
 			Action: cmd.endTranscode,
 		},
 		{
-			Name:    "server-info",
-			Aliases: []string{"si"},
-			Usage:   "Print info about your servers - ip, machine id, access tokens, etc",
-			Action:  cmd.getServersInfo,
+			Name: "server-info",
+			// Aliases: []string{"si"},
+			Usage:  "Print info about your servers - ip, machine id, access tokens, etc",
+			Action: cmd.getServersInfo,
 		},
 		{
 			Name:   "sections",
