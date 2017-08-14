@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+
 	"github.com/jrudio/go-plex-client"
 	"github.com/urfave/cli"
 )
@@ -13,10 +14,10 @@ func (cmd *commands) test(c *cli.Context) error {
 
 	fmt.Println("Testing connection to Plex...")
 
-	result, resErr := plexConn.Test()
+	result, err := plexConn.Test()
 
-	if resErr != nil {
-		fmt.Println(resErr.Error())
+	if err != nil {
+		fmt.Println(err.Error())
 		return nil
 	}
 
