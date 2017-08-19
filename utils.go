@@ -3,6 +3,7 @@ package plex
 import (
 	"bytes"
 	"net/http"
+	"time"
 )
 
 func (p *Plex) options(query string) (*http.Response, error) {
@@ -86,10 +87,10 @@ func (p *Plex) delete(query string, h headers) (*http.Response, error) {
 func (p *Plex) post(query string, body []byte, h headers) (*http.Response, error) {
 	client := p.HTTPClient
 
-	req, reqErr := http.NewRequest("POST", query, bytes.NewBuffer(body))
+	req, err := http.NewRequest("POST", query, bytes.NewBuffer(body))
 
-	if reqErr != nil {
-		return &http.Response{}, reqErr
+	if err != nil {
+		return &http.Response{}, err
 	}
 
 	// req.Header.Set("Content-Type", "application/json")
@@ -115,16 +116,52 @@ func (p *Plex) post(query string, body []byte, h headers) (*http.Response, error
 	return resp, nil
 }
 
-func (p *Plex) put(query string, h headers) (*http.Response, error) {
+// post sends a POST request and is the same as plex.post while omitting the plex token header
+func post(query string, body []byte, h headers) (*http.Response, error) {
+	client := http.Client{
+		Timeout: 3 * time.Second,
+	}
+
+	req, err := http.NewRequest("POST", query, bytes.NewBuffer(body))
+
+	if err != nil {
+		return &http.Response{}, err
+	}
+
+	req.Header.Add("Accept", h.Accept)
+	req.Header.Add("X-Plex-Platform", h.Platform)
+	req.Header.Add("X-Plex-Platform-Version", h.PlatformVersion)
+	req.Header.Add("X-Plex-Provides", h.Provides)
+	req.Header.Add("X-Plex-Client-Identifier", h.ClientIdentifier)
+	req.Header.Add("X-Plex-Product", h.Product)
+	req.Header.Add("X-Plex-Version", h.Version)
+	req.Header.Add("X-Plex-Device", h.Device)
+	// req.Header.Add("X-Plex-Container-Size", h.ContainerSize)
+	// req.Header.Add("X-Plex-Container-Start", h.ContainerStart)
+	if h.Token != "" {
+		req.Header.Add("X-Plex-Token", h.Token)
+	}
+	req.Header.Add("Content-Type", h.ContentType)
+
+	resp, err := client.Do(req)
+
+	if err != nil {
+		return &http.Response{}, err
+	}
+
+	return resp, nil
+}
+
+func (p *Plex) put(query string, body []byte, h headers) (*http.Response, error) {
 	client := p.HTTPClient
 
-	req, reqErr := http.NewRequest("PUT", query, nil)
+	req, reqErr := http.NewRequest("PUT", query, bytes.NewBuffer(body))
 
 	if reqErr != nil {
 		return &http.Response{}, reqErr
 	}
 
-	// req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Content-Type", h.ContentType)
 	req.Header.Add("Accept", h.Accept)
 	req.Header.Add("X-Plex-Platform", h.Platform)
 	req.Header.Add("X-Plex-Platform-Version", h.PlatformVersion)
