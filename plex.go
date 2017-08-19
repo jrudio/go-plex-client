@@ -50,7 +50,7 @@ func New(baseURL, token string) (*Plex, error) {
 	}, err
 }
 
-// Creates a plex instance using a user name and password instead of an auth
+// SignIn creates a plex instance using a user name and password instead of an auth
 // token.
 func SignIn(baseURL, username, password string) (*Plex, error) {
 	if baseURL == "" {
