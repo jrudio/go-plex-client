@@ -4,6 +4,10 @@
 
 `go get -u github.com/jrudio/go-plex-client`
 
+### Cli
+
+You can tinker with this library using the command-line over [here](./cmd)
+
 ### Usage
 
 ```Go
