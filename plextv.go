@@ -7,19 +7,27 @@ import (
 	"errors"
 	"net/http"
 	"net/url"
-	"time"
+	"strconv"
 )
 
-type requestPinResponse struct {
-	ID               int         `json:"id"`
-	Code             string      `json:"code"`
-	ClientIdentifier string      `json:"clientIdentifier"`
-	ExpiresAt        time.Time   `json:"expiresAt"`
-	AuthToken        interface{} `json:"authToken"`
+// ErrorResponse contains a code and an error message
+type ErrorResponse struct {
+	Code    int    `json:"code"`
+	Message string `json:"message"`
 }
 
-// RequestPIN will retrieve a code (valid for 4 minutes) from plex.tv to link an app to your plex account
-func RequestPIN() (string, error) {
+// PinResponse holds information to successfully check a pin when linking an account
+type PinResponse struct {
+	ID               int             `json:"id"`
+	Code             string          `json:"code"`
+	ClientIdentifier string          `json:"clientIdentifier"`
+	ExpiresAt        int64           `json:"expiresAt"`
+	AuthToken        string          `json:"authToken"`
+	Errors           []ErrorResponse `json:"errors"`
+}
+
+// RequestPIN will retrieve a code (valid for 15 minutes) from plex.tv to link an app to your plex account
+func RequestPIN() (PinResponse, error) {
 	endpoint := "/api/v2/pins.json"
 
 	// POST request and returns a 201 status code
@@ -32,26 +40,63 @@ func RequestPIN() (string, error) {
 	// 		expiresAt: 15463757,
 	// 		authToken: null
 	// }
+	var pinInformation PinResponse
 
 	resp, err := post(plexURL+endpoint, nil, defaultHeaders())
 
 	if err != nil {
-		return "", err
+		return pinInformation, err
 	}
 
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusCreated {
-		return "", errors.New(resp.Status)
+		return pinInformation, errors.New(resp.Status)
 	}
 
-	var pinResponse requestPinResponse
-
-	if err := json.NewDecoder(resp.Body).Decode(&pinResponse); err != nil {
-		return "", err
+	if err := json.NewDecoder(resp.Body).Decode(&pinInformation); err != nil {
+		return pinInformation, err
 	}
 
-	return pinResponse.Code, nil
+	return pinInformation, nil
+}
+
+// CheckPIN will return information related to the pin such as the auth token if your code has been approved.
+// will return an error if code expired or still not linked
+// clientIdentifier must be the same when requesting a pin
+func CheckPIN(id int, clientIdentifier string) (PinResponse, error) {
+	endpoint := "/api/v2/pins/"
+
+	endpoint = endpoint + strconv.Itoa(id) + ".json"
+
+	headers := defaultHeaders()
+
+	resp, err := get(plexURL+endpoint, headers)
+
+	if err != nil {
+		return PinResponse{}, err
+	}
+
+	defer resp.Body.Close()
+
+	var pinInformation PinResponse
+
+	if err := json.NewDecoder(resp.Body).Decode(&pinInformation); err != nil {
+		return pinInformation, err
+	}
+
+	// code doesn't exist or expired
+	if len(pinInformation.Errors) > 0 {
+		return pinInformation, errors.New(pinInformation.Errors[0].Message)
+	}
+
+	// we are not authorized yet
+	if pinInformation.AuthToken == "" {
+		return pinInformation, errors.New("pin is not authorized yet")
+	}
+
+	// we are authorized! Yay!
+	return pinInformation, nil
 }
 
 // LinkAccount allows you to authorize an app via a 4 character pin. returns nil on success
