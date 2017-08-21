@@ -3,6 +3,8 @@ package main
 import (
 	"errors"
 	"fmt"
+	"strconv"
+	"time"
 
 	"github.com/jrudio/go-plex-client"
 	"github.com/urfave/cli"
@@ -148,6 +150,72 @@ func linkApp(c *cli.Context) error {
 	}
 
 	fmt.Println("Successfully linked app, enjoy!")
+
+	return nil
+}
+
+// requestPIN is good for just receiving the pin and you manually going to plex.tv/link to link the code
+func requestPIN(c *cli.Context) error {
+	info, err := plex.RequestPIN()
+
+	if err != nil {
+		return errors.New("request plex pin failed: " + err.Error())
+	}
+
+	expires := time.Until(time.Unix(info.ExpiresAt, 0)).String()
+
+	fmt.Printf("your pin %s (%d) expires in %s", info.Code, info.ID, expires)
+
+	return nil
+}
+
+// checkPIN will check the status of a pin/code via the id given in requestPIN. It will display the auth token when authorized
+func checkPIN(c *cli.Context) error {
+	idArg := c.Args().First()
+
+	id, err := strconv.ParseInt(idArg, 0, 64)
+
+	if err != nil {
+		return errors.New("failed to parse id: " + err.Error())
+	}
+
+	clientID := c.String("client-id")
+
+	if clientID == "" {
+		return errors.New("client-id is required")
+	}
+
+	var authToken string
+
+	for {
+		pinInformation, err := plex.CheckPIN(int(id), clientID)
+
+		if err != nil {
+			fmt.Printf("\r%v", err)
+		}
+
+		expiresAt := pinInformation.ExpiresAt
+
+		// stop checking if time is expired
+		if time.Until(time.Unix(expiresAt, 0)).Minutes() < 0 {
+			return errors.New("code has expired - please request another one")
+		}
+
+		if pinInformation.AuthToken != "" {
+			authToken = pinInformation.AuthToken
+			break
+		}
+
+		// just check once
+		if !c.Bool("poll") {
+			// still not authorized
+			return nil
+		}
+
+		time.Sleep(1 * time.Second)
+	}
+
+	fmt.Printf("\ryou have been successfully authorized!\nYour auth token is: %s\n", authToken)
 
 	return nil
 }
