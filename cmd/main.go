@@ -111,6 +111,11 @@ func main() {
 			},
 			Action: checkPIN,
 		},
+		{
+			Name:   "signin",
+			Usage:  "use your username and password to receive a plex auth token",
+			Action: signIn,
+		},
 	}
 
 	app.Run(os.Args)

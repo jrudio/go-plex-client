@@ -219,3 +219,23 @@ func checkPIN(c *cli.Context) error {
 
 	return nil
 }
+
+// signIn displays the auth token on successful sign in
+func signIn(c *cli.Context) error {
+	if c.NArg() != 2 {
+		return errors.New("signin requires 2 arguments - username and password")
+	}
+
+	username := c.Args()[0]
+	password := c.Args()[1]
+
+	plexConn, err := plex.SignIn(username, password)
+
+	if err != nil {
+		return err
+	}
+
+	fmt.Println("your auth token is:", plexConn.Token)
+
+	return err
+}
