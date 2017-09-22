@@ -52,23 +52,14 @@ func New(baseURL, token string) (*Plex, error) {
 
 // SignIn creates a plex instance using a user name and password instead of an auth
 // token.
-func SignIn(baseURL, username, password string) (*Plex, error) {
-	if baseURL == "" {
-		return &Plex{}, errors.New("url is required")
-	}
-
-	if _, err := url.ParseRequestURI(baseURL); err != nil {
-		return &Plex{}, err
-	}
-
+func SignIn(username, password string) (*Plex, error) {
 	p := Plex{
-		URL: baseURL,
 		HTTPClient: http.Client{
 			Timeout: 3 * time.Second,
 		},
 	}
 
-	query := p.URL + "/users/sign_in.json"
+	query := plexURL + "/users/sign_in.json"
 
 	// Encode login in the specific format they require
 	body := url.Values{}
