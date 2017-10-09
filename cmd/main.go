@@ -91,6 +91,23 @@ func main() {
 			Action: linkApp,
 		},
 		{
+			Name:   "library",
+			Usage:  "display your libraries",
+			Action: getLibraries,
+			Flags: []cli.Flag{
+				cli.StringFlag{
+					Name:  "token",
+					Value: "",
+					Usage: "plex token is required to access your server",
+				},
+				cli.StringFlag{
+					Name:  "url",
+					Value: "",
+					Usage: "url to your plex server",
+				},
+			},
+		},
+		{
 			Name:   "request-pin",
 			Usage:  "request a pin (4 character code) from plex.tv to link account to an app. Use this to recieve an id to check for an auth token",
 			Action: requestPIN,

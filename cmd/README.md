@@ -11,4 +11,5 @@
                   Use this to recieve an id to check for an auth token
      check-pin    check status of pin (4 character code) from plex.tv to link account to an app.
                   Use this to recieve an auth token. REQUIRES an id
+    library       Display libraries on your server
 ```

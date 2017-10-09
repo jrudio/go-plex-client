@@ -239,3 +239,38 @@ func signIn(c *cli.Context) error {
 
 	return err
 }
+
+func getLibraries(c *cli.Context) error {
+	plexToken := c.String("token")
+	plexURL := c.String("url")
+
+	if plexToken == "" {
+		return errors.New("token is required for this command")
+	}
+
+	if plexURL == "" {
+		return errors.New("url is required for this command")
+	}
+
+	fmt.Println("using plex token:", plexToken)
+
+	plexConn, err := plex.New(plexURL, plexToken)
+
+	if err != nil {
+		return err
+	}
+
+	fmt.Println("getting libraries...")
+
+	libraries, err := plexConn.GetLibraries()
+
+	if err != nil {
+		return err
+	}
+
+	for _, dir := range libraries.MediaContainer.Directory {
+		fmt.Println(dir.Title)
+	}
+
+	return nil
+}
