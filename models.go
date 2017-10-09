@@ -211,6 +211,72 @@ type MediaMetadata struct {
 	} `json:"directory" xml:"Directory"`
 }
 
+type Location struct {
+	Id   int    `json: "id"`
+	Path string `json: "path"`
+}
+
+type Directory struct {
+	Location   []Location `json: "Location"`
+	Agent      string     `json: "agent"`
+	AllowSync  bool       `json: "allowSync"`
+	Art        string     `json: "art"`
+	Composite  string     `json: "composite"`
+	CreatedAt  int        `json: "createdAt"`
+	Filter     bool       `json: "filters"`
+	Key        string     `json: "key"`
+	Language   string     `json: "language"`
+	Refreshing bool       `json: "refreshing"`
+	Scanner    string     `json: "scanner"`
+	Thumb      string     `json: "thumb"`
+	Title      string     `json: "title"`
+	Type       string     `json: "type"`
+	UpdatedAt  int        `json: "updatedAt"`
+	Uuid       string     `json: "uuid"`
+}
+
+// LibrarySections metadata of your library contents
+type LibrarySections struct {
+	MediaContainer struct {
+		Directory []Directory `json: "Directory"`
+	} `json: "MedaiContainer"`
+}
+
+// TODO: id and tag?
+type TaggedData struct {
+	Tag string `json: "tag"`
+}
+
+type Part struct {
+	AudioProfile          string `json: "audioProfile"`
+	Container             string `json: "container"`
+	Duration              int    `json: "duration"`
+	File                  string `json: "file"`
+	Has64bitOffsets       bool   `json: "has64bitOffsets"`
+	Id                    int    `json: "id"`
+	Key                   string `json: "key"`
+	OptimizedForStreaming bool   `json: "optimizedForStreaming"`
+	Size                  int    `json: "size"`
+	VideoProfile          string `json: "videoProfile"`
+}
+
+type Media struct {
+	Part            []Part  `json: "Part"`
+	AspectRatio     float64 `json: "aspectRatio"`
+	AudioChannels   int     `json: "audioChannels"`
+	AudioCodec      string  `json: "audioCodec"`
+	Bitrate         int     `json: "bitrate"`
+	Container       string  `json: "container"`
+	Duration        int     `json: "duration"`
+	Height          int     `json: "height"`
+	Id              int     `json: "id"`
+	VideoCodec      string  `json: "videoCodec"`
+	VideoFrameRate  string  `json: "videoFrameRate"`
+	VideoProfile    string  `json: "videoProfile"`
+	VideoResolution string  `json: "videoResolution"`
+	Width           int     `json: "width"`
+}
+
 // MetadataChildren returns metadata about a piece of media (tv show, movie, music, etc)
 type MetadataChildren struct {
 	MediaContainer struct {
@@ -713,39 +779,6 @@ type ServerSections struct {
 	Key   string `xml:"key,attr"`
 	Type  string `xml:"type,attr"`
 	Title string `xml:"title,attr"`
-}
-
-// LibrarySections metadata of your library contents
-type LibrarySections struct {
-	ElementType     string `json:"_elementType"`
-	AllowSync       string `json:"allowSync"`
-	Identifier      string `json:"identifier"`
-	MediaTagPrefix  string `json:"mediaTagPrefix"`
-	MediaTagVersion string `json:"mediaTagVersion"`
-	Title1          string `json:"title1"`
-	Children        []struct {
-		Children []struct {
-			ElementType string `json:"_elementType"`
-			ID          int    `json:"id"`
-			Path        string `json:"path"`
-		} `json:"_children"`
-		ElementType string `json:"_elementType"`
-		Agent       string `json:"agent"`
-		AllowSync   string `json:"allowSync"`
-		Art         string `json:"art"`
-		Composite   string `json:"composite"`
-		CreatedAt   string `json:"createdAt"`
-		Filters     string `json:"filters"`
-		Key         string `json:"key"`
-		Language    string `json:"language"`
-		Refreshing  string `json:"refreshing"`
-		Scanner     string `json:"scanner"`
-		Thumb       string `json:"thumb"`
-		Title       string `json:"title"`
-		Type        string `json:"type"`
-		UpdatedAt   string `json:"updatedAt"`
-		UUID        string `json:"uuid"`
-	} `json:"_children"`
 }
 
 // LibraryLabels are the existing labels set on your server
