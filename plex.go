@@ -35,19 +35,39 @@ func defaultHeaders() headers {
 // New creates a new plex instance that is required to
 // to make requests to your Plex Media Server
 func New(baseURL, token string) (*Plex, error) {
-	if baseURL == "" {
-		return &Plex{}, errors.New("url is required")
+	var plexConn Plex
+
+	// allow empty url so caller can use GetServers() to set the server url later
+
+	if baseURL == "" && token == "" {
+		return &plexConn, errors.New("url or a token is required")
 	}
 
-	_, err := url.ParseRequestURI(baseURL)
+	plexConn.HTTPClient = http.Client{
+		Timeout: 3 * time.Second,
+	}
 
-	return &Plex{
-		URL:   baseURL,
-		Token: token,
-		HTTPClient: http.Client{
-			Timeout: 3 * time.Second,
-		},
-	}, err
+	// has url and token
+	if baseURL != "" && token != "" {
+		_, err := url.ParseRequestURI(baseURL)
+
+		plexConn.URL = baseURL
+		plexConn.Token = token
+
+		return &plexConn, err
+	}
+
+	// just has token
+	if baseURL == "" && token != "" {
+		plexConn.Token = token
+
+		return &plexConn, nil
+	}
+
+	// just url
+	plexConn.URL = baseURL
+
+	return &plexConn, nil
 }
 
 // SignIn creates a plex instance using a user name and password instead of an auth
