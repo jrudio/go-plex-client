@@ -221,23 +221,42 @@ func checkPIN(c *cli.Context) error {
 }
 
 // signIn displays the auth token on successful sign in
-func signIn(c *cli.Context) error {
-	if c.NArg() != 2 {
-		return errors.New("signin requires 2 arguments - username and password")
+func signIn(db store) func(c *cli.Context) error {
+	return func(c *cli.Context) error {
+		if c.NArg() != 2 {
+			db.Close()
+			return errors.New("signin requires 2 arguments - username and password")
+		}
+
+		username := c.Args()[0]
+		password := c.Args()[1]
+
+		plexConn, err := plex.SignIn(username, password)
+
+		if err != nil {
+			db.Close()
+			return err
+		}
+
+		if plexConn.Token == "" {
+			db.Close()
+			return errors.New("failed to receive a plex token")
+		}
+
+		// fmt.Println("your auth token is:", plexConn.Token)
+		fmt.Println("successfully signed in!")
+
+		if isVerbose {
+			fmt.Println("saving token locally...")
+		}
+
+		if err := db.savePlexToken(plexConn.Token); err != nil {
+			db.Close()
+			return err
+		}
+
+		return nil
 	}
-
-	username := c.Args()[0]
-	password := c.Args()[1]
-
-	plexConn, err := plex.SignIn(username, password)
-
-	if err != nil {
-		return err
-	}
-
-	fmt.Println("your auth token is:", plexConn.Token)
-
-	return err
 }
 
 func getLibraries(c *cli.Context) error {
