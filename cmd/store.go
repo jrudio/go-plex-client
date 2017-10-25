@@ -22,7 +22,7 @@ func initDataStore(dirName string) (store, error) {
 	var db store
 
 	if isVerbose {
-		fmt.Println("checking if we our database exists in the home directory at:", dirName)
+		fmt.Println("checking if our database exists in the home directory at:", dirName)
 	}
 
 	// create a directory for our database
