@@ -2,12 +2,13 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
+	"path/filepath"
+	"strconv"
 	"time"
 
-	"github.com/dgraph-io/badger"
 	"github.com/jrudio/go-plex-client"
+	"github.com/mitchellh/go-homedir"
 	"github.com/urfave/cli"
 )
 
@@ -18,7 +19,8 @@ var (
 	token     string
 	isVerbose bool
 	plexConn  *plex.Plex
-	appSecret = "iAmAseCReTuSEdTOENcrYptTHangs123"
+	// appSecret will used to seed encrypt()
+	appSecret = []byte("iAmAseCReTuSEdTOENcrYp")
 )
 
 func main() {
@@ -28,19 +30,40 @@ func main() {
 	app.Usage = "Interact with your plex server and plex.tv from the command line"
 	app.Version = "0.0.1"
 
-	// check if app secret already in datastore
+	storeDirectory, err := homedir.Dir()
 
-	// if not, save new appsecret
-	appSecret = appSecret + string(time.Now().Unix())
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
 
-	// store, err := initDataStore("plex-cli")
+	storeDirectory = filepath.Join(storeDirectory, ".plex-cli")
 
-	// if err != nil {
-	// 	fmt.Printf("data store initialization failed: %v\n", err)
-	// 	os.Exit(2)
-	// }
+	db, err := initDataStore(storeDirectory)
 
-	// tokenKey := "token"
+	if err != nil {
+		fmt.Printf("data store initialization failed: %v\n", err)
+		os.Exit(1)
+	}
+
+	// check if app secret exists in datastore
+	if secret := db.getSecret(); len(secret) != 0 {
+		db.secret = secret
+	} else {
+		// if not, create new appsecret and save
+		// append a random number to make appsecret unique
+		appSecret = append(appSecret, []byte(strconv.FormatInt(time.Now().Unix(), 10))...)
+
+		if err := db.saveSecret(appSecret); err != nil {
+			fmt.Printf("failed to save app secret: %v\n", err)
+			db.Close()
+			os.Exit(1)
+		}
+
+		db.secret = appSecret
+	}
+
+	defer db.Close()
 
 	app.Flags = []cli.Flag{
 		cli.StringFlag{
@@ -131,74 +154,11 @@ func main() {
 		{
 			Name:   "signin",
 			Usage:  "use your username and password to receive a plex auth token",
-			Action: signIn,
+			Action: signIn(db),
 		},
 	}
 
 	app.Run(os.Args)
-}
-
-func getPlexToken(store *badger.KV, secret, tokenKey string) (string, error) {
-	var tokenHash badger.KVItem
-
-	if err := store.Get([]byte(tokenKey), &tokenHash); err != nil {
-		if isVerbose {
-			fmt.Println("could not retrieve plex token from datastore")
-		}
-
-		return "", err
-	}
-
-	token, err := decrypt([]byte(secret), string(tokenHash.Value()))
-
-	if err != nil {
-		if isVerbose {
-			fmt.Println("token decryption failed")
-		}
-		return "", err
-	}
-
-	if isVerbose {
-		fmt.Printf("Your plex token is %s\n", token)
-	}
-
-	return token, nil
-}
-
-func savePlexToken(store *badger.KV, secret, tokenKey, token string) error {
-	tokenHash, err := encrypt([]byte(secret), token)
-
-	if err != nil {
-		return err
-	}
-
-	if isVerbose {
-		fmt.Printf("your plex token hash: %s\n", string(tokenHash))
-	}
-
-	if err := store.Set([]byte(tokenKey), []byte(tokenHash), 0x00); err != nil {
-		return err
-	}
-
-	if isVerbose {
-		fmt.Println("saved token hash to store")
-	}
-
-	return nil
-}
-
-func initDataStore(dirName string) (*badger.KV, error) {
-	options := badger.DefaultOptions
-	dir, err := ioutil.TempDir("", dirName)
-
-	if err != nil {
-		return &badger.KV{}, err
-	}
-
-	options.Dir = dir
-	options.ValueDir = dir
-
-	return badger.NewKV(&options)
 }
 
 func initPlex(c *cli.Context) {
