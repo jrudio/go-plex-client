@@ -14,8 +14,9 @@ type store struct {
 }
 
 type storeKeys struct {
-	appSecret []byte
-	plexToken []byte
+	appSecret  []byte
+	plexToken  []byte
+	plexServer []byte
 }
 
 func initDataStore(dirName string) (store, error) {
@@ -53,12 +54,14 @@ func initDataStore(dirName string) (store, error) {
 
 	db.db = kvStore
 	db.keys = storeKeys{
-		appSecret: []byte("app-secret"),
-		plexToken: []byte("plex-token"),
+		appSecret:  []byte("app-secret"),
+		plexToken:  []byte("plex-token"),
+		plexServer: []byte("plex-server"),
 	}
 
 	return db, nil
 }
+
 func (s store) Close() {
 	if err := s.db.Close(); err != nil {
 		fmt.Printf("data store failed to closed: %v\n", err)
@@ -158,4 +161,45 @@ func (s store) savePlexToken(token string) error {
 	}
 
 	return nil
+}
+
+func (s store) getPlexServer() (server, error) {
+	var plexServer server
+
+	err := s.db.View(func(txn *badger.Txn) error {
+		item, err := txn.Get(s.keys.plexServer)
+
+		if err != nil {
+			return err
+		}
+
+		serializedServer, err := item.Value()
+
+		if err != nil {
+			return err
+		}
+
+		_plexServer, err := unserializeServer(serializedServer)
+
+		if err != nil {
+			return err
+		}
+
+		plexServer = _plexServer
+
+		return nil
+	})
+
+	return plexServer, err
+}
+
+func (s store) savePlexServer(plexServer server) error {
+	serializedServer, err := plexServer.Serialize()
+	if err != nil {
+		return err
+	}
+
+	return s.db.Update(func(txn *badger.Txn) error {
+		return txn.Set(s.keys.plexServer, serializedServer, 0)
+	})
 }

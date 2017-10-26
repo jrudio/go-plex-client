@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -22,6 +23,23 @@ var (
 	// appSecret will used to seed encrypt()
 	appSecret = []byte("iAmAseCReTuSEdTOENcrYp")
 )
+
+type server struct {
+	Name string `json:"name"`
+	URL  string `json:"url"`
+}
+
+func (s server) Serialize() ([]byte, error) {
+	return json.Marshal(s)
+}
+
+func unserializeServer(serializedServer []byte) (server, error) {
+	var s server
+
+	err := json.Unmarshal(serializedServer, &s)
+
+	return s, err
+}
 
 func main() {
 	app := cli.NewApp()
@@ -116,19 +134,7 @@ func main() {
 		{
 			Name:   "library",
 			Usage:  "display your libraries",
-			Action: getLibraries,
-			Flags: []cli.Flag{
-				cli.StringFlag{
-					Name:  "token",
-					Value: "",
-					Usage: "plex token is required to access your server",
-				},
-				cli.StringFlag{
-					Name:  "url",
-					Value: "",
-					Usage: "url to your plex server",
-				},
-			},
+			Action: getLibraries(db),
 		},
 		{
 			Name:   "request-pin",
@@ -155,6 +161,11 @@ func main() {
 			Name:   "signin",
 			Usage:  "use your username and password to receive a plex auth token",
 			Action: signIn(db),
+		},
+		{
+			Name:   "pick-server",
+			Usage:  "choose a server to interact with",
+			Action: pickServer(db),
 		},
 	}
 

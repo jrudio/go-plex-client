@@ -220,6 +220,85 @@ func checkPIN(c *cli.Context) error {
 	return nil
 }
 
+func pickServer(db store) func(c *cli.Context) error {
+	return func(c *cli.Context) error {
+		// look up servers - hopefully a token is already in store
+		plexToken, err := db.getPlexToken()
+
+		if err != nil {
+			db.Close()
+			return fmt.Errorf("failed to retreive plex token: %v", err)
+		}
+
+		plexConn, err := plex.New("", plexToken)
+
+		if err != nil {
+			db.Close()
+			return err
+		}
+
+		// load list of servers
+		servers, err := plexConn.GetServers()
+
+		if err != nil {
+			db.Close()
+			return fmt.Errorf("failed getting plex servers: %v", err)
+		}
+
+		fmt.Println("Server list:")
+
+		for i, server := range servers {
+			fmt.Printf("[%d] - %s\n", i, server.Name)
+		}
+
+		fmt.Print("\nSelect a server: ")
+
+		var serverIndex int
+		fmt.Scanln(&serverIndex)
+
+		// bound check input
+		if serverIndex < 0 || serverIndex > (len(servers)-1) {
+			db.Close()
+			return errors.New("invalid selection")
+		}
+
+		selectedServer := servers[serverIndex]
+
+		// choose to connect via local or remote
+		fmt.Printf("\nshowing local and remote addresses for %s:\n", selectedServer.Name)
+
+		for i, conn := range selectedServer.Connection {
+			fmt.Printf("\t[%d] uri: %s, is local: %t\n", i, conn.Address, conn.Local == 1)
+		}
+
+		fmt.Print("\nPick the appropriate address: ")
+
+		var urlIndex int
+		fmt.Scanln(&urlIndex)
+
+		// bound check again
+		if urlIndex < 0 || urlIndex > (len(selectedServer.Connection)-1) {
+			db.Close()
+			return errors.New("invalid selection")
+		}
+
+		// persist selection to disk
+		fmt.Printf("\nsetting %s as the default server using url %s...\n", selectedServer.Name, selectedServer.Connection[urlIndex].URI)
+
+		if err := db.savePlexServer(server{
+			Name: selectedServer.Name,
+			URL:  selectedServer.Connection[urlIndex].URI,
+		}); err != nil {
+			db.Close()
+			return fmt.Errorf("failed to save server info: %v", err)
+		}
+
+		fmt.Println("success!")
+
+		return nil
+	}
+}
+
 // signIn displays the auth token on successful sign in
 func signIn(db store) func(c *cli.Context) error {
 	return func(c *cli.Context) error {
@@ -259,37 +338,41 @@ func signIn(db store) func(c *cli.Context) error {
 	}
 }
 
-func getLibraries(c *cli.Context) error {
-	plexToken := c.String("token")
-	plexURL := c.String("url")
+func getLibraries(db store) func(c *cli.Context) error {
+	return func(c *cli.Context) error {
+		plexToken, err := db.getPlexToken()
 
-	if plexToken == "" {
-		return errors.New("token is required for this command")
+		if err != nil {
+			db.Close()
+			return fmt.Errorf("failed to retreive plex token: %v", err)
+		}
+
+		plexServer, err := db.getPlexServer()
+
+		if err != nil {
+			db.Close()
+			return fmt.Errorf("failed to retreive plex server url: %v", err)
+		}
+
+		plexConn, err := plex.New(plexServer.URL, plexToken)
+
+		if err != nil {
+			db.Close()
+			return err
+		}
+
+		fmt.Println("getting libraries...")
+
+		libraries, err := plexConn.GetLibraries()
+
+		if err != nil {
+			return err
+		}
+
+		for _, dir := range libraries.MediaContainer.Directory {
+			fmt.Println(dir.Title)
+		}
+
+		return nil
 	}
-
-	if plexURL == "" {
-		return errors.New("url is required for this command")
-	}
-
-	fmt.Println("using plex token:", plexToken)
-
-	plexConn, err := plex.New(plexURL, plexToken)
-
-	if err != nil {
-		return err
-	}
-
-	fmt.Println("getting libraries...")
-
-	libraries, err := plexConn.GetLibraries()
-
-	if err != nil {
-		return err
-	}
-
-	for _, dir := range libraries.MediaContainer.Directory {
-		fmt.Println(dir.Title)
-	}
-
-	return nil
 }
