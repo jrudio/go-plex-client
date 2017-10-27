@@ -22,8 +22,8 @@
 
 
 [[constraint]]
+  branch = "master"
   name = "github.com/dgraph-io/badger"
-  version = "0.8.0"
 
 [[constraint]]
   branch = "master"

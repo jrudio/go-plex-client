@@ -8,10 +8,16 @@
   revision = "28f7e881ca57bc00e028f9ede9f0d9104cfeef5e"
 
 [[projects]]
+  branch = "master"
   name = "github.com/dgraph-io/badger"
   packages = [".","options","protos","skl","table","y"]
-  revision = "7f945c8fffd35e73f278fc3f0bce9961398dc1e1"
-  version = "v0.8"
+  revision = "d3634b7b071896c411f3111cf6cf291fa7543618"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/dgryski/go-farm"
+  packages = ["."]
+  revision = "e2d0fe22b456fa0a35cd883ba355ecfcf1881490"
 
 [[projects]]
   branch = "master"
@@ -52,6 +58,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "6d743265754646644b644022f8ced46600dbf0e373e819da6663d72521e952fc"
+  inputs-digest = "a1b5dbeee83c194f2878036ff3b84adf9102a252e64e0458146b38d26bda0e22"
   solver-name = "gps-cdcl"
   solver-version = 1
