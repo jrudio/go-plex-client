@@ -81,6 +81,11 @@ func main() {
 		db.secret = appSecret
 	}
 
+	cli.OsExiter = func(c int) {
+		db.Close()
+		os.Exit(c)
+	}
+
 	defer db.Close()
 
 	app.Flags = []cli.Flag{
@@ -98,8 +103,7 @@ func main() {
 
 	app.Commands = []cli.Command{
 		{
-			Name: "test",
-			// Aliases: []string{"t"},
+			Name:   "test",
 			Usage:  "Test your connection to your Plex Media Server",
 			Action: cmd.test,
 		},
@@ -109,15 +113,14 @@ func main() {
 			Action: cmd.endTranscode,
 		},
 		{
-			Name: "server-info",
-			// Aliases: []string{"si"},
+			Name:   "server-info",
 			Usage:  "Print info about your servers - ip, machine id, access tokens, etc",
 			Action: cmd.getServersInfo,
 		},
 		{
 			Name:   "sections",
 			Usage:  "Print info about your server's sections",
-			Action: cmd.getSections,
+			Action: getSections(db),
 		},
 		{
 			Name:  "link",

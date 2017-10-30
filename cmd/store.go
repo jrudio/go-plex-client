@@ -8,9 +8,10 @@ import (
 )
 
 type store struct {
-	db     *badger.DB
-	keys   storeKeys
-	secret []byte
+	db       *badger.DB
+	isClosed bool
+	keys     storeKeys
+	secret   []byte
 }
 
 type storeKeys struct {
@@ -63,9 +64,16 @@ func initDataStore(dirName string) (store, error) {
 }
 
 func (s store) Close() {
+	if s.isClosed {
+		fmt.Println("data store already closed")
+		return
+	}
+
 	if err := s.db.Close(); err != nil {
 		fmt.Printf("data store failed to closed: %v\n", err)
 	}
+
+	s.isClosed = true
 }
 
 func (s store) getSecret() []byte {
