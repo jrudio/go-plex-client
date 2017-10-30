@@ -682,7 +682,7 @@ func (p *Plex) GetMachineID() (string, error) {
 		return "", err
 	}
 
-	return result.MachineIdentifier, nil
+	return result.MediaContainer.MachineIdentifier, nil
 }
 
 // GetSections of your plex server. This is useful when inviting a user
