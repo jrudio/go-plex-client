@@ -90,33 +90,55 @@ func (cmd *commands) getServersInfo(c *cli.Context) error {
 	return nil
 }
 
-func (cmd *commands) getSections(c *cli.Context) error {
-	initPlex(c)
+func getSections(db store) func(c *cli.Context) error {
+	return func(c *cli.Context) error {
+		plexToken, err := db.getPlexToken()
 
-	// Grab machine id of the server we are connected to
-	machineID, err := plexConn.GetMachineID()
+		if err != nil {
+			return fmt.Errorf("failed getting plex token: %v", err)
+		}
 
-	if err != nil {
-		fmt.Println(err.Error())
-		return err
+		plexServer, err := db.getPlexServer()
+
+		if err != nil {
+			return fmt.Errorf("failed getting plex server info from data store: %v", err)
+		}
+
+		plexConn, err := plex.New(plexServer.URL, plexToken)
+
+		if err != nil {
+			return fmt.Errorf("failed to create plex instance: %v", err)
+		}
+
+		// Grab machine id of the server we are connected to
+		machineID, err := plexConn.GetMachineID()
+
+		if err != nil {
+			return fmt.Errorf("failed to retrieve machine id of plex server (%s): %v", plexServer.Name, err)
+		}
+
+		sections, err := plexConn.GetSections(machineID)
+
+		if err != nil {
+			return fmt.Errorf("failed to retrieve sections: %v", err)
+		}
+
+		fmt.Println("section count:", len(sections))
+
+		if len(sections) < 1 {
+			return errors.New("sections not found")
+		}
+
+		for _, section := range sections {
+			fmt.Println("Section title:", section.Title)
+			fmt.Println("\tID:", section.ID)
+			fmt.Println("\tKey:", section.Key)
+			fmt.Println("\tType:", section.Type)
+			fmt.Println("\t=========================")
+		}
+
+		return nil
 	}
-
-	var sections []plex.ServerSections
-	sections, err = plexConn.GetSections(machineID)
-
-	if err != nil {
-		fmt.Println(err.Error())
-		return err
-	}
-	for _, section := range sections {
-		fmt.Println("Section title:", section.Title)
-		fmt.Println("\tID:", section.ID)
-		fmt.Println("\tKey:", section.Key)
-		fmt.Println("\tType:", section.Type)
-		fmt.Println("\t=========================")
-	}
-
-	return nil
 }
 
 func linkApp(c *cli.Context) error {
