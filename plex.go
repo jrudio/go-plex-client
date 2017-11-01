@@ -184,7 +184,6 @@ func (p *Plex) GetMetadataChildren(key string) (MetadataChildren, error) {
 	query := fmt.Sprintf("%s/library/metadata/%s/children", p.URL, key)
 
 	newHeaders := defaultHeaders()
-	newHeaders.Accept = "application/json"
 
 	resp, err := p.get(query, newHeaders)
 
@@ -692,7 +691,7 @@ func (p *Plex) GetSections(machineID string) ([]ServerSections, error) {
 
 	newHeaders := defaultHeaders()
 
-	newHeaders.Accept = "accept/xml"
+	newHeaders.Accept = "application/xml"
 
 	resp, err := p.get(query, newHeaders)
 
@@ -937,7 +936,6 @@ func (p *Plex) RemoveLabelFromMedia(mediaType, sectionID, id, label, locked stri
 // GetSessions of devices currently consuming media
 func (p *Plex) GetSessions() (CurrentSessions, error) {
 	newHeaders := defaultHeaders()
-	newHeaders.Accept = "application/xml"
 
 	query := fmt.Sprintf("%s/status/sessions", p.URL)
 
@@ -949,13 +947,13 @@ func (p *Plex) GetSessions() (CurrentSessions, error) {
 
 	defer resp.Body.Close()
 
-	if resp.StatusCode != 200 {
+	if resp.StatusCode != http.StatusOK {
 		return CurrentSessions{}, errors.New(resp.Status)
 	}
 
 	var result CurrentSessions
 
-	if err := xml.NewDecoder(resp.Body).Decode(&result); err != nil {
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
 		return CurrentSessions{}, err
 	}
 
