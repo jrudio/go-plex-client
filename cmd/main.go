@@ -166,6 +166,11 @@ func main() {
 			Action: signIn(db),
 		},
 		{
+			Name:   "sessions",
+			Usage:  "display info on users currently consuming media",
+			Action: getSessions(db),
+		},
+		{
 			Name:   "pick-server",
 			Usage:  "choose a server to interact with",
 			Action: pickServer(db),

@@ -141,6 +141,61 @@ func getSections(db store) func(c *cli.Context) error {
 	}
 }
 
+func getSessions(db store) func(c *cli.Context) error {
+	return func(c *cli.Context) error {
+		plexToken, err := db.getPlexToken()
+
+		if err != nil {
+			return cli.NewExitError("failed to get plex token from datastore: "+err.Error(), 1)
+		}
+
+		plexServer, err := db.getPlexServer()
+
+		if err != nil {
+			return cli.NewExitError("failed to get plex server info from datastore: "+err.Error(), 1)
+		}
+
+		plexConn, err := plex.New(plexServer.URL, plexToken)
+
+		if err != nil {
+			return cli.NewExitError("failed to initialize plex: "+err.Error(), 1)
+		}
+
+		// display sessions
+		sessions, err := plexConn.GetSessions()
+
+		if err != nil {
+			return cli.NewExitError("failed to get sessions: "+err.Error(), 1)
+		}
+
+		if len(sessions.MediaContainer.Video) == 0 && len(sessions.MediaContainer.Track) == 0 {
+			fmt.Println("no users in sessions")
+			return nil
+		}
+
+		for _, session := range sessions.MediaContainer.Video {
+			fmt.Print(session.User.Title)
+			userIsWatching := "\t(" + session.Type + ") "
+
+			if session.GrandparentTitle != "" {
+				userIsWatching += session.GrandparentTitle + " - " + session.ParentTitle
+				userIsWatching += " - " + session.Title
+			} else {
+				userIsWatching += session.Title + " (" + session.Year + ")"
+			}
+
+			fmt.Println(userIsWatching)
+		}
+
+		for _, session := range sessions.MediaContainer.Track {
+			fmt.Print(session.User.Title)
+			fmt.Println("\t", "("+session.Type+")", session.Title)
+		}
+
+		return nil
+	}
+}
+
 func linkApp(c *cli.Context) error {
 	token := c.String("token")
 	tokenLen := len(token)
