@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"sync"
 	"time"
 
 	"github.com/jrudio/go-plex-client"
@@ -81,12 +82,23 @@ func main() {
 		db.secret = appSecret
 	}
 
+	shutdown := make(chan int, 1)
+
+	wg := sync.WaitGroup{}
+
 	cli.OsExiter = func(c int) {
-		db.Close()
-		os.Exit(c)
+		shutdown <- c
 	}
 
-	defer db.Close()
+	wg.Add(1)
+
+	go func(shutdown chan int) {
+		defer wg.Done()
+		exitCode := <-shutdown
+		// fmt.Printf("\nexiting with code %d...\n", exitCode)
+		db.Close()
+		os.Exit(exitCode)
+	}(shutdown)
 
 	app.Flags = []cli.Flag{
 		cli.StringFlag{
@@ -175,9 +187,24 @@ func main() {
 			Usage:  "choose a server to interact with",
 			Action: pickServer(db),
 		},
+		// {
+		// 	Name:   "webhooks",
+		// 	Usage:  "display webhooks associated with your account",
+		// 	Action: webhooks(db),
+		// 	Flags: []cli.Flag{
+		// 		cli.StringFlag{
+		// 			Name:  "add",
+		// 			Usage: "create a new webhook",
+		// 		},
+		// 	},
+		// },
 	}
 
 	app.Run(os.Args)
+
+	shutdown <- 0
+
+	wg.Wait()
 }
 
 func initPlex(c *cli.Context) {
