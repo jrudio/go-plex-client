@@ -135,3 +135,82 @@ func (p Plex) LinkAccount(code string) error {
 
 	return nil
 }
+
+// GetWebhooks fetches all webhooks - requires plex pass
+func (p Plex) GetWebhooks() ([]string, error) {
+	type Hooks struct {
+		URL string `json:"url"`
+	}
+
+	var webhooks []string
+
+	endpoint := "/api/v2/user/webhooks"
+
+	resp, err := p.get(plexURL+endpoint, defaultHeaders())
+
+	if err != nil {
+		return webhooks, err
+	}
+
+	defer resp.Body.Close()
+
+	var hook []Hooks
+
+	if err := json.NewDecoder(resp.Body).Decode(&hook); err != nil {
+		return webhooks, err
+	}
+
+	for _, h := range hook {
+		webhooks = append(webhooks, h.URL)
+	}
+
+	return webhooks, nil
+}
+
+// AddWebhook creates a new webhook for your plex server to send metadata - requires plex pass
+func (p Plex) AddWebhook(webhook string) error {
+	// get current webhooks and append ours to it
+	currentWebhooks, err := p.GetWebhooks()
+
+	if err != nil {
+		return err
+	}
+
+	currentWebhooks = append(currentWebhooks, webhook)
+
+	return p.SetWebhooks(currentWebhooks)
+}
+
+// SetWebhooks will set your webhooks to whatever you pass as an argument
+// webhooks with a length of 0 will remove all webhooks
+func (p Plex) SetWebhooks(webhooks []string) error {
+	endpoint := "/api/v2/user/webhooks"
+
+	body := url.Values{}
+
+	if len(webhooks) == 0 {
+		body.Add("urls[]", "")
+	}
+
+	for _, hook := range webhooks {
+		body.Add("urls[]", hook)
+	}
+
+	headers := defaultHeaders()
+
+	headers.ContentType = "application/x-www-form-urlencoded"
+
+	resp, err := p.post(plexURL+endpoint, []byte(body.Encode()), headers)
+
+	if err != nil {
+		return err
+	}
+
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusCreated {
+		return errors.New("setting webhook failed")
+	}
+
+	return nil
+}

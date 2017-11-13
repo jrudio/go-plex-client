@@ -303,14 +303,12 @@ func pickServer(db store) func(c *cli.Context) error {
 		plexToken, err := db.getPlexToken()
 
 		if err != nil {
-			db.Close()
 			return fmt.Errorf("failed to retreive plex token: %v", err)
 		}
 
 		plexConn, err := plex.New("", plexToken)
 
 		if err != nil {
-			db.Close()
 			return err
 		}
 
@@ -318,7 +316,6 @@ func pickServer(db store) func(c *cli.Context) error {
 		servers, err := plexConn.GetServers()
 
 		if err != nil {
-			db.Close()
 			return fmt.Errorf("failed getting plex servers: %v", err)
 		}
 
@@ -335,7 +332,6 @@ func pickServer(db store) func(c *cli.Context) error {
 
 		// bound check input
 		if serverIndex < 0 || serverIndex > (len(servers)-1) {
-			db.Close()
 			return errors.New("invalid selection")
 		}
 
@@ -355,7 +351,6 @@ func pickServer(db store) func(c *cli.Context) error {
 
 		// bound check again
 		if urlIndex < 0 || urlIndex > (len(selectedServer.Connection)-1) {
-			db.Close()
 			return errors.New("invalid selection")
 		}
 
@@ -366,7 +361,6 @@ func pickServer(db store) func(c *cli.Context) error {
 			Name: selectedServer.Name,
 			URL:  selectedServer.Connection[urlIndex].URI,
 		}); err != nil {
-			db.Close()
 			return fmt.Errorf("failed to save server info: %v", err)
 		}
 
@@ -380,7 +374,6 @@ func pickServer(db store) func(c *cli.Context) error {
 func signIn(db store) func(c *cli.Context) error {
 	return func(c *cli.Context) error {
 		if c.NArg() != 2 {
-			db.Close()
 			return errors.New("signin requires 2 arguments - username and password")
 		}
 
@@ -390,12 +383,10 @@ func signIn(db store) func(c *cli.Context) error {
 		plexConn, err := plex.SignIn(username, password)
 
 		if err != nil {
-			db.Close()
 			return err
 		}
 
 		if plexConn.Token == "" {
-			db.Close()
 			return errors.New("failed to receive a plex token")
 		}
 
@@ -407,7 +398,6 @@ func signIn(db store) func(c *cli.Context) error {
 		}
 
 		if err := db.savePlexToken(plexConn.Token); err != nil {
-			db.Close()
 			return err
 		}
 
@@ -420,21 +410,18 @@ func getLibraries(db store) func(c *cli.Context) error {
 		plexToken, err := db.getPlexToken()
 
 		if err != nil {
-			db.Close()
 			return fmt.Errorf("failed to retreive plex token: %v", err)
 		}
 
 		plexServer, err := db.getPlexServer()
 
 		if err != nil {
-			db.Close()
 			return fmt.Errorf("failed to retreive plex server url: %v", err)
 		}
 
 		plexConn, err := plex.New(plexServer.URL, plexToken)
 
 		if err != nil {
-			db.Close()
 			return err
 		}
 
@@ -448,6 +435,75 @@ func getLibraries(db store) func(c *cli.Context) error {
 
 		for _, dir := range libraries.MediaContainer.Directory {
 			fmt.Println(dir.Title)
+		}
+
+		return nil
+	}
+}
+
+func webhooks(db store) func(c *cli.Context) error {
+	return func(c *cli.Context) error {
+		plexToken, err := db.getPlexToken()
+
+		if err != nil {
+			return cli.NewExitError(fmt.Sprintf("failed to retreive plex token: %v", err), 1)
+		}
+
+		plexConn, err := plex.New("", plexToken)
+
+		if err != nil {
+			return err
+		}
+
+		// create webhook
+		newWebhook := c.String("add")
+
+		if newWebhook != "" {
+			fmt.Println("adding new webhook:", newWebhook)
+
+			if err := plexConn.AddWebhook(newWebhook); err != nil {
+				return cli.NewExitError(fmt.Sprintf("adding webhook failed: %v", err), 1)
+			}
+
+			fmt.Println("success!")
+
+			return nil
+		}
+
+		fmt.Println("displaying webhooks...")
+
+		hooks, err := plexConn.GetWebhooks()
+
+		if err != nil {
+			return cli.NewExitError(err, 1)
+		}
+
+		for i, hook := range hooks {
+			fmt.Printf("\t[%d] %s\n", i, hook)
+		}
+
+		// delete webhook
+		if c.Bool("delete") {
+			var index int
+
+			fmt.Print("enter a number to delete that webhook: ")
+			fmt.Scan(&index)
+
+			bounds := len(hooks) - 1
+
+			if index < bounds || index > bounds {
+				return cli.NewExitError("invalid input", 1)
+			}
+
+			fmt.Printf("deleting webhook %s at index %d...\n", hooks[index], index)
+
+			hooks = append(hooks[:index], hooks[index+1:]...)
+
+			if err := plexConn.SetWebhooks(hooks); err != nil {
+				return cli.NewExitError(fmt.Sprintf("failed to set webhooks: %v", err), 1)
+			}
+
+			fmt.Println("success!")
 		}
 
 		return nil

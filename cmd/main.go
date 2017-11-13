@@ -187,17 +187,21 @@ func main() {
 			Usage:  "choose a server to interact with",
 			Action: pickServer(db),
 		},
-		// {
-		// 	Name:   "webhooks",
-		// 	Usage:  "display webhooks associated with your account",
-		// 	Action: webhooks(db),
-		// 	Flags: []cli.Flag{
-		// 		cli.StringFlag{
-		// 			Name:  "add",
-		// 			Usage: "create a new webhook",
-		// 		},
-		// 	},
-		// },
+		{
+			Name:   "webhooks",
+			Usage:  "display webhooks associated with your account",
+			Action: webhooks(db),
+			Flags: []cli.Flag{
+				cli.StringFlag{
+					Name:  "add",
+					Usage: "create a new webhook",
+				},
+				cli.BoolFlag{
+					Name:  "delete",
+					Usage: "delete a webhook",
+				},
+			},
+		},
 	}
 
 	app.Run(os.Args)
