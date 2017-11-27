@@ -148,28 +148,26 @@ func (p *Plex) GetMetadata(key string) (MediaMetadata, error) {
 		return MediaMetadata{}, errors.New("ERROR: A key is required")
 	}
 
+	var results MediaMetadata
+
 	query := fmt.Sprintf("%s/library/metadata/%s", p.URL, key)
 
 	newHeaders := defaultHeaders()
-	newHeaders.Accept = "application/xml"
 
 	resp, err := p.get(query, newHeaders)
 
 	if err != nil {
-		return MediaMetadata{}, err
+		return results, err
 	}
 
-	// Unauthorized
-	if resp.StatusCode == 401 {
-		return MediaMetadata{}, errors.New("You are not authorized to access that server")
+	if resp.StatusCode != http.StatusOK {
+		return results, errors.New("server error: " + resp.Status)
 	}
 
 	defer resp.Body.Close()
 
-	var results MediaMetadata
-
-	if err := xml.NewDecoder(resp.Body).Decode(&results); err != nil {
-		return MediaMetadata{}, err
+	if err := json.NewDecoder(resp.Body).Decode(&results); err != nil {
+		return results, err
 	}
 
 	return results, nil
