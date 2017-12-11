@@ -8,9 +8,10 @@ import (
 // Plex contains fields that are required to make
 // an api call to your plex server
 type Plex struct {
-	URL        string
-	Token      string
-	HTTPClient http.Client
+	URL              string
+	Token            string
+	ClientIdentifier string
+	HTTPClient       http.Client
 }
 
 // SearchResults a list of media returned when searching
@@ -924,18 +925,19 @@ type LibraryLabels struct {
 }
 
 type headers struct {
-	Platform         string
-	PlatformVersion  string
-	Provides         string
-	ClientIdentifier string
-	Product          string
-	Version          string
-	Device           string
-	ContainerSize    string
-	ContainerStart   string
-	Token            string
-	Accept           string
-	ContentType      string
+	Platform               string
+	PlatformVersion        string
+	Provides               string
+	Product                string
+	Version                string
+	Device                 string
+	ContainerSize          string
+	ContainerStart         string
+	Token                  string
+	Accept                 string
+	ContentType            string
+	ClientIdentifier       string
+	TargetClientIdentifier string
 }
 
 type request struct {

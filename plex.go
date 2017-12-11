@@ -13,67 +13,83 @@ import (
 	"runtime"
 	"strconv"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 const plexURL = "https://plex.tv"
 
 func defaultHeaders() headers {
 	return headers{
-		Platform:         runtime.GOOS,
-		PlatformVersion:  "0.0.0",
-		Product:          "Go Plex Client",
-		Version:          "0.0.1",
-		Device:           runtime.GOOS + " " + runtime.GOARCH,
-		ContainerSize:    "Plex-Container-Size=50",
-		ContainerStart:   "X-Plex-Container-Start=0",
-		Accept:           "application/json",
-		ContentType:      "application/json",
-		ClientIdentifier: "goplexclient", // This should be generated as a UUID for each client
+		Platform:        runtime.GOOS,
+		PlatformVersion: "0.0.0",
+		Product:         "Go Plex Client",
+		Version:         "0.0.1",
+		Device:          runtime.GOOS + " " + runtime.GOARCH,
+		ContainerSize:   "Plex-Container-Size=50",
+		ContainerStart:  "X-Plex-Container-Start=0",
+		Accept:          "application/json",
+		ContentType:     "application/json",
 	}
 }
 
 // New creates a new plex instance that is required to
 // to make requests to your Plex Media Server
 func New(baseURL, token string) (*Plex, error) {
-	var plexConn Plex
+	var p Plex
 
 	// allow empty url so caller can use GetServers() to set the server url later
 
 	if baseURL == "" && token == "" {
-		return &plexConn, errors.New("url or a token is required")
+		return &p, errors.New("url or a token is required")
 	}
 
-	plexConn.HTTPClient = http.Client{
+	p.HTTPClient = http.Client{
 		Timeout: 3 * time.Second,
 	}
+
+	id, err := uuid.NewRandom()
+
+	if err != nil {
+		return &p, err
+	}
+
+	p.ClientIdentifier = id.String()
 
 	// has url and token
 	if baseURL != "" && token != "" {
 		_, err := url.ParseRequestURI(baseURL)
 
-		plexConn.URL = baseURL
-		plexConn.Token = token
+		p.URL = baseURL
+		p.Token = token
 
-		return &plexConn, err
+		return &p, err
 	}
 
 	// just has token
 	if baseURL == "" && token != "" {
-		plexConn.Token = token
+		p.Token = token
 
-		return &plexConn, nil
+		return &p, nil
 	}
 
 	// just url
-	plexConn.URL = baseURL
+	p.URL = baseURL
 
-	return &plexConn, nil
+	return &p, nil
 }
 
 // SignIn creates a plex instance using a user name and password instead of an auth
 // token.
 func SignIn(username, password string) (*Plex, error) {
+	id, err := uuid.NewRandom()
+
+	if err != nil {
+		return &Plex{}, err
+	}
+
 	p := Plex{
+		ClientIdentifier: id.String(),
 		HTTPClient: http.Client{
 			Timeout: 3 * time.Second,
 		},
@@ -602,6 +618,28 @@ func (p *Plex) CheckUsernameOrEmail(usernameOrEmail string) (bool, error) {
 	return result.Response.Code == 0, nil
 }
 
+// StopPlayback acts as a remote controller and sends the 'stop' command
+func (p *Plex) StopPlayback(machineID string) error {
+	query := p.URL + "/player/playback/stop"
+
+	newHeaders := defaultHeaders()
+
+	newHeaders.Accept = "application/xml"
+	newHeaders.TargetClientIdentifier = machineID
+
+	resp, err := p.get(query, newHeaders)
+
+	if err != nil {
+		return err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf(resp.Status)
+	}
+
+	return nil
+}
+
 // GetServers returns a list of your Plex servers
 func (p *Plex) GetServers() ([]PMSDevices, error) {
 
@@ -958,7 +996,7 @@ func (p *Plex) GetSessions() (CurrentSessions, error) {
 	return result, nil
 }
 
-// TerminateSession will end a streaming session
+// TerminateSession will end a streaming session - plex pass feature
 func (p *Plex) TerminateSession(sessionID string, reason string) error {
 	if reason == "" {
 		reason = "The server owner has ended the stream"
@@ -975,13 +1013,13 @@ func (p *Plex) TerminateSession(sessionID string, reason string) error {
 	resp, err := p.get(query, newHeaders)
 
 	if err != nil {
-		return fmt.Errorf("[Plex Go Client] %v", err)
+		return err
 	}
 
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("[Plex Go Client] terminate session returned status code: %d", resp.StatusCode)
+		return fmt.Errorf("%s", resp.Status)
 	}
 
 	return nil
