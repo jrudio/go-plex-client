@@ -196,39 +196,45 @@ func getSessions(db store) func(c *cli.Context) error {
 	}
 }
 
-func linkApp(c *cli.Context) error {
-	token := c.String("token")
-	tokenLen := len(token)
+func linkApp(db store) func(c *cli.Context) error {
+	return func(c *cli.Context) error {
+		plexToken, err := db.getPlexToken()
 
-	fmt.Println("token", token)
-	if token == "" || tokenLen <= 4 {
-		return errors.New("a plex token is required")
+		if err != nil {
+			return cli.NewExitError("failed to get plex token from datastore: "+err.Error(), 1)
+		}
+
+		plexServer, err := db.getPlexServer()
+
+		if err != nil {
+			return cli.NewExitError("failed to get plex server info from datastore: "+err.Error(), 1)
+		}
+
+		plexConn, err := plex.New(plexServer.URL, plexToken)
+
+		if err != nil {
+			return cli.NewExitError("failed to initialize plex: "+err.Error(), 1)
+		}
+
+		code := c.Args().First()
+		codeLen := len(code)
+
+		fmt.Println("code", code)
+
+		if codeLen < 1 || codeLen > 4 {
+			return errors.New("a 4 character code is required")
+		}
+
+		fmt.Println("attempting to link app with code " + code + "...")
+
+		if err := plexConn.LinkAccount(code); err != nil {
+			return err
+		}
+
+		fmt.Println("successfully linked app, enjoy!")
+
+		return nil
 	}
-
-	code := c.Args().First()
-	codeLen := len(code)
-
-	fmt.Println("code", code)
-
-	if codeLen < 1 || codeLen > 4 {
-		return errors.New("A 4 character code is required")
-	}
-
-	fmt.Println("Attempting to link app with code " + code + "...")
-
-	plexConn, err := plex.New("https://plex.tv", token)
-
-	if err != nil {
-		return err
-	}
-
-	if err := plexConn.LinkAccount(code); err != nil {
-		return err
-	}
-
-	fmt.Println("Successfully linked app, enjoy!")
-
-	return nil
 }
 
 // requestPIN is good for just receiving the pin and you manually going to plex.tv/link to link the code

@@ -135,16 +135,9 @@ func main() {
 			Action: getSections(db),
 		},
 		{
-			Name:  "link",
-			Usage: "authorize an app (e.g. amazon fire app) with a 4 character `code`. REQUIRES a plex token",
-			Flags: []cli.Flag{
-				cli.StringFlag{
-					Name:  "token",
-					Value: "",
-					Usage: "plex token required to link an app to your account. (e.g. `abc123`",
-				},
-			},
-			Action: linkApp,
+			Name:   "link",
+			Usage:  "authorize an app (e.g. amazon fire app) with a 4 character `code`. REQUIRES a plex token",
+			Action: linkApp(db),
 		},
 		{
 			Name:   "library",
