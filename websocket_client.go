@@ -174,11 +174,12 @@ func (e *NotificationEvents) OnTranscodeUpdate(fn func(n NotificationContainer))
 }
 
 // SubscribeToNotifications connects to your server via websockets listening for events
-func (p *Plex) SubscribeToNotifications(events *NotificationEvents, interrupt <-chan os.Signal) error {
+func (p *Plex) SubscribeToNotifications(events *NotificationEvents, interrupt <-chan os.Signal, fn func(error)) bool {
 	plexURL, err := url.Parse(p.URL)
 
 	if err != nil {
-		return err
+		fn(err)
+		return false
 	}
 
 	websocketURL := url.URL{Scheme: "ws", Host: plexURL.Host, Path: "/:/websockets/notifications"}
@@ -190,7 +191,8 @@ func (p *Plex) SubscribeToNotifications(events *NotificationEvents, interrupt <-
 	c, _, err := websocket.DefaultDialer.Dial(websocketURL.String(), headers)
 
 	if err != nil {
-		return err
+		fn(err)
+		return false
 	}
 
 	defer c.Close()
@@ -206,6 +208,7 @@ func (p *Plex) SubscribeToNotifications(events *NotificationEvents, interrupt <-
 
 			if err != nil {
 				fmt.Println("read:", err)
+				fn(err)
 				return
 			}
 
@@ -239,7 +242,8 @@ func (p *Plex) SubscribeToNotifications(events *NotificationEvents, interrupt <-
 			err := c.WriteMessage(websocket.TextMessage, []byte(t.String()))
 
 			if err != nil {
-				return err
+				fn(err)
+				return false
 			}
 		case <-interrupt:
 			fmt.Println("interrupt")
@@ -248,7 +252,8 @@ func (p *Plex) SubscribeToNotifications(events *NotificationEvents, interrupt <-
 			err := c.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))
 			if err != nil {
 				fmt.Println("write close:", err)
-				return err
+				fn(err)
+				return false
 			}
 			select {
 			case <-done:
