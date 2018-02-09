@@ -174,12 +174,12 @@ func (e *NotificationEvents) OnTranscodeUpdate(fn func(n NotificationContainer))
 }
 
 // SubscribeToNotifications connects to your server via websockets listening for events
-func (p *Plex) SubscribeToNotifications(events *NotificationEvents, interrupt <-chan os.Signal, fn func(error)) bool {
+func (p *Plex) SubscribeToNotifications(events *NotificationEvents, interrupt <-chan os.Signal, fn func(error)) {
 	plexURL, err := url.Parse(p.URL)
 
 	if err != nil {
 		fn(err)
-		return false
+		return
 	}
 
 	websocketURL := url.URL{Scheme: "ws", Host: plexURL.Host, Path: "/:/websockets/notifications"}
@@ -192,10 +192,8 @@ func (p *Plex) SubscribeToNotifications(events *NotificationEvents, interrupt <-
 
 	if err != nil {
 		fn(err)
-		return false
+		return
 	}
-
-	defer c.Close()
 
 	done := make(chan struct{})
 
@@ -233,35 +231,37 @@ func (p *Plex) SubscribeToNotifications(events *NotificationEvents, interrupt <-
 		}
 	}()
 
-	ticker := time.NewTicker(time.Second)
-	defer ticker.Stop()
+	go func() {
+		ticker := time.NewTicker(time.Second)
+		defer ticker.Stop()
 
-	for {
-		select {
-		case t := <-ticker.C:
-			err := c.WriteMessage(websocket.TextMessage, []byte(t.String()))
-
-			if err != nil {
-				fn(err)
-				return false
-			}
-		case <-interrupt:
-			fmt.Println("interrupt")
-			// To cleanly close a connection, a client should send a close
-			// frame and wait for the server to close the connection.
-			err := c.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))
-			if err != nil {
-				fmt.Println("write close:", err)
-				fn(err)
-				return false
-			}
+		for {
 			select {
-			case <-done:
-			case <-time.After(time.Second):
+			case t := <-ticker.C:
+				err := c.WriteMessage(websocket.TextMessage, []byte(t.String()))
+
+				if err != nil {
+					fn(err)
+				}
+			case <-interrupt:
+				fmt.Println("interrupt")
+				// To cleanly close a connection, a client should send a close
+				// frame and wait for the server to close the connection.
+				err := c.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))
+
+				if err != nil {
+					fmt.Println("write close:", err)
+					fn(err)
+				}
+
+				select {
+				case <-done:
+				case <-time.After(time.Second):
+				}
+				fmt.Println("closing websocket...")
+				c.Close()
+				break
 			}
-			fmt.Println("closing websocket...")
-			c.Close()
-			break
 		}
-	}
+	}()
 }
