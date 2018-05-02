@@ -249,12 +249,88 @@ func (p *Plex) GetEpisodes(key string) (SearchResultsEpisode, error) {
 	}
 
 	return results, nil
-
 }
 
-// GetAllEpisodes returns all episodes of a show
-func (p *Plex) GetAllEpisodes(key string) (SearchResultsEpisode, error) {
-	return SearchResultsEpisode{}, nil
+// GetEpisode returns a single episode of a show.
+func (p *Plex) GetEpisode(key string) (SearchResultsEpisode, error) {
+	if key == "" {
+		return SearchResultsEpisode{}, errors.New("Key is required")
+	}
+
+	query := fmt.Sprintf("%s/library/metadata/%s", p.URL, key)
+
+	resp, err := p.get(query, defaultHeaders())
+
+	if err != nil {
+		return SearchResultsEpisode{}, err
+	}
+
+	// Unauthorized
+	if resp.StatusCode == 401 {
+		return SearchResultsEpisode{}, errors.New("You are not authorized to access that server")
+	}
+
+	defer resp.Body.Close()
+
+	var results SearchResultsEpisode
+
+	if err := json.NewDecoder(resp.Body).Decode(&results); err != nil {
+		return SearchResultsEpisode{}, err
+	}
+
+	return results, nil
+}
+
+// GetOnDeck gets the on-deck videos.
+func (p *Plex) GetOnDeck() (SearchResultsEpisode, error) {
+	query := fmt.Sprintf("%s/library/onDeck", p.URL)
+
+	resp, err := p.get(query, defaultHeaders())
+
+	if err != nil {
+		return SearchResultsEpisode{}, err
+	}
+
+	// Unauthorized
+	if resp.StatusCode == 401 {
+		return SearchResultsEpisode{}, errors.New("You are not authorized to access that server")
+	}
+
+	defer resp.Body.Close()
+
+	var results SearchResultsEpisode
+
+	if err := json.NewDecoder(resp.Body).Decode(&results); err != nil {
+		return SearchResultsEpisode{}, err
+	}
+
+	return results, nil
+}
+
+// GetPlaylist gets all videos in a playlist.
+func (p *Plex) GetPlaylist(key int) (SearchResultsEpisode, error) {
+	query := fmt.Sprintf("%s/playlists/%d/items", p.URL, key)
+
+	resp, err := p.get(query, defaultHeaders())
+
+	if err != nil {
+		return SearchResultsEpisode{}, err
+	}
+
+	// Unauthorized
+	if resp.StatusCode == 401 {
+		return SearchResultsEpisode{}, errors.New("You are not authorized to access that server")
+	}
+
+	defer resp.Body.Close()
+
+	var results SearchResultsEpisode
+
+	if err := json.NewDecoder(resp.Body).Decode(&results); err != nil {
+		return SearchResultsEpisode{}, err
+	}
+
+	return results, nil
 }
 
 // GetThumbnail returns the response of a request to pms thumbnail
