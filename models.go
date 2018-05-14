@@ -441,72 +441,89 @@ type MetadataChildren struct {
 type SearchResultsEpisode struct {
 	MediaContainer struct {
 		Metadata []struct {
+			Director []struct {
+				Filter string `json:"filter"`
+				ID     int    `json:"id"`
+				Tag    string `json:"tag"`
+			} `json:"Director"`
 			Media []struct {
 				Part []struct {
 					Stream []struct {
-						BitDepth              int     `json:"bitDepth,omitempty"`
-						BitRate               int     `json:"bitrate,omitempty"`
-						ChromaLocation        string  `json:"chromaLocation,omitempty"`
-						ChromaSubsampling     string  `json:"chromaSubsampling,omitempty"`
-						Codec                 string  `json:"codec,omitempty"`
-						Container             string  `json:"container,omitempty"`
-						Default               bool    `json:"default,omitempty"`
-						Duration              int     `json:"duration,omitempty"`
-						File                  string  `json:"file,omitempty"`
-						FrameRate             float64 `json:"frameRate,omitempty"`
-						Has64bitOffsets       bool    `json:"has64bitOffsets,omitempty"`
-						HasScalingMatrix      bool    `json:"hasScalingMatrix,omitempty"`
-						HasThumbnail          string  `json:"hasThumbnail,omitempty"`
-						Height                int     `json:"height,omitempty"`
-						ID                    int     `json:"id,omitempty"`
-						Index                 int     `json:"index,omitempty"`
-						Key                   string  `json:"key,omitempty"`
-						Level                 int     `json:"level,omitempty"`
-						OptimizedForStreaming bool    `json:"optimizedForStreaming,omitempty"`
-						Profile               string  `json:"profile,omitempty"`
-						RefFrames             int     `json:"refFrames,omitempty"`
-						ScanType              string  `json:"scanType,omitempty"`
-						Size                  int     `json:"size,omitempty"`
-						StreamType            int     `json:"streamType,omitempty"`
-						VideoProfile          string  `json:"videoProfile,omitempty"`
-						Width                 int     `json:"width,omitempty"`
+						AudioChannelLayout string  `json:"audioChannelLayout"`
+						BitDepth           int     `json:"bitDepth"`
+						Bitrate            int     `json:"bitrate"`
+						Channels           int     `json:"channels"`
+						ChromaLocation     string  `json:"chromaLocation"`
+						ChromaSubsampling  string  `json:"chromaSubsampling"`
+						Codec              string  `json:"codec"`
+						ColorRange         string  `json:"colorRange"`
+						ColorSpace         string  `json:"colorSpace"`
+						Default            bool    `json:"default"`
+						FrameRate          float64 `json:"frameRate"`
+						HasScalingMatrix   bool    `json:"hasScalingMatrix"`
+						Height             int     `json:"height"`
+						ID                 int     `json:"id"`
+						Index              int     `json:"index"`
+						Level              int     `json:"level"`
+						Profile            string  `json:"profile"`
+						RefFrames          int     `json:"refFrames"`
+						SamplingRate       int     `json:"samplingRate"`
+						ScanType           string  `json:"scanType"`
+						Selected           bool    `json:"selected"`
+						StreamType         int     `json:"streamType"`
+						Width              int     `json:"width"`
 					} `json:"Stream"`
-					Duration     int    `json:"duration"`
-					ID           int    `json:"id"`
-					VideoProfile string `json:"videoProfile"`
-					File         string `json:"file"`
 					Container    string `json:"container"`
-					AudioProfile string `json:"audioProfile"`
-					Size         int    `json:"size"`
+					Duration     int    `json:"duration"`
+					File         string `json:"file"`
+					ID           int    `json:"id"`
 					Key          string `json:"key"`
+					Size         int    `json:"size"`
+					VideoProfile string `json:"videoProfile"`
 				} `json:"Part"`
-				AspectRatio           float64 `json:"aspectRatio"`
-				AudioChannels         int     `json:"audioChannels"`
-				AudioCodec            string  `json:"audioCodec"`
-				Bitrate               int     `json:"bitrate"`
-				Container             string  `json:"container"`
-				Duration              int     `json:"duration"`
-				Has64bitOffsets       bool    `json:"has64bitOffsets"`
-				Height                int     `json:"height"`
-				ID                    int     `json:"id"`
-				OptimizedForStreaming int     `json:"optimizedForStreaming"`
-				VideoCodec            string  `json:"videoCodec"`
-				VideoFrameRate        string  `json:"videoFrameRate"`
-				VideoProfile          string  `json:"videoProfile"`
-				VideoResolution       string  `json:"videoResolution"`
-				Width                 int     `json:"width"`
+				AspectRatio     float64 `json:"aspectRatio"`
+				AudioChannels   int     `json:"audioChannels"`
+				AudioCodec      string  `json:"audioCodec"`
+				Bitrate         int     `json:"bitrate"`
+				Container       string  `json:"container"`
+				Duration        int     `json:"duration"`
+				Height          int     `json:"height"`
+				ID              int     `json:"id"`
+				VideoCodec      string  `json:"videoCodec"`
+				VideoFrameRate  string  `json:"videoFrameRate"`
+				VideoProfile    string  `json:"videoProfile"`
+				VideoResolution string  `json:"videoResolution"`
+				Width           int     `json:"width"`
 			} `json:"Media"`
+			Writer []struct {
+				Filter string `json:"filter"`
+				ID     int    `json:"id"`
+				Tag    string `json:"tag"`
+			} `json:"Writer"`
 			AddedAt               int     `json:"addedAt"`
-			ChapterSource         string  `json:"chapterSource"`
+			Art                   string  `json:"art"`
+			ContentRating         string  `json:"contentRating"`
 			Duration              int     `json:"duration"`
+			GrandparentArt        string  `json:"grandparentArt"`
+			GrandparentKey        string  `json:"grandparentKey"`
+			GrandparentRatingKey  string  `json:"grandparentRatingKey"`
+			GrandparentTheme      string  `json:"grandparentTheme"`
+			GrandparentThumb      string  `json:"grandparentThumb"`
+			GrandparentTitle      string  `json:"grandparentTitle"`
+			GUID                  string  `json:"guid"`
 			Index                 int     `json:"index"`
-			ParentIndex           int     `json:"parentIndex"`
 			Key                   string  `json:"key"`
 			LastViewedAt          int     `json:"lastViewedAt"`
+			LibrarySectionID      int     `json:"librarySectionID"`
+			LibrarySectionKey     string  `json:"librarySectionKey"`
+			LibrarySectionTitle   string  `json:"librarySectionTitle"`
 			OriginallyAvailableAt string  `json:"originallyAvailableAt"`
+			ParentIndex           int     `json:"parentIndex"`
 			ParentKey             string  `json:"parentKey"`
 			ParentRatingKey       string  `json:"parentRatingKey"`
-			Rating                float64 `json:"rating"`
+			ParentThumb           string  `json:"parentThumb"`
+			ParentTitle           string  `json:"parentTitle"`
+			Rating                float32 `json:"rating"`
 			RatingKey             string  `json:"ratingKey"`
 			Summary               string  `json:"summary"`
 			Thumb                 string  `json:"thumb"`
@@ -516,34 +533,14 @@ type SearchResultsEpisode struct {
 			ViewCount             int     `json:"viewCount"`
 			Year                  int     `json:"year"`
 		} `json:"Metadata"`
-		ElementType              string `json:"_elementType"`
-		AllowSync                bool   `json:"allowSync"`
-		Art                      string `json:"art"`
-		Banner                   string `json:"banner"`
-		GrandparentContentRating string `json:"grandparentContentRating"`
-		GrandparentRatingKey     int    `json:"grandparentRatingKey"`
-		GrandparentStudio        string `json:"grandparentStudio"`
-		GrandparentTheme         string `json:"grandparentTheme"`
-		GrandparentThumb         string `json:"grandparentThumb"`
-		GrandparentTitle         string `json:"grandparentTitle"`
-		Identifier               string `json:"identifier"`
-		Key                      string `json:"key"`
-		LibrarySectionID         int    `json:"librarySectionID"`
-		LibrarySectionTitle      string `json:"librarySectionTitle"`
-		LibrarySectionUUID       string `json:"librarySectionUUID"`
-		MediaTagPrefix           string `json:"mediaTagPrefix"`
-		MediaTagVersion          int    `json:"mediaTagVersion"`
-		Nocache                  bool   `json:"nocache"`
-		ParentIndex              int    `json:"parentIndex"`
-		ParentTitle              string `json:"parentTitle"`
-		ParentYear               int    `json:"parentYear"`
-		SortAsc                  bool   `json:"sortAsc"`
-		Theme                    string `json:"theme"`
-		Thumb                    string `json:"thumb"`
-		Title1                   string `json:"title1"`
-		Title2                   string `json:"title2"`
-		ViewGroup                string `json:"viewGroup"`
-		ViewMode                 int    `json:"viewMode"`
+		AllowSync           bool   `json:"allowSync"`
+		Identifier          string `json:"identifier"`
+		LibrarySectionID    int    `json:"librarySectionID"`
+		LibrarySectionTitle string `json:"librarySectionTitle"`
+		LibrarySectionUUID  string `json:"librarySectionUUID"`
+		MediaTagPrefix      string `json:"mediaTagPrefix"`
+		MediaTagVersion     int    `json:"mediaTagVersion"`
+		Size                int    `json:"size"`
 	} `json:"MediaContainer"`
 }
 
