@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/jrudio/go-plex-client"
@@ -242,12 +243,13 @@ func requestPIN(c *cli.Context) error {
 	info, err := plex.RequestPIN()
 
 	if err != nil {
-		return errors.New("request plex pin failed: " + err.Error())
+		return cli.NewExitError("request plex pin failed: "+err.Error(), 1)
 	}
+	fmt.Println(info)
+	// expires := time.Until(time.Unix(int64(info.ExpiresAt), 0)).String()
 
-	expires := time.Until(time.Unix(info.ExpiresAt, 0)).String()
-
-	fmt.Printf("your pin %s (%d) expires in %s", info.Code, info.ID, expires)
+	fmt.Printf("your pin %s (%d)", info.Code, info.ID)
+	// fmt.Printf("your pin %s (%d) expires in %s", info.Code, info.ID, expires)
 
 	return nil
 }
@@ -256,16 +258,20 @@ func requestPIN(c *cli.Context) error {
 func checkPIN(c *cli.Context) error {
 	idArg := c.Args().First()
 
+	if idArg == "" {
+		return cli.NewExitError("id required", 1)
+	}
+
 	id, err := strconv.ParseInt(idArg, 0, 64)
 
 	if err != nil {
-		return errors.New("failed to parse id: " + err.Error())
+		return cli.NewExitError("failed to parse id: "+err.Error(), 1)
 	}
 
 	clientID := c.String("client-id")
 
 	if clientID == "" {
-		return errors.New("client-id is required")
+		return cli.NewExitError("client-id is required", 1)
 	}
 
 	var authToken string
@@ -277,12 +283,12 @@ func checkPIN(c *cli.Context) error {
 			fmt.Printf("\r%v", err)
 		}
 
-		expiresAt := pinInformation.ExpiresAt
+		// expiresAt := pinInformation.ExpiresAt
 
 		// stop checking if time is expired
-		if time.Until(time.Unix(expiresAt, 0)).Minutes() < 0 {
-			return errors.New("code has expired - please request another one")
-		}
+		// if time.Until(time.Unix(int64(expiresAt), 0)).Minutes() < 0 {
+		// 	return errors.New("code has expired - please request another one")
+		// }
 
 		if pinInformation.AuthToken != "" {
 			authToken = pinInformation.AuthToken
@@ -380,7 +386,7 @@ func pickServer(db store) func(c *cli.Context) error {
 func signIn(db store) func(c *cli.Context) error {
 	return func(c *cli.Context) error {
 		if c.NArg() != 2 {
-			return errors.New("signin requires 2 arguments - username and password")
+			return cli.NewExitError("signin requires 2 arguments - username and password", 1)
 		}
 
 		username := c.Args()[0]
@@ -389,11 +395,11 @@ func signIn(db store) func(c *cli.Context) error {
 		plexConn, err := plex.SignIn(username, password)
 
 		if err != nil {
-			return err
+			return cli.NewExitError(err, 1)
 		}
 
 		if plexConn.Token == "" {
-			return errors.New("failed to receive a plex token")
+			return cli.NewExitError("failed to receive a plex token", 1)
 		}
 
 		// fmt.Println("your auth token is:", plexConn.Token)
@@ -404,7 +410,7 @@ func signIn(db store) func(c *cli.Context) error {
 		}
 
 		if err := db.savePlexToken(plexConn.Token); err != nil {
-			return err
+			return cli.NewExitError(err, 1)
 		}
 
 		return nil
@@ -510,6 +516,125 @@ func webhooks(db store) func(c *cli.Context) error {
 			}
 
 			fmt.Println("success!")
+		}
+
+		return nil
+	}
+}
+
+func search(db store) func(c *cli.Context) error {
+	return func(c *cli.Context) error {
+		plexToken, err := db.getPlexToken()
+
+		if err != nil {
+			return cli.NewExitError(fmt.Sprintf("failed to retreive plex token: %v", err), 1)
+		}
+
+		server, err := db.getPlexServer()
+
+		if err != nil {
+			return cli.NewExitError(fmt.Sprintf("failed to retreive plex server info: %v", err), 1)
+		}
+
+		plexConn, err := plex.New(server.URL, plexToken)
+
+		if err != nil {
+			return err
+		}
+
+		title := strings.Join(c.Args(), " ")
+
+		fmt.Println("searching plex server for " + title)
+
+		results, err := plexConn.Search(title)
+
+		if err != nil {
+			return cli.NewExitError(err, 1)
+		}
+
+		if len(results.MediaContainer.Metadata) == 0 {
+			fmt.Println("could not find '" + title + "'")
+			return nil
+		}
+
+		for _, searchResult := range results.MediaContainer.Metadata {
+			fmt.Println(searchResult.Title)
+		}
+
+		return nil
+	}
+}
+
+func getEpisode(db store) func(c *cli.Context) error {
+	return func(c *cli.Context) error {
+		plexToken, err := db.getPlexToken()
+
+		if err != nil {
+			return cli.NewExitError(fmt.Sprintf("failed to retreive plex token: %v", err), 1)
+		}
+
+		server, err := db.getPlexServer()
+
+		if err != nil {
+			return cli.NewExitError(fmt.Sprintf("failed to retreive plex server info: %v", err), 1)
+		}
+
+		plexConn, err := plex.New(server.URL, plexToken)
+
+		if err != nil {
+			return err
+		}
+
+		if c.NArg() == 0 {
+			return cli.NewExitError("episode id is required", 1)
+		}
+
+		result, err := plexConn.GetEpisode(c.Args().First())
+
+		if err != nil {
+			return cli.NewExitError(err, 1)
+		}
+
+		episode := result.MediaContainer.Metadata
+
+		if len(episode) == 0 {
+			return cli.NewExitError("no episodes found", 1)
+		}
+
+		fmt.Println(episode[0].GrandparentTitle + ": " + episode[0].Title)
+
+		return nil
+	}
+}
+
+func getOnDeck(db store) func(c *cli.Context) error {
+	return func(c *cli.Context) error {
+		plexToken, err := db.getPlexToken()
+
+		if err != nil {
+			return cli.NewExitError(fmt.Sprintf("failed to retreive plex token: %v", err), 1)
+		}
+
+		server, err := db.getPlexServer()
+
+		if err != nil {
+			return cli.NewExitError(fmt.Sprintf("failed to retreive plex server info: %v", err), 1)
+		}
+
+		plexConn, err := plex.New(server.URL, plexToken)
+
+		if err != nil {
+			return cli.NewExitError(err, 1)
+		}
+
+		results, err := plexConn.GetOnDeck()
+
+		if err != nil {
+			return cli.NewExitError(err, 1)
+		}
+
+		for _, result := range results.MediaContainer.Metadata {
+			fmt.Println(result.Title, result.Rating)
 		}
 
 		return nil

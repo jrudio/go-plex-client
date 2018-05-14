@@ -195,6 +195,21 @@ func main() {
 				},
 			},
 		},
+		{
+			Name:   "search",
+			Usage:  "search for media information on your server",
+			Action: search(db),
+		},
+		{
+			Name:   "episode",
+			Usage:  "get metadata of an episode of a show",
+			Action: getEpisode(db),
+		},
+		{
+			Name:   "on-deck",
+			Usage:  "display titles of media that is on deck",
+			Action: getOnDeck(db),
+		},
 	}
 
 	app.Run(os.Args)
