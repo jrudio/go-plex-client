@@ -52,7 +52,7 @@ func newTestServer(code int, body string) (*httptest.Server, *Plex) {
 func TestSignIn(t *testing.T) {
 	username := os.Getenv("PLEX_USERNAME")
 	password := os.Getenv("PLEX_PASSWORD")
-	plex, err := SignIn(plexURL, username, password)
+	plex, err := SignIn(username, password)
 
 	if err != nil {
 		t.Error(err.Error())

@@ -42,7 +42,11 @@ func RequestPIN() (PinResponse, error) {
 	// }
 	var pinInformation PinResponse
 
-	resp, err := post(plexURL+endpoint, nil, defaultHeaders())
+	h := defaultHeaders()
+
+	h.ClientIdentifier = "go-plex-client-1234"
+
+	resp, err := post(plexURL+endpoint, nil, h)
 
 	if err != nil {
 		return pinInformation, err
