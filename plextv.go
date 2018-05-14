@@ -18,12 +18,13 @@ type ErrorResponse struct {
 
 // PinResponse holds information to successfully check a pin when linking an account
 type PinResponse struct {
-	ID               int             `json:"id"`
-	Code             string          `json:"code"`
-	ClientIdentifier string          `json:"clientIdentifier"`
-	ExpiresAt        int64           `json:"expiresAt"`
-	AuthToken        string          `json:"authToken"`
-	Errors           []ErrorResponse `json:"errors"`
+	ID               int    `json:"id"`
+	Code             string `json:"code"`
+	ClientIdentifier string `json:"clientIdentifier"`
+	// ExpiresAt is a timestamp
+	ExpiresAt string          `json:"expiresAt"`
+	AuthToken string          `json:"authToken"`
+	Errors    []ErrorResponse `json:"errors"`
 }
 
 // RequestPIN will retrieve a code (valid for 15 minutes) from plex.tv to link an app to your plex account
@@ -42,11 +43,11 @@ func RequestPIN() (PinResponse, error) {
 	// }
 	var pinInformation PinResponse
 
-	h := defaultHeaders()
+	headers := defaultHeaders()
 
-	h.ClientIdentifier = "go-plex-client-1234"
+	headers.ClientIdentifier = "go-plex-client-1234"
 
-	resp, err := post(plexURL+endpoint, nil, h)
+	resp, err := post(plexURL+endpoint, nil, headers)
 
 	if err != nil {
 		return pinInformation, err
@@ -74,6 +75,7 @@ func CheckPIN(id int, clientIdentifier string) (PinResponse, error) {
 	endpoint = endpoint + strconv.Itoa(id) + ".json"
 
 	headers := defaultHeaders()
+	headers.ClientIdentifier = "go-plex-client-1234"
 
 	resp, err := get(plexURL+endpoint, headers)
 
