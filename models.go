@@ -840,14 +840,16 @@ type BaseAPIResponse struct {
 
 // User ...
 type User struct {
-	ID           string `json:"id"`
-	UUID         string `json:"uuid"`
-	Email        string `json:"email"`
-	JoinedAt     string `json:"joined_at"`
-	Username     string `json:"username"`
-	Thumb        string `json:"thumb"`
-	AuthToken    string `json:"authToken"`
-	Subscription struct {
+	ID                  int    `json:"id"`
+	UUID                string `json:"uuid"`
+	Email               string `json:"email"`
+	JoinedAt            string `json:"joined_at"`
+	Username            string `json:"username"`
+	Thumb               string `json:"thumb"`
+	HasPassword         bool   `json:"hasPassword"`
+	AuthToken           string `json:"authToken"`
+	AuthenticationToken string `json:"authenticationToken"`
+	Subscription        struct {
 		Active   bool     `json:"active"`
 		Status   string   `json:"Active"`
 		Plan     string   `json:"lifetime"`

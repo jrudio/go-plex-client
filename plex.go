@@ -110,18 +110,19 @@ func SignIn(username, password string) (*Plex, error) {
 	if err != nil {
 		return &Plex{}, err
 	}
-	if resp.StatusCode != 201 {
+
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusCreated {
 		return &Plex{}, errors.New(resp.Status)
 	}
 
-	bodyBytes, _ := ioutil.ReadAll(resp.Body)
-	defer resp.Body.Close()
-
 	var signInResponse SignInResponse
 
-	if err := json.Unmarshal(bodyBytes, &signInResponse); err != nil {
+	if err := json.NewDecoder(resp.Body).Decode(&signInResponse); err != nil {
 		return &Plex{}, err
 	}
+
 	p.Token = signInResponse.User.AuthToken
 
 	return &p, err
