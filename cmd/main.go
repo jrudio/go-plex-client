@@ -4,25 +4,23 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"path/filepath"
-	"strconv"
-	"sync"
-	"time"
 
 	"github.com/jrudio/go-plex-client"
 	"github.com/mitchellh/go-homedir"
 	"github.com/urfave/cli"
 )
 
+const (
+	homeFolderName = ".plex-cli"
+)
+
 var (
-	cmd       = commands{}
-	title     string
-	baseURL   string
-	token     string
-	isVerbose bool
-	plexConn  *plex.Plex
-	// appSecret will used to seed encrypt()
-	appSecret = []byte("iAmAseCReTuSEdTOENcrYp")
+	title          string
+	baseURL        string
+	token          string
+	isVerbose      bool
+	plexConn       *plex.Plex
+	storeDirectory string
 )
 
 type server struct {
@@ -49,100 +47,43 @@ func main() {
 	app.Usage = "Interact with your plex server and plex.tv from the command line"
 	app.Version = "0.0.1"
 
-	storeDirectory, err := homedir.Dir()
-
-	if err != nil {
+	if dir, err := homedir.Dir(); err != nil {
 		fmt.Println(err)
 		os.Exit(1)
-	}
-
-	storeDirectory = filepath.Join(storeDirectory, ".plex-cli")
-
-	db, err := initDataStore(storeDirectory)
-
-	if err != nil {
-		fmt.Printf("data store initialization failed: %v\n", err)
-		os.Exit(1)
-	}
-
-	// check if app secret exists in datastore
-	if secret := db.getSecret(); len(secret) != 0 {
-		db.secret = secret
 	} else {
-		// if not, create new appsecret and save
-		// append a random number to make appsecret unique
-		appSecret = append(appSecret, []byte(strconv.FormatInt(time.Now().Unix(), 10))...)
-
-		if err := db.saveSecret(appSecret); err != nil {
-			fmt.Printf("failed to save app secret: %v\n", err)
-			db.Close()
-			os.Exit(1)
-		}
-
-		db.secret = appSecret
-	}
-
-	shutdown := make(chan int, 1)
-
-	wg := sync.WaitGroup{}
-
-	cli.OsExiter = func(c int) {
-		shutdown <- c
-	}
-
-	wg.Add(1)
-
-	go func(shutdown chan int) {
-		defer wg.Done()
-		exitCode := <-shutdown
-		// fmt.Printf("\nexiting with code %d...\n", exitCode)
-		db.Close()
-		os.Exit(exitCode)
-	}(shutdown)
-
-	app.Flags = []cli.Flag{
-		cli.StringFlag{
-			Name:        "url, u",
-			Usage:       "Plex url or ip",
-			Destination: &baseURL,
-		},
-		cli.StringFlag{
-			Name:        "token, tkn",
-			Usage:       "abc123",
-			Destination: &token,
-		},
+		storeDirectory = dir
 	}
 
 	app.Commands = []cli.Command{
 		{
 			Name:   "test",
 			Usage:  "Test your connection to your Plex Media Server",
-			Action: cmd.test,
+			Action: test,
 		},
 		{
 			Name:   "end",
 			Usage:  "End a transcode session",
-			Action: cmd.endTranscode,
+			Action: endTranscode,
 		},
 		{
 			Name:   "server-info",
 			Usage:  "Print info about your servers - ip, machine id, access tokens, etc",
-			Action: cmd.getServersInfo,
+			Action: getServersInfo,
 		},
 		{
 			Name:   "sections",
 			Usage:  "Print info about your server's sections",
-			Action: getSections(db),
+			Action: getSections,
 		},
 		{
 			Name:   "link",
 			Usage:  "authorize an app (e.g. amazon fire app) with a 4 character `code`. REQUIRES a plex token",
-			Action: linkApp(db),
+			Action: linkApp,
 		},
 		{
 			Name:   "library",
 			Usage:  "display your libraries",
-			Action: getLibraries(db),
+			Action: getLibraries,
 		},
 		{
 			Name:   "request-pin",
@@ -168,22 +109,22 @@ func main() {
 		{
 			Name:   "signin",
 			Usage:  "use your username and password to receive a plex auth token",
-			Action: signIn(db),
+			Action: signIn,
 		},
 		{
 			Name:   "sessions",
 			Usage:  "display info on users currently consuming media",
-			Action: getSessions(db),
+			Action: getSessions,
 		},
 		{
 			Name:   "pick-server",
 			Usage:  "choose a server to interact with",
-			Action: pickServer(db),
+			Action: pickServer,
 		},
 		{
 			Name:   "webhooks",
 			Usage:  "display webhooks associated with your account",
-			Action: webhooks(db),
+			Action: webhooks,
 			Flags: []cli.Flag{
 				cli.StringFlag{
 					Name:  "add",
@@ -198,32 +139,32 @@ func main() {
 		{
 			Name:   "search",
 			Usage:  "search for media information on your server",
-			Action: search(db),
+			Action: search,
 		},
 		{
 			Name:   "episode",
 			Usage:  "get metadata of an episode of a show",
-			Action: getEpisode(db),
+			Action: getEpisode,
 		},
 		{
 			Name:   "on-deck",
 			Usage:  "display titles of media that is on deck",
-			Action: getOnDeck(db),
+			Action: getOnDeck,
+		},
+		{
+			Name:   "unlock",
+			Usage:  "remove lock on pid file",
+			Action: unlock,
+		},
+		{
+			Name:   "stop",
+			Usage:  "stop playback on device",
+			Action: stopPlayback,
 		},
 	}
 
-	app.Run(os.Args)
-
-	shutdown <- 0
-
-	wg.Wait()
-}
-
-func initPlex(c *cli.Context) {
-	var err error
-
-	if plexConn, err = plex.New(c.GlobalString("url"), c.GlobalString("token")); err != nil {
-		fmt.Println(err.Error())
+	if err := app.Run(os.Args); err != nil {
+		fmt.Println(err)
 		os.Exit(1)
 	}
 }

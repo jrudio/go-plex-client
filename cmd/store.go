@@ -118,22 +118,13 @@ func (s store) getPlexToken() (string, error) {
 			return err
 		}
 
-		tokenHash, err := item.Value()
+		_plexToken, err := item.Value()
 
 		if err != nil {
 			return err
 		}
 
-		_plexToken, err := decrypt(s.secret, string(tokenHash))
-
-		if err != nil {
-			if isVerbose {
-				fmt.Println("token decryption failed")
-			}
-			return err
-		}
-
-		plexToken = _plexToken
+		plexToken = string(_plexToken)
 
 		return nil
 	}); err != nil {
@@ -148,18 +139,8 @@ func (s store) getPlexToken() (string, error) {
 }
 
 func (s store) savePlexToken(token string) error {
-	tokenHash, err := encrypt(s.secret, token)
-
-	if err != nil {
-		return err
-	}
-
-	if isVerbose {
-		fmt.Printf("your plex token hash: %s\n", string(tokenHash))
-	}
-
 	if err := s.db.Update(func(txn *badger.Txn) error {
-		return txn.Set(s.keys.plexToken, []byte(tokenHash), 0x00)
+		return txn.Set(s.keys.plexToken, []byte(token), 0x00)
 	}); err != nil {
 		return err
 	}
