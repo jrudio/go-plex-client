@@ -67,118 +67,62 @@ type SearchResults struct {
 	} `json:"MediaContainer"`
 }
 
+// Metadata ...
+type Metadata struct {
+	Media                 []Media `json:"Media"`
+	Player                Player  `json:"Player"`
+	Session               Session `json:"Session"`
+	User                  User    `json:"User"`
+	AddedAt               string  `json:"addedAt"`
+	Art                   string  `json:"art"`
+	ContentRating         string  `json:"contentRating"`
+	Duration              string  `json:"duration"`
+	GrandparentArt        string  `json:"grandparentArt"`
+	GrandparentKey        string  `json:"grandparentKey"`
+	GrandparentRatingKey  string  `json:"grandparentRatingKey"`
+	GrandparentTheme      string  `json:"grandparentTheme"`
+	GrandparentThumb      string  `json:"grandparentThumb"`
+	GrandparentTitle      string  `json:"grandparentTitle"`
+	GUID                  string  `json:"guid"`
+	Index                 string  `json:"index"`
+	Key                   string  `json:"key"`
+	LastViewedAt          string  `json:"lastViewedAt"`
+	LibrarySectionID      string  `json:"librarySectionID"`
+	LibrarySectionKey     string  `json:"librarySectionKey"`
+	LibrarySectionTitle   string  `json:"librarySectionTitle"`
+	OriginallyAvailableAt string  `json:"originallyAvailableAt"`
+	ParentIndex           string  `json:"parentIndex"`
+	ParentKey             string  `json:"parentKey"`
+	ParentRatingKey       string  `json:"parentRatingKey"`
+	ParentThumb           string  `json:"parentThumb"`
+	ParentTitle           string  `json:"parentTitle"`
+	RatingCount           string  `json:"ratingCount"`
+	Rating                float64 `json:"rating"`
+	RatingKey             string  `json:"ratingKey"`
+	SessionKey            string  `json:"sessionKey"`
+	Summary               string  `json:"summary"`
+	Thumb                 string  `json:"thumb"`
+	Title                 string  `json:"title"`
+	TitleSort             string  `json:"titleSort"`
+	Type                  string  `json:"type"`
+	UpdatedAt             string  `json:"updatedAt"`
+	ViewCount             string  `json:"viewCount"`
+	ViewOffset            string  `json:"viewOffset"`
+	Year                  string  `json:"year"`
+}
+
 // MediaMetadata ...
 type MediaMetadata struct {
 	MediaContainer struct {
-		Metadata []struct {
-			Director []struct {
-				Filter string `json:"filter"`
-				ID     int64  `json:"id"`
-				Tag    string `json:"tag"`
-			} `json:"Director"`
-			Media []struct {
-				Part []struct {
-					Stream []struct {
-						AudioChannelLayout string  `json:"audioChannelLayout"`
-						BitDepth           int64   `json:"bitDepth"`
-						Bitrate            int64   `json:"bitrate"`
-						BitrateMode        string  `json:"bitrateMode"`
-						Cabac              bool    `json:"cabac"`
-						Channels           int64   `json:"channels"`
-						ChromaSubsampling  string  `json:"chromaSubsampling"`
-						Codec              string  `json:"codec"`
-						CodecID            string  `json:"codecID"`
-						ColorRange         string  `json:"colorRange"`
-						ColorSpace         string  `json:"colorSpace"`
-						Default            bool    `json:"default"`
-						DialogNorm         int64   `json:"dialogNorm"`
-						Duration           int64   `json:"duration"`
-						FrameRate          float64 `json:"frameRate"`
-						FrameRateMode      string  `json:"frameRateMode"`
-						HasScalingMatrix   bool    `json:"hasScalingMatrix"`
-						Height             int64   `json:"height"`
-						ID                 int64   `json:"id"`
-						Index              int64   `json:"index"`
-						Language           string  `json:"language"`
-						LanguageCode       string  `json:"languageCode"`
-						Level              int64   `json:"level"`
-						PixelFormat        string  `json:"pixelFormat"`
-						Profile            string  `json:"profile"`
-						RefFrames          int64   `json:"refFrames"`
-						SamplingRate       int64   `json:"samplingRate"`
-						ScanType           string  `json:"scanType"`
-						Selected           bool    `json:"selected"`
-						StreamType         int64   `json:"streamType"`
-						Width              int64   `json:"width"`
-					} `json:"Stream"`
-					Container    string `json:"container"`
-					Duration     int64  `json:"duration"`
-					File         string `json:"file"`
-					ID           int64  `json:"id"`
-					Key          string `json:"key"`
-					Size         int64  `json:"size"`
-					VideoProfile string `json:"videoProfile"`
-				} `json:"Part"`
-				AspectRatio     float64 `json:"aspectRatio"`
-				AudioChannels   int64   `json:"audioChannels"`
-				AudioCodec      string  `json:"audioCodec"`
-				Bitrate         int64   `json:"bitrate"`
-				Container       string  `json:"container"`
-				Duration        int64   `json:"duration"`
-				Height          int64   `json:"height"`
-				ID              int64   `json:"id"`
-				VideoCodec      string  `json:"videoCodec"`
-				VideoFrameRate  string  `json:"videoFrameRate"`
-				VideoProfile    string  `json:"videoProfile"`
-				VideoResolution string  `json:"videoResolution"`
-				Width           int64   `json:"width"`
-			} `json:"Media"`
-			Writer []struct {
-				Filter string `json:"filter"`
-				ID     int64  `json:"id"`
-				Tag    string `json:"tag"`
-			} `json:"Writer"`
-			AddedAt               int64   `json:"addedAt"`
-			Art                   string  `json:"art"`
-			ContentRating         string  `json:"contentRating"`
-			Duration              int64   `json:"duration"`
-			GrandparentArt        string  `json:"grandparentArt"`
-			GrandparentKey        string  `json:"grandparentKey"`
-			GrandparentRatingKey  string  `json:"grandparentRatingKey"`
-			GrandparentTheme      string  `json:"grandparentTheme"`
-			GrandparentThumb      string  `json:"grandparentThumb"`
-			GrandparentTitle      string  `json:"grandparentTitle"`
-			GUID                  string  `json:"guid"`
-			Index                 int64   `json:"index"`
-			Key                   string  `json:"key"`
-			LastViewedAt          int64   `json:"lastViewedAt"`
-			LibrarySectionID      int64   `json:"librarySectionID"`
-			LibrarySectionKey     string  `json:"librarySectionKey"`
-			OriginallyAvailableAt string  `json:"originallyAvailableAt"`
-			ParentIndex           int64   `json:"parentIndex"`
-			ParentKey             string  `json:"parentKey"`
-			ParentRatingKey       string  `json:"parentRatingKey"`
-			ParentThumb           string  `json:"parentThumb"`
-			ParentTitle           string  `json:"parentTitle"`
-			Rating                float64 `json:"rating"`
-			RatingKey             string  `json:"ratingKey"`
-			Summary               string  `json:"summary"`
-			Thumb                 string  `json:"thumb"`
-			Title                 string  `json:"title"`
-			Type                  string  `json:"type"`
-			UpdatedAt             int64   `json:"updatedAt"`
-			ViewCount             int64   `json:"viewCount"`
-			ViewOffset            int64   `json:"viewOffset"`
-			Year                  int64   `json:"year"`
-		} `json:"Metadata"`
-		AllowSync           bool   `json:"allowSync"`
-		Identifier          string `json:"identifier"`
-		LibrarySectionID    int64  `json:"librarySectionID"`
-		LibrarySectionTitle string `json:"librarySectionTitle"`
-		LibrarySectionUUID  string `json:"librarySectionUUID"`
-		MediaTagPrefix      string `json:"mediaTagPrefix"`
-		MediaTagVersion     int64  `json:"mediaTagVersion"`
-		Size                int64  `json:"size"`
+		Metadata            []Metadata `json:"Metadata"`
+		AllowSync           bool       `json:"allowSync"`
+		Identifier          string     `json:"identifier"`
+		LibrarySectionID    int        `json:"librarySectionID"`
+		LibrarySectionTitle string     `json:"librarySectionTitle"`
+		LibrarySectionUUID  string     `json:"librarySectionUUID"`
+		MediaTagPrefix      string     `json:"mediaTagPrefix"`
+		MediaTagVersion     int        `json:"mediaTagVersion"`
+		Size                int        `json:"size"`
 	} `json:"MediaContainer"`
 
 	Size                string `json:"size" xml:"size,attr"`
@@ -363,21 +307,24 @@ type TaggedData struct {
 
 // Media ...
 type Media struct {
-	Part            []Part `json:"Part"`
-	AspectRatio     string `json:"aspectRatio"`
-	AudioChannels   string `json:"audioChannels"`
-	AudioCodec      string `json:"audioCodec"`
-	Bitrate         string `json:"bitrate"`
-	Container       string `json:"container"`
-	Duration        string `json:"duration"`
-	Height          string `json:"height"`
-	ID              string `json:"id"`
-	Selected        bool   `json:"selected"`
-	VideoCodec      string `json:"videoCodec"`
-	VideoFrameRate  string `json:"videoFrameRate"`
-	VideoProfile    string `json:"videoProfile"`
-	VideoResolution string `json:"videoResolution"`
-	Width           string `json:"width"`
+	AspectRatio           string `json:"aspectRatio"`
+	AudioChannels         string `json:"audioChannels"`
+	AudioCodec            string `json:"audioCodec"`
+	AudioProfile          string `json:"audioProfile"`
+	Bitrate               string `json:"bitrate"`
+	Container             string `json:"container"`
+	Duration              string `json:"duration"`
+	Has64bitOffsets       string `json:"has64bitOffsets"`
+	Height                string `json:"height"`
+	ID                    string `json:"id"`
+	OptimizedForStreaming string `json:"optimizedForStreaming"`
+	Part                  []Part `json:"Part"`
+	Selected              bool   `json:"selected"`
+	VideoCodec            string `json:"videoCodec"`
+	VideoFrameRate        string `json:"videoFrameRate"`
+	VideoProfile          string `json:"videoProfile"`
+	VideoResolution       string `json:"videoResolution"`
+	Width                 string `json:"width"`
 }
 
 // MetadataChildren returns metadata about a piece of media (tv show, movie, music, etc)
@@ -838,9 +785,38 @@ type BaseAPIResponse struct {
 	} `json:"MediaContainer"`
 }
 
-// User ...
-type User struct {
+// UserPlexTV plex.tv user. should be used when interacting with plex.tv as the id is an int
+type UserPlexTV struct {
+	// ID is an int when signing in to Plex.tv but a string when access own server
 	ID                  int    `json:"id"`
+	UUID                string `json:"uuid"`
+	Email               string `json:"email"`
+	JoinedAt            string `json:"joined_at"`
+	Username            string `json:"username"`
+	Thumb               string `json:"thumb"`
+	HasPassword         bool   `json:"hasPassword"`
+	AuthToken           string `json:"authToken"`
+	AuthenticationToken string `json:"authenticationToken"`
+	Subscription        struct {
+		Active   bool     `json:"active"`
+		Status   string   `json:"Active"`
+		Plan     string   `json:"lifetime"`
+		Features []string `json:"features"`
+	} `json:"subscription"`
+	Roles struct {
+		Roles []string `json:"roles"`
+	} `json:"roles"`
+	Entitlements []string `json:"entitlements"`
+	ConfirmedAt  string   `json:"confirmedAt"`
+	ForumID      string   `json:"forumId"`
+	RememberMe   bool     `json:"rememberMe"`
+	Title        string   `json:"title"`
+}
+
+// User plex server user. only difference is id is a string
+type User struct {
+	// ID is an int when signing in to Plex.tv but a string when access own server
+	ID                  string `json:"id"`
 	UUID                string `json:"uuid"`
 	Email               string `json:"email"`
 	JoinedAt            string `json:"joined_at"`
@@ -867,7 +843,7 @@ type User struct {
 
 // SignInResponse ...
 type SignInResponse struct {
-	User User `json:"user"`
+	User UserPlexTV `json:"user"`
 }
 
 // ServerInfo is the result of the https://plex.tv/api/servers endpoint
@@ -1189,51 +1165,67 @@ type CurrentSessionsVideo struct {
 
 // Stream ...
 type Stream struct {
+	AlbumGain          string `json:"albumGain"`
+	AlbumPeak          string `json:"albumPeak"`
+	AlbumRange         string `json:"albumRange"`
 	Anamorphic         string `json:"anamorphic"`
 	AudioChannelLayout string `json:"audioChannelLayout"`
 	BitDepth           string `json:"bitDepth"`
 	Bitrate            string `json:"bitrate"`
 	BitrateMode        string `json:"bitrateMode"`
+	Cabac              string `json:"cabac"`
 	Channels           string `json:"channels"`
+	ChromaLocation     string `json:"chromaLocation"`
 	ChromaSubsampling  string `json:"chromaSubsampling"`
 	Codec              string `json:"codec"`
+	CodecID            string `json:"codecID"`
+	ColorRange         string `json:"colorRange"`
+	ColorSpace         string `json:"colorSpace"`
 	Default            string `json:"default"`
+	DisplayTitle       string `json:"displayTitle"`
 	Duration           string `json:"duration"`
 	FrameRate          string `json:"frameRate"`
-	ID                 string `json:"id"`
+	FrameRateMode      string `json:"frameRateMode"`
+	Gain               string `json:"gain"`
 	HasScalingMatrix   string `json:"hasScalingMatrix"`
 	Height             string `json:"height"`
+	ID                 string `json:"id"`
 	Index              string `json:"index"`
 	Language           string `json:"language"`
 	LanguageCode       string `json:"languageCode"`
 	Level              string `json:"level"`
 	Location           string `json:"location"`
+	Loudness           string `json:"loudness"`
+	Lra                string `json:"lra"`
+	Peak               string `json:"peak"`
 	PixelAspectRatio   string `json:"pixelAspectRatio"`
+	PixelFormat        string `json:"pixelFormat"`
 	Profile            string `json:"profile"`
 	RefFrames          string `json:"refFrames"`
 	SamplingRate       string `json:"samplingRate"`
 	ScanType           string `json:"scanType"`
 	Selected           string `json:"selected"`
+	StreamIdentifier   string `json:"streamIdentifier"`
 	StreamType         string `json:"streamType"`
 	Width              string `json:"width"`
 }
 
 // Part ...
 type Part struct {
-	Stream                []Stream `json:"Stream"`
+	AudioProfile          string   `json:"audioProfile"`
 	Container             string   `json:"container"`
 	Decision              string   `json:"decision"`
 	Duration              string   `json:"duration"`
 	File                  string   `json:"file"`
+	Has64bitOffsets       bool     `json:"has64bitOffsets"`
 	HasThumbnail          string   `json:"hasThumbnail"`
 	ID                    string   `json:"id"`
 	Key                   string   `json:"key"`
+	OptimizedForStreaming string   `json:"optimizedForStreaming"`
 	Selected              bool     `json:"selected"`
 	Size                  string   `json:"size"`
+	Stream                []Stream `json:"Stream"`
 	VideoProfile          string   `json:"videoProfile"`
-	AudioProfile          string   `json:"audioProfile"`
-	Has64bitOffsets       bool     `json:"has64bitOffsets"`
-	OptimizedForStreaming string   `json:"optimizedForStreaming"`
 }
 
 // Player ...
@@ -1265,82 +1257,7 @@ type Session struct {
 // CurrentSessions metadata of users consuming media
 type CurrentSessions struct {
 	MediaContainer struct {
-		Track []struct {
-			Media []Media `json:"Media"`
-			Mood  []struct {
-				Filter string `json:"filter"`
-				ID     string `json:"id"`
-				Tag    string `json:"tag"`
-			} `json:"Mood"`
-			Player               Player  `json:"Player"`
-			Session              Session `json:"Session"`
-			User                 User    `json:"User"`
-			AddedAt              string  `json:"addedAt"`
-			Art                  string  `json:"art"`
-			Duration             string  `json:"duration"`
-			GrandparentArt       string  `json:"grandparentArt"`
-			GrandparentKey       string  `json:"grandparentKey"`
-			GrandparentRatingKey string  `json:"grandparentRatingKey"`
-			GrandparentThumb     string  `json:"grandparentThumb"`
-			GrandparentTitle     string  `json:"grandparentTitle"`
-			GUID                 string  `json:"guid"`
-			Index                string  `json:"index"`
-			Key                  string  `json:"key"`
-			LastViewedAt         string  `json:"lastViewedAt"`
-			LibrarySectionID     string  `json:"librarySectionID"`
-			LibrarySectionKey    string  `json:"librarySectionKey"`
-			ParentIndex          string  `json:"parentIndex"`
-			ParentKey            string  `json:"parentKey"`
-			ParentRatingKey      string  `json:"parentRatingKey"`
-			ParentThumb          string  `json:"parentThumb"`
-			ParentTitle          string  `json:"parentTitle"`
-			RatingKey            string  `json:"ratingKey"`
-			SessionKey           string  `json:"sessionKey"`
-			Summary              string  `json:"summary"`
-			Thumb                string  `json:"thumb"`
-			Title                string  `json:"title"`
-			Type                 string  `json:"type"`
-			UpdatedAt            string  `json:"updatedAt"`
-			ViewCount            string  `json:"viewCount"`
-			ViewOffset           string  `json:"viewOffset"`
-			Year                 string  `json:"year"`
-		} `json:"Track"`
-		Video []struct {
-			Media                 []Media `json:"Media"`
-			Player                Player  `json:"Player"`
-			Session               Session `json:"Session"`
-			User                  User    `json:"User"`
-			AddedAt               string  `json:"addedAt"`
-			Art                   string  `json:"art"`
-			ContentRating         string  `json:"contentRating"`
-			Duration              string  `json:"duration"`
-			GrandparentArt        string  `json:"grandparentArt"`
-			GrandparentKey        string  `json:"grandparentKey"`
-			GrandparentRatingKey  string  `json:"grandparentRatingKey"`
-			GrandparentTheme      string  `json:"grandparentTheme"`
-			GrandparentThumb      string  `json:"grandparentThumb"`
-			GrandparentTitle      string  `json:"grandparentTitle"`
-			GUID                  string  `json:"guid"`
-			Index                 string  `json:"index"`
-			Key                   string  `json:"key"`
-			LibrarySectionID      string  `json:"librarySectionID"`
-			LibrarySectionKey     string  `json:"librarySectionKey"`
-			OriginallyAvailableAt string  `json:"originallyAvailableAt"`
-			ParentIndex           string  `json:"parentIndex"`
-			ParentKey             string  `json:"parentKey"`
-			ParentRatingKey       string  `json:"parentRatingKey"`
-			ParentThumb           string  `json:"parentThumb"`
-			ParentTitle           string  `json:"parentTitle"`
-			RatingKey             string  `json:"ratingKey"`
-			SessionKey            string  `json:"sessionKey"`
-			Summary               string  `json:"summary"`
-			Thumb                 string  `json:"thumb"`
-			Title                 string  `json:"title"`
-			Type                  string  `json:"type"`
-			UpdatedAt             string  `json:"updatedAt"`
-			ViewOffset            string  `json:"viewOffset"`
-			Year                  string  `json:"year"`
-		} `json:"Video"`
-		Size int `json:"size"`
+		Metadata []Metadata `json:"Metadata"`
+		Size     int        `json:"size"`
 	} `json:"MediaContainer"`
 }
