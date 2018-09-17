@@ -18,13 +18,22 @@ type ErrorResponse struct {
 
 // PinResponse holds information to successfully check a pin when linking an account
 type PinResponse struct {
-	ID               int    `json:"id"`
-	Code             string `json:"code"`
-	ClientIdentifier string `json:"clientIdentifier"`
-	// ExpiresAt is a timestamp
-	ExpiresAt string          `json:"expiresAt"`
-	AuthToken string          `json:"authToken"`
-	Errors    []ErrorResponse `json:"errors"`
+	ID               int             `json:"id"`
+	Code             string          `json:"code"`
+	ClientIdentifier string          `json:"clientIdentifier"`
+	CreatedAt        string          `json:"createdAt"`
+	ExpiresAt        string          `json:"expiresAt"`
+	ExpiresIn        int             `json:"expiresIn"`
+	AuthToken        string          `json:"authToken"`
+	Errors           []ErrorResponse `json:"errors"`
+	Trusted          bool            `json:"trusted"`
+	Location         struct {
+		Code         string `json:"code"`
+		Country      string `json:"country"`
+		City         string `json:"city"`
+		Subdivisions string `json:"subdivisions"`
+		Coordinates  string `json:"coordinates"`
+	}
 }
 
 // RequestPIN will retrieve a code (valid for 15 minutes) from plex.tv to link an app to your plex account
