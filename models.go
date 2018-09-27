@@ -73,10 +73,10 @@ type Metadata struct {
 	Player                Player  `json:"Player"`
 	Session               Session `json:"Session"`
 	User                  User    `json:"User"`
-	AddedAt               string  `json:"addedAt"`
+	AddedAt               int     `json:"addedAt"`
 	Art                   string  `json:"art"`
 	ContentRating         string  `json:"contentRating"`
-	Duration              string  `json:"duration"`
+	Duration              int     `json:"duration"`
 	GrandparentArt        string  `json:"grandparentArt"`
 	GrandparentKey        string  `json:"grandparentKey"`
 	GrandparentRatingKey  string  `json:"grandparentRatingKey"`
@@ -86,8 +86,8 @@ type Metadata struct {
 	GUID                  string  `json:"guid"`
 	Index                 string  `json:"index"`
 	Key                   string  `json:"key"`
-	LastViewedAt          string  `json:"lastViewedAt"`
-	LibrarySectionID      string  `json:"librarySectionID"`
+	LastViewedAt          int     `json:"lastViewedAt"`
+	LibrarySectionID      int     `json:"librarySectionID"`
 	LibrarySectionKey     string  `json:"librarySectionKey"`
 	LibrarySectionTitle   string  `json:"librarySectionTitle"`
 	OriginallyAvailableAt string  `json:"originallyAvailableAt"`
@@ -105,10 +105,10 @@ type Metadata struct {
 	Title                 string  `json:"title"`
 	TitleSort             string  `json:"titleSort"`
 	Type                  string  `json:"type"`
-	UpdatedAt             string  `json:"updatedAt"`
-	ViewCount             string  `json:"viewCount"`
-	ViewOffset            string  `json:"viewOffset"`
-	Year                  string  `json:"year"`
+	UpdatedAt             int     `json:"updatedAt"`
+	ViewCount             int     `json:"viewCount"`
+	ViewOffset            int     `json:"viewOffset"`
+	Year                  int     `json:"year"`
 }
 
 // MediaMetadata ...
@@ -307,24 +307,24 @@ type TaggedData struct {
 
 // Media ...
 type Media struct {
-	AspectRatio           string `json:"aspectRatio"`
-	AudioChannels         string `json:"audioChannels"`
-	AudioCodec            string `json:"audioCodec"`
-	AudioProfile          string `json:"audioProfile"`
-	Bitrate               string `json:"bitrate"`
-	Container             string `json:"container"`
-	Duration              string `json:"duration"`
-	Has64bitOffsets       string `json:"has64bitOffsets"`
-	Height                string `json:"height"`
-	ID                    string `json:"id"`
-	OptimizedForStreaming string `json:"optimizedForStreaming"`
-	Part                  []Part `json:"Part"`
-	Selected              bool   `json:"selected"`
-	VideoCodec            string `json:"videoCodec"`
-	VideoFrameRate        string `json:"videoFrameRate"`
-	VideoProfile          string `json:"videoProfile"`
-	VideoResolution       string `json:"videoResolution"`
-	Width                 string `json:"width"`
+	AspectRatio           float32 `json:"aspectRatio"`
+	AudioChannels         int     `json:"audioChannels"`
+	AudioCodec            string  `json:"audioCodec"`
+	AudioProfile          string  `json:"audioProfile"`
+	Bitrate               int     `json:"bitrate"`
+	Container             string  `json:"container"`
+	Duration              int     `json:"duration"`
+	Has64bitOffsets       bool    `json:"has64bitOffsets"`
+	Height                int     `json:"height"`
+	ID                    int     `json:"id"`
+	OptimizedForStreaming int     `json:"optimizedForStreaming"`
+	Part                  []Part  `json:"Part"`
+	Selected              bool    `json:"selected"`
+	VideoCodec            string  `json:"videoCodec"`
+	VideoFrameRate        string  `json:"videoFrameRate"`
+	VideoProfile          string  `json:"videoProfile"`
+	VideoResolution       string  `json:"videoResolution"`
+	Width                 int     `json:"width"`
 }
 
 // MetadataChildren returns metadata about a piece of media (tv show, movie, music, etc)
@@ -1165,49 +1165,49 @@ type CurrentSessionsVideo struct {
 
 // Stream ...
 type Stream struct {
-	AlbumGain          string `json:"albumGain"`
-	AlbumPeak          string `json:"albumPeak"`
-	AlbumRange         string `json:"albumRange"`
-	Anamorphic         string `json:"anamorphic"`
-	AudioChannelLayout string `json:"audioChannelLayout"`
-	BitDepth           string `json:"bitDepth"`
-	Bitrate            string `json:"bitrate"`
-	BitrateMode        string `json:"bitrateMode"`
-	Cabac              string `json:"cabac"`
-	Channels           string `json:"channels"`
-	ChromaLocation     string `json:"chromaLocation"`
-	ChromaSubsampling  string `json:"chromaSubsampling"`
-	Codec              string `json:"codec"`
-	CodecID            string `json:"codecID"`
-	ColorRange         string `json:"colorRange"`
-	ColorSpace         string `json:"colorSpace"`
-	Default            string `json:"default"`
-	DisplayTitle       string `json:"displayTitle"`
-	Duration           string `json:"duration"`
-	FrameRate          string `json:"frameRate"`
-	FrameRateMode      string `json:"frameRateMode"`
-	Gain               string `json:"gain"`
-	HasScalingMatrix   string `json:"hasScalingMatrix"`
-	Height             string `json:"height"`
-	ID                 string `json:"id"`
-	Index              string `json:"index"`
-	Language           string `json:"language"`
-	LanguageCode       string `json:"languageCode"`
-	Level              string `json:"level"`
-	Location           string `json:"location"`
-	Loudness           string `json:"loudness"`
-	Lra                string `json:"lra"`
-	Peak               string `json:"peak"`
-	PixelAspectRatio   string `json:"pixelAspectRatio"`
-	PixelFormat        string `json:"pixelFormat"`
-	Profile            string `json:"profile"`
-	RefFrames          string `json:"refFrames"`
-	SamplingRate       string `json:"samplingRate"`
-	ScanType           string `json:"scanType"`
-	Selected           string `json:"selected"`
-	StreamIdentifier   string `json:"streamIdentifier"`
-	StreamType         string `json:"streamType"`
-	Width              string `json:"width"`
+	AlbumGain          string  `json:"albumGain"`
+	AlbumPeak          string  `json:"albumPeak"`
+	AlbumRange         string  `json:"albumRange"`
+	Anamorphic         bool    `json:"anamorphic"`
+	AudioChannelLayout string  `json:"audioChannelLayout"`
+	BitDepth           int     `json:"bitDepth"`
+	Bitrate            int     `json:"bitrate"`
+	BitrateMode        string  `json:"bitrateMode"`
+	Cabac              string  `json:"cabac"`
+	Channels           int     `json:"channels"`
+	ChromaLocation     string  `json:"chromaLocation"`
+	ChromaSubsampling  string  `json:"chromaSubsampling"`
+	Codec              string  `json:"codec"`
+	CodecID            string  `json:"codecID"`
+	ColorRange         string  `json:"colorRange"`
+	ColorSpace         string  `json:"colorSpace"`
+	Default            bool    `json:"default"`
+	DisplayTitle       string  `json:"displayTitle"`
+	Duration           string  `json:"duration"`
+	FrameRate          float64 `json:"frameRate"`
+	FrameRateMode      string  `json:"frameRateMode"`
+	Gain               string  `json:"gain"`
+	HasScalingMatrix   bool    `json:"hasScalingMatrix"`
+	Height             int     `json:"height"`
+	ID                 int     `json:"id"`
+	Index              int     `json:"index"`
+	Language           string  `json:"language"`
+	LanguageCode       string  `json:"languageCode"`
+	Level              int     `json:"level"`
+	Location           string  `json:"location"`
+	Loudness           string  `json:"loudness"`
+	Lra                string  `json:"lra"`
+	Peak               string  `json:"peak"`
+	PixelAspectRatio   string  `json:"pixelAspectRatio"`
+	PixelFormat        string  `json:"pixelFormat"`
+	Profile            string  `json:"profile"`
+	RefFrames          int     `json:"refFrames"`
+	SamplingRate       int     `json:"samplingRate"`
+	ScanType           string  `json:"scanType"`
+	Selected           bool    `json:"selected"`
+	StreamIdentifier   string  `json:"streamIdentifier"`
+	StreamType         int     `json:"streamType"`
+	Width              int     `json:"width"`
 }
 
 // Part ...
@@ -1215,15 +1215,15 @@ type Part struct {
 	AudioProfile          string   `json:"audioProfile"`
 	Container             string   `json:"container"`
 	Decision              string   `json:"decision"`
-	Duration              string   `json:"duration"`
+	Duration              int      `json:"duration"`
 	File                  string   `json:"file"`
 	Has64bitOffsets       bool     `json:"has64bitOffsets"`
 	HasThumbnail          string   `json:"hasThumbnail"`
-	ID                    string   `json:"id"`
+	ID                    int      `json:"id"`
 	Key                   string   `json:"key"`
-	OptimizedForStreaming string   `json:"optimizedForStreaming"`
+	OptimizedForStreaming bool     `json:"optimizedForStreaming"`
 	Selected              bool     `json:"selected"`
-	Size                  string   `json:"size"`
+	Size                  int      `json:"size"`
 	Stream                []Stream `json:"Stream"`
 	VideoProfile          string   `json:"videoProfile"`
 }
