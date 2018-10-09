@@ -80,6 +80,8 @@ type Metadata struct {
 
 type MetadataV1 struct {
 	Metadata
+	Index            int64     `json:"index,string"`
+	ParentIndex      int64     `json:"parentIndex,string"`
 	AddedAt          string    `json:"addedAt"`
 	Duration         string    `json:"duration"`
 	LastViewedAt     string    `json:"lastViewedAt"`
