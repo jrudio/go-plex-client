@@ -257,7 +257,7 @@ func getSessions(c *cli.Context) error {
 			userIsWatching += session.GrandparentTitle + " - " + session.ParentTitle
 			userIsWatching += " - " + session.Title
 		} else {
-			userIsWatching += session.Title + " (" + session.Year + ")"
+			userIsWatching += session.Title + " (" + string(session.Year) + ")"
 		}
 
 		fmt.Println(userIsWatching)
@@ -762,7 +762,7 @@ func stopPlayback(c *cli.Context) error {
 			title += session.GrandparentTitle + " - " + session.ParentTitle
 			title += " - " + session.Title
 		} else {
-			title += session.Title + " (" + session.Year + ")"
+			title += session.Title + " (" + string(session.Year) + ")"
 		}
 
 		fmt.Printf("\t[%d] %s - %s\n", i, session.User.Title, title)
