@@ -4,6 +4,7 @@ package plex
 
 import (
 	"encoding/json"
+	"encoding/xml"
 	"errors"
 	"net/http"
 	"net/url"
@@ -228,4 +229,31 @@ func (p Plex) SetWebhooks(webhooks []string) error {
 	}
 
 	return nil
+}
+
+// MyAccount gets account info (i.e. plex pass, servers, username, etc) from plex tv
+func (p Plex) MyAccount() (UserPlexTV, error) {
+	endpoint := "/users/account"
+
+	var account UserPlexTV
+
+	resp, err := p.get(plexURL+endpoint, defaultHeaders())
+
+	if err != nil {
+		return account, err
+	}
+
+	defer resp.Body.Close()
+
+	if resp.StatusCode == http.StatusUnprocessableEntity {
+		return account, errors.New(ErrorInvalidToken)
+	} else if resp.StatusCode != http.StatusOK {
+		return account, errors.New(resp.Status)
+	}
+
+	if err := xml.NewDecoder(resp.Body).Decode(&account); err != nil {
+		return account, err
+	}
+
+	return account, err
 }

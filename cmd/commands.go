@@ -791,3 +791,64 @@ func stopPlayback(c *cli.Context) error {
 
 	return nil
 }
+
+func getAccountInfo(c *cli.Context) error {
+	db, err := startDB()
+
+	if err != nil {
+		return cli.NewExitError(err, 1)
+	}
+
+	defer db.Close()
+
+	plexConn, err := initPlex(db)
+
+	if err != nil {
+		return cli.NewExitError(err, 1)
+	}
+
+	plexConn.HTTPClient.Timeout = time.Minute * 1
+
+	account, err := plexConn.MyAccount()
+
+	if err != nil {
+		return cli.NewExitError(err, 1)
+	}
+
+	// fmt.Println(account.Subscription.Features, account.Roles.Roles)
+	// fmt.Println(account.Entitlements)
+
+	fmt.Printf("%+v\n", account)
+
+	return nil
+}
+
+func getMetadata(c *cli.Context) error {
+	db, err := startDB()
+
+	if err != nil {
+		return cli.NewExitError(err, 1)
+	}
+
+	defer db.Close()
+
+	plexConn, err := initPlex(db)
+
+	if err != nil {
+		return err
+	}
+
+	if c.NArg() == 0 {
+		return cli.NewExitError("episode id is required", 1)
+	}
+
+	result, err := plexConn.GetMetadata(c.Args().First())
+
+	if err != nil {
+		return cli.NewExitError(err, 1)
+	}
+
+	fmt.Println(result)
+
+	return nil
+}

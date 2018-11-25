@@ -161,6 +161,16 @@ func main() {
 			Usage:  "stop playback on device",
 			Action: stopPlayback,
 		},
+		{
+			Name:   "account",
+			Usage:  "get account info from plex.tv",
+			Action: getAccountInfo,
+		},
+		{
+			Name:   "metadata",
+			Usage:  "get metadata of media on plex server",
+			Action: getMetadata,
+		},
 	}
 
 	if err := app.Run(os.Args); err != nil {
