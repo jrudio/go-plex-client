@@ -40,7 +40,7 @@ func GetMediaTypeID(mediaType string) string {
 	}
 }
 
-// // GetMediaType is a helper function that returns the media type. Usually, used after GetMetadata().
+// GetMediaType is a helper function that returns the media type. Usually, used after GetMetadata().
 func GetMediaType(info MediaMetadata) string {
 	if dType := info.MediaContainer.Metadata[0].Type; dType != "" {
 		return dType

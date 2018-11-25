@@ -863,7 +863,7 @@ func (p *Plex) GetLibraries() (LibrarySections, error) {
 	return result, nil
 }
 
-// Retrieve the content inside a library
+// GetLibraryContent retrieve the content inside a library
 func (p *Plex) GetLibraryContent(sectionKey string, filter string) (SearchResults, error) {
 	query := fmt.Sprintf("%s/library/sections/%s/all%s", p.URL, sectionKey, filter)
 
@@ -873,11 +873,15 @@ func (p *Plex) GetLibraryContent(sectionKey string, filter string) (SearchResult
 		return SearchResults{}, err
 	}
 
-	if resp.StatusCode == 401 {
+	if resp.Status == ErrorInvalidToken {
+		return SearchResults{}, errors.New("invalid token")
+	}
+
+	if resp.StatusCode == http.StatusUnauthorized {
 		return SearchResults{}, errors.New("You are not authorized to access that server")
 	}
 
-	if resp.StatusCode == 400 {
+	if resp.StatusCode == http.StatusBadRequest {
 		return SearchResults{}, errors.New("There was an error in the request")
 	}
 

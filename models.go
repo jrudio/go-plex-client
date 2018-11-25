@@ -17,17 +17,20 @@ type Plex struct {
 // SearchResults a list of media returned when searching
 // for media via your plex server
 
+// Provider ...
 type Provider struct {
 	Key   string `json:"key"`
 	Title string `json:"title"`
 	Type  string `json:"type"`
 }
 
+// SearchMediaContainer ...
 type SearchMediaContainer struct {
 	MediaContainer
 	Provider []Provider
 }
 
+// SearchResults ...
 type SearchResults struct {
 	MediaContainer SearchMediaContainer `json:"MediaContainer"`
 }
@@ -78,6 +81,7 @@ type Metadata struct {
 	Writer                []TaggedData `json:"Writer"`
 }
 
+// MetadataV1 ...
 type MetadataV1 struct {
 	Metadata
 	Index            int64     `json:"index,string"`
@@ -93,6 +97,7 @@ type MetadataV1 struct {
 	Year             string    `json:"year"`
 }
 
+// Media media info
 type Media struct {
 	AspectRatio           float32 `json:"aspectRatio"`
 	AudioChannels         int     `json:"audioChannels"`
@@ -114,6 +119,7 @@ type Media struct {
 	Part                  []Part  `json:"Part"`
 }
 
+// MediaV1 media information version 1
 type MediaV1 struct {
 	Media
 	Part                  []PartV1 `json:"Part"`
@@ -128,6 +134,7 @@ type MediaV1 struct {
 	Width                 int      `json:"width,string"`
 }
 
+// MediaContainer contains media info
 type MediaContainer struct {
 	Metadata            []Metadata `json:"Metadata"`
 	AllowSync           bool       `json:"allowSync"`
@@ -182,9 +189,10 @@ type LibrarySections struct {
 type TaggedData struct {
 	Tag    string `json:"tag"`
 	Filter string `json:"filter"`
-	id     string `json:"id"`
+	ID     string `json:"id"`
 }
 
+// Role ...
 type Role struct {
 	TaggedData
 	Role  string `json:"role"`
@@ -728,6 +736,7 @@ type Stream struct {
 	Width              int     `json:"width"`
 }
 
+// StreamV1 stream info version 1
 type StreamV1 struct {
 	Stream
 	BitDepth         int     `json:"bitDepth,string"`
@@ -765,6 +774,7 @@ type Part struct {
 	VideoProfile          string   `json:"videoProfile"`
 }
 
+// PartV1 part version 1
 type PartV1 struct {
 	Part
 	Duration              int        `json:"duration,string"`
