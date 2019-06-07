@@ -1,6 +1,7 @@
 package plex
 
 import (
+	"encoding/json"
 	"encoding/xml"
 	"net/http"
 )
@@ -74,7 +75,7 @@ type Metadata struct {
 	TitleSort             string       `json:"titleSort"`
 	Type                  string       `json:"type"`
 	UpdatedAt             int          `json:"updatedAt"`
-	ViewCount             int          `json:"viewCount"`
+	ViewCount             json.Number  `json:"viewCount"`
 	ViewOffset            int          `json:"viewOffset"`
 	Year                  int          `json:"year"`
 	Director              []TaggedData `json:"Director"`
