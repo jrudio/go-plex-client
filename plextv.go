@@ -85,7 +85,12 @@ func CheckPIN(id int, clientIdentifier string) (PinResponse, error) {
 	endpoint = endpoint + strconv.Itoa(id) + ".json"
 
 	headers := defaultHeaders()
-	headers.ClientIdentifier = clientIdentifier
+
+	headers.ClientIdentifier = "go-plex-client-1234"
+
+	if clientIdentifier != "" {
+		headers.ClientIdentifier = clientIdentifier
+	}
 
 	resp, err := get(plexURL+endpoint, headers)
 
