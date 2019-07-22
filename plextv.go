@@ -115,6 +115,45 @@ func CheckPIN(id int, clientIdentifier string) (PinResponse, error) {
 	return pinInformation, nil
 }
 
+// CheckPIN will return information related to the pin such as the auth token if your code has been approved.
+// will return an error if code expired or still not linked
+// clientIdentifier must be the same when requesting a pin
+func (p *Plex) CheckPIN(id int, clientIdentifier string) (PinResponse, error) {
+	endpoint := "/api/v2/pins/"
+
+	endpoint = endpoint + strconv.Itoa(id) + ".json"
+
+	headers := defaultHeaders()
+	headers.ClientIdentifier = p.ClientIdentifier
+
+	resp, err := get(plexURL+endpoint, headers)
+
+	if err != nil {
+		return PinResponse{}, err
+	}
+
+	defer resp.Body.Close()
+
+	var pinInformation PinResponse
+
+	if err := json.NewDecoder(resp.Body).Decode(&pinInformation); err != nil {
+		return pinInformation, err
+	}
+
+	// code doesn't exist or expired
+	if len(pinInformation.Errors) > 0 {
+		return pinInformation, errors.New(pinInformation.Errors[0].Message)
+	}
+
+	// we are not authorized yet
+	if pinInformation.AuthToken == "" {
+		return pinInformation, errors.New("pin is not authorized yet")
+	}
+
+	// we are authorized! Yay!
+	return pinInformation, nil
+}
+
 // LinkAccount allows you to authorize an app via a 4 character pin. returns nil on success
 func (p Plex) LinkAccount(code string) error {
 	endpoint := "/api/v2/pins/link.json"
