@@ -20,16 +20,19 @@ import (
 const plexURL = "https://plex.tv"
 
 func defaultHeaders() headers {
+	version := "0.0.1"
+
 	return headers{
-		Platform:        runtime.GOOS,
-		PlatformVersion: "0.0.0",
-		Product:         "Go Plex Client",
-		Version:         "0.0.1",
-		Device:          runtime.GOOS + " " + runtime.GOARCH,
-		ContainerSize:   "Plex-Container-Size=50",
-		ContainerStart:  "X-Plex-Container-Start=0",
-		Accept:          "application/json",
-		ContentType:     "application/json",
+		Platform:         runtime.GOOS,
+		PlatformVersion:  "0.0.0",
+		Product:          "Go Plex Client",
+		Version:          version,
+		Device:           runtime.GOOS + " " + runtime.GOARCH,
+		ClientIdentifier: "go-plex-client-v" + version,
+		ContainerSize:    "Plex-Container-Size=50",
+		ContainerStart:   "X-Plex-Container-Start=0",
+		Accept:           "application/json",
+		ContentType:      "application/json",
 	}
 }
 
@@ -48,13 +51,17 @@ func New(baseURL, token string) (*Plex, error) {
 		Timeout: 3 * time.Second,
 	}
 
-	id, err := uuid.NewRandom()
+	p.Headers = defaultHeaders()
 
-	if err != nil {
-		return &p, err
-	}
+	// id, err := uuid.NewRandom()
 
-	p.ClientIdentifier = id.String()
+	// if err != nil {
+	// 	return &p, err
+	// }
+
+	// p.ClientIdentifier = id.String()
+	p.ClientIdentifier = defaultHeaders().ClientIdentifier
+	p.Headers.ClientIdentifier = p.ClientIdentifier
 
 	// has url and token
 	if baseURL != "" && token != "" {
@@ -344,8 +351,7 @@ func (p *Plex) GetThumbnail(key, thumbnailID string) (*http.Response, error) {
 
 // Test your connection to your Plex Media Server
 func (p *Plex) Test() (bool, error) {
-
-	resp, err := p.get(p.URL, defaultHeaders())
+	resp, err := p.get(plexURL+"/api/servers", p.Headers)
 
 	if err != nil {
 		return false, err

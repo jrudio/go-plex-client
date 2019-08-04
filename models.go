@@ -12,6 +12,7 @@ type Plex struct {
 	URL              string
 	Token            string
 	ClientIdentifier string
+	Headers headers
 	HTTPClient       http.Client
 }
 
