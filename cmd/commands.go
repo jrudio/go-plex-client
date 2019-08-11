@@ -315,7 +315,14 @@ func linkApp(c *cli.Context) error {
 
 // requestPIN is good for just receiving the pin and you manually going to plex.tv/link to link the code
 func requestPIN(c *cli.Context) error {
-	info, err := plex.RequestPIN()
+	// just need headers
+	plexConn, err := plex.New("", "abc123")
+
+	if err != nil {
+		return cli.NewExitError("could not create headers: "+err.Error(), 1)
+	}
+
+	info, err := plex.RequestPIN(plexConn.Headers)
 
 	if err != nil {
 		return cli.NewExitError("request plex pin failed: "+err.Error(), 1)
@@ -344,11 +351,8 @@ func checkPIN(c *cli.Context) error {
 		return cli.NewExitError("failed to parse id: "+err.Error(), 1)
 	}
 
-	clientID := c.String("client-id")
-
-	if clientID == "" {
-		return cli.NewExitError("client-id is required", 1)
-	}
+	plexConn, _ := plex.New("", "abc123")
+	clientID := plexConn.Headers.ClientIdentifier
 
 	var authToken string
 

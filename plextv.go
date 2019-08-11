@@ -86,8 +86,6 @@ func CheckPIN(id int, clientIdentifier string) (PinResponse, error) {
 
 	headers := defaultHeaders()
 
-	headers.ClientIdentifier = "go-plex-client-1234"
-
 	if clientIdentifier != "" {
 		headers.ClientIdentifier = clientIdentifier
 	}
@@ -128,7 +126,7 @@ func (p Plex) LinkAccount(code string) error {
 		"code": []string{code},
 	}
 
-	headers := defaultHeaders()
+	headers := p.Headers
 
 	headers.ContentType = "application/x-www-form-urlencoded"
 
@@ -167,7 +165,7 @@ func (p Plex) GetWebhooks() ([]string, error) {
 
 	endpoint := "/api/v2/user/webhooks"
 
-	resp, err := p.get(plexURL+endpoint, defaultHeaders())
+	resp, err := p.get(plexURL+endpoint, p.Headers)
 
 	if err != nil {
 		return webhooks, err
@@ -217,7 +215,7 @@ func (p Plex) SetWebhooks(webhooks []string) error {
 		body.Add("urls[]", hook)
 	}
 
-	headers := defaultHeaders()
+	headers := p.Headers
 
 	headers.ContentType = "application/x-www-form-urlencoded"
 
@@ -242,7 +240,7 @@ func (p Plex) MyAccount() (UserPlexTV, error) {
 
 	var account UserPlexTV
 
-	resp, err := p.get(plexURL+endpoint, defaultHeaders())
+	resp, err := p.get(plexURL+endpoint, p.Headers)
 
 	if err != nil {
 		return account, err

@@ -94,11 +94,6 @@ func main() {
 			Name:  "check-pin",
 			Usage: "check status of pin (4 character code) from plex.tv to link account to an app. Use this to recieve an auth token. REQUIRES an id",
 			Flags: []cli.Flag{
-				cli.StringFlag{
-					Name:  "client-id",
-					Value: "goplexclient",
-					Usage: "plex token required to link an app to your account. (e.g. `abc123`",
-				},
 				cli.BoolFlag{
 					Name:  "poll",
 					Usage: "check every second if pin is authorized",
