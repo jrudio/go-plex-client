@@ -51,6 +51,7 @@ func New(baseURL, token string) (*Plex, error) {
 		Timeout: 3 * time.Second,
 	}
 
+	p.Headers = defaultHeaders()
 	// id, err := uuid.NewRandom()
 
 	// if err != nil {
