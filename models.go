@@ -12,7 +12,7 @@ type Plex struct {
 	URL              string
 	Token            string
 	ClientIdentifier string
-	Headers headers
+	Headers          headers
 	HTTPClient       http.Client
 }
 
@@ -189,9 +189,9 @@ type LibrarySections struct {
 
 // TaggedData ...
 type TaggedData struct {
-	Tag    string `json:"tag"`
-	Filter string `json:"filter"`
-	ID     string `json:"id"`
+	Tag    string      `json:"tag"`
+	Filter string      `json:"filter"`
+	ID     json.Number `json:"id"`
 }
 
 // Role ...
@@ -526,11 +526,11 @@ type UserPlexTV struct {
 	Roles struct {
 		Roles []string `json:"roles"`
 	} `json:"roles"`
-	Entitlements []string `json:"entitlements"`
-	ConfirmedAt  string   `json:"confirmedAt"`
-	ForumID      string   `json:"forumId"`
-	RememberMe   bool     `json:"rememberMe"`
-	Title        string   `json:"title"`
+	Entitlements []string    `json:"entitlements"`
+	ConfirmedAt  string      `json:"confirmedAt"`
+	ForumID      json.Number `json:"forumId"`
+	RememberMe   bool        `json:"rememberMe"`
+	Title        string      `json:"title"`
 }
 
 // User plex server user. only difference is id is a string
