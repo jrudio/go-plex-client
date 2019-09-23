@@ -82,8 +82,10 @@ func test(c *cli.Context) error {
 		}
 
 		host = _host.String()
+		token = args[0]
 	} else {
 		host = hostParsed.String()
+		token = args[1]
 	}
 
 	plexConn, err := plex.New(host, token)
