@@ -146,7 +146,7 @@ func (s store) savePlexToken(token string) error {
 	}
 
 	if isVerbose {
-		fmt.Println("saved token hash to store")
+		fmt.Println("saved token to store")
 	}
 
 	return nil

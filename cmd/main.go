@@ -54,6 +54,14 @@ func main() {
 		storeDirectory = dir
 	}
 
+	app.Flags = []cli.Flag{
+		cli.BoolFlag{
+			Name:        "verbose",
+			Usage:       "present more information when executing program",
+			Destination: &isVerbose,
+		},
+	}
+
 	app.Commands = []cli.Command{
 		{
 			Name:   "test",
@@ -76,9 +84,9 @@ func main() {
 			Action: getSections,
 		},
 		{
-			Name:   "link",
+			Name:   "authorize-code",
 			Usage:  "authorize an app (e.g. amazon fire app) with a 4 character `code`. REQUIRES a plex token",
-			Action: linkApp,
+			Action: authorizeApp,
 		},
 		{
 			Name:   "library",
@@ -86,20 +94,9 @@ func main() {
 			Action: getLibraries,
 		},
 		{
-			Name:   "request-pin",
-			Usage:  "request a pin (4 character code) from plex.tv to link account to an app. Use this to recieve an id to check for an auth token",
-			Action: requestPIN,
-		},
-		{
-			Name:  "check-pin",
-			Usage: "check status of pin (4 character code) from plex.tv to link account to an app. Use this to recieve an auth token. REQUIRES an id",
-			Flags: []cli.Flag{
-				cli.BoolFlag{
-					Name:  "poll",
-					Usage: "check every second if pin is authorized",
-				},
-			},
-			Action: checkPIN,
+			Name:   "link-app",
+			Usage:  "presents a 4 character code that can be authorized via https://plex.tv/link",
+			Action: linkApp,
 		},
 		{
 			Name:   "signin",

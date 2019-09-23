@@ -6,7 +6,6 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
-	"strconv"
 	"strings"
 	"time"
 
@@ -15,8 +14,34 @@ import (
 	"github.com/urfave/cli"
 )
 
-func initPlex(db store) (*plex.Plex, error) {
+const (
+	errKeyNotFound        = "Key not found"
+	errNoPlexToken        = "no plex auth token in datastore"
+	errPleaseSignIn       = "use command 'sign-in' or 'link-app' to authorize us"
+	errNoPlexServerInfo   = "no plex server in datastore"
+	errPleaseChooseServer = "use command 'pick-server' to pick a plex server :)"
+)
+
+func initPlex(db store, checkForToken bool, checkForServerInfo bool) (*plex.Plex, error) {
 	var plexConn *plex.Plex
+
+	if !checkForToken && !checkForServerInfo {
+		return plex.New("", "abc123")
+	} else if checkForToken && !checkForServerInfo {
+		plexToken, err := db.getPlexToken()
+
+		if err != nil && err.Error() == errKeyNotFound {
+			return plexConn, fmt.Errorf("%s\n%s", errNoPlexToken, errPleaseSignIn)
+		} else if err != nil {
+			return plexConn, fmt.Errorf("failed getting plex token: %v", err)
+		}
+
+		return plex.New("", plexToken)
+	} else if !checkForToken && checkForServerInfo {
+		// why would a caller use this?
+		// we'll just capture the edge-case?
+		return plexConn, fmt.Errorf("wait what")
+	}
 
 	plexToken, err := db.getPlexToken()
 
@@ -26,7 +51,9 @@ func initPlex(db store) (*plex.Plex, error) {
 
 	plexServer, err := db.getPlexServer()
 
-	if err != nil {
+	if err != nil && err.Error() == errKeyNotFound {
+		return plexConn, fmt.Errorf("%s\n%s", errNoPlexServerInfo, errPleaseChooseServer)
+	} else if err != nil {
 		return plexConn, fmt.Errorf("failed getting plex server info from data store: %v", err)
 	}
 
@@ -92,7 +119,7 @@ func endTranscode(c *cli.Context) error {
 
 	defer db.Close()
 
-	plexConn, err := initPlex(db)
+	plexConn, err := initPlex(db, true, true)
 
 	if err != nil {
 		return cli.NewExitError(err, 1)
@@ -101,15 +128,13 @@ func endTranscode(c *cli.Context) error {
 	sessionKey := c.Args().First()
 
 	if sessionKey == "" {
-		fmt.Println("Missing required session key")
-		return nil
+		return cli.NewExitError("Missing required session key", 1)
 	}
 
 	result, err := plexConn.KillTranscodeSession(sessionKey)
 
 	if err != nil {
-		fmt.Println(err.Error())
-		return nil
+		return cli.NewExitError(err, 1)
 	}
 
 	fmt.Println(result)
@@ -126,7 +151,7 @@ func getServersInfo(c *cli.Context) error {
 
 	defer db.Close()
 
-	plexConn, err := initPlex(db)
+	plexConn, err := initPlex(db, true, false)
 
 	if err != nil {
 		return cli.NewExitError(err, 1)
@@ -135,7 +160,6 @@ func getServersInfo(c *cli.Context) error {
 	info, err := plexConn.GetServersInfo()
 
 	if err != nil {
-		fmt.Println(err.Error())
 		return err
 	}
 
@@ -185,7 +209,7 @@ func getSections(c *cli.Context) error {
 
 	defer db.Close()
 
-	plexConn, err := initPlex(db)
+	plexConn, err := initPlex(db, true, true)
 
 	if err != nil {
 		return cli.NewExitError(err, 1)
@@ -231,7 +255,7 @@ func getSessions(c *cli.Context) error {
 
 	defer db.Close()
 
-	plexConn, err := initPlex(db)
+	plexConn, err := initPlex(db, true, true)
 
 	if err != nil {
 		return cli.NewExitError("failed to initialize plex: "+err.Error(), 1)
@@ -266,7 +290,7 @@ func getSessions(c *cli.Context) error {
 	return nil
 }
 
-func linkApp(c *cli.Context) error {
+func authorizeApp(c *cli.Context) error {
 	db, err := startDB()
 
 	if err != nil {
@@ -313,13 +337,21 @@ func linkApp(c *cli.Context) error {
 	return nil
 }
 
-// requestPIN is good for just receiving the pin and you manually going to plex.tv/link to link the code
-func requestPIN(c *cli.Context) error {
-	// just need headers
-	plexConn, err := plex.New("", "abc123")
+// linkApp give user 4 character code that can be used authorized our app
+func linkApp(c *cli.Context) error {
+	db, err := startDB()
 
 	if err != nil {
-		return cli.NewExitError("could not create headers: "+err.Error(), 1)
+		return cli.NewExitError(err, 1)
+	}
+
+	defer db.Close()
+
+	// just need headers
+	plexConn, err := initPlex(db, false, false)
+
+	if err != nil {
+		return cli.NewExitError(fmt.Sprintf("could not create headers: %v", err), 1)
 	}
 
 	info, err := plex.RequestPIN(plexConn.Headers)
@@ -328,36 +360,20 @@ func requestPIN(c *cli.Context) error {
 		return cli.NewExitError("request plex pin failed: "+err.Error(), 1)
 	}
 
-	fmt.Println(info)
-	// expires := time.Until(time.Unix(int64(info.ExpiresAt), 0)).String()
-
-	fmt.Printf("your pin %s (%d)", info.Code, info.ID)
-	// fmt.Printf("your pin %s (%d) expires in %s", info.Code, info.ID, expires)
-
-	return nil
-}
-
-// checkPIN will check the status of a pin/code via the id given in requestPIN. It will display the auth token when authorized
-func checkPIN(c *cli.Context) error {
-	idArg := c.Args().First()
-
-	if idArg == "" {
-		return cli.NewExitError("id required", 1)
-	}
-
-	id, err := strconv.ParseInt(idArg, 0, 64)
+	expireAtParsed, err := time.Parse(time.RFC3339, info.ExpiresAt)
 
 	if err != nil {
-		return cli.NewExitError("failed to parse id: "+err.Error(), 1)
+		return cli.NewExitError(fmt.Sprintf("could not get expiration for plex pin: %v", err), 1)
 	}
 
-	plexConn, _ := plex.New("", "abc123")
-	clientID := plexConn.Headers.ClientIdentifier
+	expires := time.Until(expireAtParsed).String()
+
+	fmt.Printf("your pin %s and expires in %s\n", info.Code, expires)
 
 	var authToken string
 
 	for {
-		pinInformation, err := plex.CheckPIN(int(id), clientID)
+		pinInformation, err := plex.CheckPIN(info.ID, plexConn.ClientIdentifier)
 
 		if err != nil {
 			fmt.Printf("\r%v", err)
@@ -375,16 +391,18 @@ func checkPIN(c *cli.Context) error {
 			break
 		}
 
-		// just check once
-		if !c.Bool("poll") {
-			// still not authorized
-			return nil
-		}
-
 		time.Sleep(1 * time.Second)
 	}
 
 	fmt.Printf("\ryou have been successfully authorized!\nYour auth token is: %s\n", authToken)
+
+	fmt.Println("saving plex token to disk...")
+
+	if err := db.savePlexToken(authToken); err != nil {
+		return cli.NewExitError(fmt.Sprintf("saving plex token failed: %v", err), 1)
+	}
+
+	fmt.Println("saved plex token!")
 
 	return nil
 }
@@ -398,17 +416,10 @@ func pickServer(c *cli.Context) error {
 
 	defer db.Close()
 
-	// look up servers - hopefully a token is already in store
-	plexToken, err := db.getPlexToken()
+	plexConn, err := initPlex(db, true, false)
 
 	if err != nil {
-		return fmt.Errorf("failed to retreive plex token: %v", err)
-	}
-
-	plexConn, err := plex.New("", plexToken)
-
-	if err != nil {
-		return err
+		return cli.NewExitError(err, 1)
 	}
 
 	// load list of servers
@@ -518,7 +529,7 @@ func getLibraries(c *cli.Context) error {
 
 	defer db.Close()
 
-	plexConn, err := initPlex(db)
+	plexConn, err := initPlex(db, true, true)
 
 	if err != nil {
 		return cli.NewExitError(err, 1)
@@ -529,7 +540,7 @@ func getLibraries(c *cli.Context) error {
 	libraries, err := plexConn.GetLibraries()
 
 	if err != nil {
-		return cli.NewExitError(err, 1)
+		return cli.NewExitError(fmt.Sprintf("failed fetching libraries: %v", err), 1)
 	}
 
 	for _, dir := range libraries.MediaContainer.Directory {
@@ -548,7 +559,7 @@ func webhooks(c *cli.Context) error {
 
 	defer db.Close()
 
-	plexConn, err := initPlex(db)
+	plexConn, err := initPlex(db, true, false)
 
 	if err != nil {
 		return cli.NewExitError(err, 1)
@@ -617,7 +628,7 @@ func search(c *cli.Context) error {
 
 	defer db.Close()
 
-	plexConn, err := initPlex(db)
+	plexConn, err := initPlex(db, true, true)
 
 	if err != nil {
 		return cli.NewExitError(err, 1)
@@ -654,7 +665,7 @@ func getEpisode(c *cli.Context) error {
 
 	defer db.Close()
 
-	plexConn, err := initPlex(db)
+	plexConn, err := initPlex(db, true, true)
 
 	if err != nil {
 		return err
@@ -690,7 +701,7 @@ func getOnDeck(c *cli.Context) error {
 
 	defer db.Close()
 
-	plexConn, err := initPlex(db)
+	plexConn, err := initPlex(db, true, true)
 
 	if err != nil {
 		return cli.NewExitError(err, 1)
@@ -736,7 +747,7 @@ func stopPlayback(c *cli.Context) error {
 
 	defer db.Close()
 
-	plexConn, err := initPlex(db)
+	plexConn, err := initPlex(db, true, true)
 
 	if err != nil {
 		return cli.NewExitError(err, 1)
@@ -805,7 +816,7 @@ func getAccountInfo(c *cli.Context) error {
 
 	defer db.Close()
 
-	plexConn, err := initPlex(db)
+	plexConn, err := initPlex(db, true, false)
 
 	if err != nil {
 		return cli.NewExitError(err, 1)
@@ -836,7 +847,7 @@ func getMetadata(c *cli.Context) error {
 
 	defer db.Close()
 
-	plexConn, err := initPlex(db)
+	plexConn, err := initPlex(db, true, true)
 
 	if err != nil {
 		return err

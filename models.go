@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"net/http"
+	"time"
 )
 
 // Plex contains fields that are required to make
@@ -344,32 +345,50 @@ type resultResponse struct {
 }
 
 type inviteFriendResponse struct {
-	XMLName           xml.Name `xml:"MediaContainer"`
-	FriendlyName      string   `xml:"friendlyName,attr"`
-	Identifier        string   `xml:"identifier,attr"`
-	MachineIdentifier string   `xml:"machineIdentifier,attr"`
-	Size              string   `xml:"size,attr"`
-	SharedServer      struct {
-		ID                string `xml:"id,attr"`
-		Username          string `xml:"username,attr"`
-		Email             string `xml:"email,attr"`
-		UserID            int    `xml:"userID,attr"`
-		AccessToken       string `xml:"accessToken,attr"`
-		Name              string `xml:"name,attr"`
-		AcceptedAt        string `xml:"acceptedAt,attr"`
-		InvitedAt         string `xml:"invitedAt,attr"`
-		AllowSync         string `xml:"allowSync,attr"`
-		AllowCameraUpload string `xml:"allowCameraUpload,attr"`
-		AllowChannels     string `xml:"allowChannels,attr"`
-		Owned             string `xml:"owned,attr"`
-		Section           struct {
-			ID     string `xml:"id,attr"`
-			Key    string `xml:"key,attr"`
-			Title  string `xml:"title,attr"`
-			Type   string `xml:"type,attr"`
-			Shared string `xml:"shared,attr"`
-		} `xml:"Section"`
-	} `xml:"SharedServer"`
+	ID                json.Number `json:"id"`
+	Name              string      `json:"name"`
+	OwnerID           json.Number `json:"ownerId"`
+	InvitedID         json.Number `json:"invitedId"`
+	InvitedEmail      string      `json:"invitedEmail"`
+	ServerID          json.Number `json:"serverId"`
+	Accepted          bool        `json:"accepted"`
+	AcceptedAt        string      `json:"acceptedAt"`
+	DeletedAt         string      `json:"deletedAt"`
+	LeftAt            string      `json:"leftAt"`
+	Owned             bool        `json:"owned"`
+	InviteToken       string      `json:"inviteToken"`
+	MachineIdentifier string      `json:"machineIdentifier"`
+	LastSeenAt        time.Time   `json:"lastSeenAt"`
+	NumLibraries      json.Number `json:"numLibraries"`
+	Invited           struct {
+		ID         json.Number `json:"id"`
+		UUID       string      `json:"uuid"`
+		Title      string      `json:"title"`
+		Username   string      `json:"username"`
+		Restricted bool        `json:"restricted"`
+		Thumb      string      `json:"thumb"`
+		Status     string      `json:"status"`
+	} `json:"invited"`
+	SharingSettings struct {
+		AllowChannels    bool   `json:"allowChannels"`
+		FilterMovies     string `json:"filterMovies"`
+		FilterMusic      string `json:"filterMusic"`
+		FilterPhotos     string `json:"filterPhotos"`
+		FilterTelevision string `json:"filterTelevision"`
+		// FilterAll ??? I get null when testing. idk the true type
+		FilterAll          interface{} `json:"filterAll"`
+		AllowSync          bool        `json:"allowSync"`
+		AllowCameraUpload  bool        `json:"allowCameraUpload"`
+		AllowSubtitleAdmin bool        `json:"allowSubtitleAdmin"`
+		AllowTuners        json.Number `json:"allowTuners"`
+	} `json:"sharingSettings"`
+	Libraries []struct {
+		ID    json.Number `json:"id"`
+		Key   json.Number `json:"key"`
+		Title string      `json:"title"`
+		Type  string      `json:"type"`
+	} `json:"libraries"`
+	AllLibraries bool `json:"allLibraries"`
 }
 
 // InviteFriendParams are the params to invite a friend
@@ -391,18 +410,18 @@ type UpdateFriendParams struct {
 	FilterPhotos      string
 }
 type inviteFriendBody struct {
-	ServerID        string                      `json:"server_id"`
-	SharedServer    inviteFriendSharedServer    `json:"shared_server"`
-	SharingSettings inviteFriendSharingSettings `json:"sharing_settings"`
+	InvitedEmail      string               `json:"invitedEmail"`
+	LibrarySectionIDs []int                `json:"librarySectionIds"`
+	MachineIdentifier string               `json:"machineIdentifier"`
+	Settings          inviteFriendSettings `json:"settings"`
 }
 
-type inviteFriendSharedServer struct {
-	InvitedEmail      string `json:"invited_email"`
-	LibrarySectionIDs []int  `json:"library_section_ids"`
-}
-type inviteFriendSharingSettings struct {
-	FilterMovies     string `json:"filterMovies"`
-	FilterTelevision string `json:"filterTelevision"`
+type inviteFriendSettings struct {
+	AllowCameraUpload string `json:"allowCameraUpload"`
+	AllowSync         string `json:"allowSync"`
+	FilterMovies      string `json:"filterMovies"`
+	FilterMusic       string `json:"filterMusic"`
+	FilterTelevision  string `json:"filterTelevision"`
 }
 
 type resourcesResponse struct {

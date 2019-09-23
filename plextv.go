@@ -24,7 +24,7 @@ type PinResponse struct {
 	ClientIdentifier string          `json:"clientIdentifier"`
 	CreatedAt        string          `json:"createdAt"`
 	ExpiresAt        string          `json:"expiresAt"`
-	ExpiresIn        int             `json:"expiresIn"`
+	ExpiresIn        json.Number     `json:"expiresIn"`
 	AuthToken        string          `json:"authToken"`
 	Errors           []ErrorResponse `json:"errors"`
 	Trusted          bool            `json:"trusted"`

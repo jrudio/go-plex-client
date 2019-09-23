@@ -544,61 +544,52 @@ func (p *Plex) RemoveFriend(id string) (bool, error) {
 }
 
 // InviteFriend to access your Plex server. Add restrictions to media or give them full access.
-func (p *Plex) InviteFriend(params InviteFriendParams) (int, error) {
-	usernameOrEmail := url.QueryEscape(params.UsernameOrEmail)
+func (p *Plex) InviteFriend(params InviteFriendParams) error {
 
 	label := url.QueryEscape(params.Label)
 
-	query := fmt.Sprintf("%s/api/servers/%s/shared_servers", plexURL, params.MachineID)
+	query := fmt.Sprintf("%s/api/v2/shared_servers", plexURL)
 
-	var restrictions inviteFriendBody
+	var requestBody inviteFriendBody
 
-	restrictions.ServerID = params.MachineID
-	restrictions.SharedServer = inviteFriendSharedServer{
-		InvitedEmail:      params.UsernameOrEmail,
-		LibrarySectionIDs: params.LibraryIDs,
-	}
+	requestBody.MachineIdentifier = params.MachineID
+	requestBody.InvitedEmail = params.UsernameOrEmail
+	requestBody.LibrarySectionIDs = params.LibraryIDs
 
-	settings := inviteFriendSharingSettings{}
+	settings := inviteFriendSettings{}
 
 	if label != "" {
 		settings.FilterMovies = fmt.Sprintf("label=%s", label)
 		settings.FilterTelevision = fmt.Sprintf("label=%s", label)
 	}
 
-	restrictions.SharingSettings = settings
+	requestBody.Settings = settings
 
-	jsonBody, jsonErr := json.Marshal(restrictions)
+	jsonBody, jsonErr := json.Marshal(requestBody)
 
 	if jsonErr != nil {
-		return 0, jsonErr
+		return jsonErr
 	}
 
 	resp, err := p.post(query, jsonBody, p.Headers)
 
 	if err != nil {
-		return 0, err
+		return err
 	}
 
 	defer resp.Body.Close()
 
+	if resp.StatusCode != http.StatusCreated {
+		return errors.New(resp.Status)
+	}
+
 	result := new(inviteFriendResponse)
 
-	if err := xml.NewDecoder(resp.Body).Decode(result); err != nil {
-		return 0, err
+	if err := json.NewDecoder(resp.Body).Decode(result); err != nil {
+		return err
 	}
 
-	sharedServer := result.SharedServer
-
-	if resp.StatusCode != 200 {
-		return 0, errors.New("non-200 response code")
-	}
-
-	if sharedServer.Username != usernameOrEmail && sharedServer.Email != usernameOrEmail {
-		return 0, errors.New("username or email does not match expected output")
-	}
-
-	return sharedServer.UserID, nil
+	return nil
 }
 
 // UpdateFriendAccess limit your friends access to your plex server
@@ -722,10 +713,9 @@ func (p *Plex) StopPlayback(machineID string) error {
 	return nil
 }
 
-// GetServers returns a list of your Plex servers
-func (p *Plex) GetServers() ([]PMSDevices, error) {
-
-	query := plexURL + "/pms/resources.xml?includeHttps=1"
+// GetDevices returns a list of your Plex devices (servers, players, controllers, etc)
+func (p *Plex) GetDevices() ([]PMSDevices, error) {
+	query := plexURL + "/api/resources?includeHttps=1"
 
 	resp, err := p.get(query, p.Headers)
 
@@ -737,26 +727,47 @@ func (p *Plex) GetServers() ([]PMSDevices, error) {
 
 	result := new(resourcesResponse)
 
+	if resp.StatusCode != http.StatusOK {
+		return []PMSDevices{}, errors.New(resp.Status)
+	}
+
 	if err := xml.NewDecoder(resp.Body).Decode(result); err != nil {
 		fmt.Println(err.Error())
 
 		return []PMSDevices{}, err
 	}
 
-	var servers []PMSDevices
+	return result.Device, nil
+}
 
-	for _, r := range result.Device {
+// GetServers returns a list of your Plex servers
+func (p *Plex) GetServers() ([]PMSDevices, error) {
+
+	// we can use the https://<pms-ip>/media/providers endpoint
+	// but if the caller does not know the ip beforehand, we can grab it
+	// from plex.tv so we'll use https://plex.tv endpoint to give that option
+
+	devices, err := p.GetDevices()
+
+	if err != nil {
+		return devices, err
+	}
+
+	// filter devices for servers
+	var filteredDevices []PMSDevices
+
+	for _, r := range devices {
 		if r.Provides != "server" {
 			continue
 		}
 
-		servers = append(servers, r)
+		filteredDevices = append(filteredDevices, r)
 	}
 
-	return servers, nil
+	return filteredDevices, nil
 }
 
-// GetServersInfo returns info about your Plex servers
+// GetServersInfo returns info about all of your Plex servers
 func (p *Plex) GetServersInfo() (ServerInfo, error) {
 	query := plexURL + "/api/servers"
 
@@ -767,6 +778,10 @@ func (p *Plex) GetServersInfo() (ServerInfo, error) {
 	}
 
 	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return ServerInfo{}, errors.New(resp.Status)
+	}
 
 	result := ServerInfo{}
 
@@ -779,25 +794,31 @@ func (p *Plex) GetServersInfo() (ServerInfo, error) {
 	return result, nil
 }
 
-// GetMachineID returns the machine id of the currently connected server
+// GetMachineID returns the machine id of the server with the associated access token
 func (p *Plex) GetMachineID() (string, error) {
-	resp, err := p.get(p.URL, p.Headers)
+	if p.Token == "" {
+		return "", errors.New("a token is required to fetch machine id")
+	}
+
+	servers, err := p.GetServersInfo()
 
 	if err != nil {
 		return "", err
 	}
 
-	defer resp.Body.Close()
+	var machineID string
 
-	var result BaseAPIResponse
-
-	if err = json.NewDecoder(resp.Body).Decode(&result); err != nil {
-		fmt.Println(err.Error())
-
-		return "", err
+	for _, server := range servers.Server {
+		if server.AccessToken == p.Token {
+			machineID = server.MachineIdentifier
+		}
 	}
 
-	return result.MediaContainer.MachineIdentifier, nil
+	if machineID == "" {
+		return "", errors.New("could not fetch machine id")
+	}
+
+	return machineID, nil
 }
 
 // GetSections of your plex server. This is useful when inviting a user
@@ -840,7 +861,6 @@ func (p *Plex) GetSections(machineID string) ([]ServerSections, error) {
 // GetLibraries of your Plex server. My ideal use-case would be
 // to get library count to determine label index
 func (p *Plex) GetLibraries() (LibrarySections, error) {
-
 	query := fmt.Sprintf("%s/library/sections", p.URL)
 
 	resp, err := p.get(query, p.Headers)
