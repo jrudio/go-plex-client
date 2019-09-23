@@ -53,7 +53,7 @@ events := plex.NewNotificationEvents()
 events.OnPlaying(func(n NotificationContainer) {
 	mediaID := n.PlaySessionStateNotification[0].RatingKey
 	sessionID := n.PlaySessionStateNotification[0].SessionKey
-	var title
+	var title string
 
 	sessions, err := plexConnection.GetSessions()
 
@@ -62,7 +62,7 @@ events.OnPlaying(func(n NotificationContainer) {
 		return
 	}
 
-	for _, session := range sessions.MediaContainer.Video {
+	for _, session := range sessions.MediaContainer.Metadata {
 		if sessionID != session.SessionKey {
 			continue
 		}
