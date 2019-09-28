@@ -257,10 +257,10 @@ func (p *Plex) SubscribeToNotifications(events *NotificationEvents, interrupt <-
 				select {
 				case <-done:
 				case <-time.After(time.Second):
+					fmt.Println("closing websocket...")
+					c.Close()
 				}
-				fmt.Println("closing websocket...")
-				c.Close()
-				break
+				return
 			}
 		}
 	}()
