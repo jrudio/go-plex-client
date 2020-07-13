@@ -10,6 +10,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"regexp"
 	"runtime"
 	"strconv"
 	"time"
@@ -1153,6 +1154,51 @@ func (p *Plex) TerminateSession(sessionID string, reason string) error {
 
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("%s", resp.Status)
+	}
+
+	return nil
+}
+
+// Scrobble sets watched status of KEY to watched
+func (p *Plex) Scrobble(key string) error {
+	re, _ := regexp.Compile("([0-9]+)")
+	keynumber := re.FindString(key)
+
+	query := fmt.Sprintf("%s/:/scrobble?identifier=com.plexapp.plugins.library&key=%s", p.URL, keynumber)
+
+	resp, err := p.get(query, p.Headers)
+
+	if err != nil {
+		return err
+	}
+
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return errors.New(resp.Status)
+	}
+
+	return nil
+}
+
+// Unscrobble sets watched status of KEY to unwatched
+func (p *Plex) Unscrobble(key string) error {
+
+	re, _ := regexp.Compile("([0-9]+)")
+	keynumber := re.FindString(key)
+
+	query := fmt.Sprintf("%s/:/unscrobble?identifier=com.plexapp.plugins.library&key=%s", p.URL, keynumber)
+
+	resp, err := p.get(query, p.Headers)
+
+	if err != nil {
+		return err
+	}
+
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return errors.New(resp.Status)
 	}
 
 	return nil
