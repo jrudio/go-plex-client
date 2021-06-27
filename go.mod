@@ -11,6 +11,7 @@ require (
 	github.com/gorilla/websocket v1.4.0
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/pkg/errors v0.8.1 // indirect
+	github.com/stretchr/testify v1.7.0 // indirect
 	github.com/urfave/cli v1.20.0
 	golang.org/x/net v0.0.0-20190613194153-d28f0bde5980 // indirect
 )
