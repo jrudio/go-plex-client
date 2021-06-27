@@ -153,7 +153,7 @@ func (p *Plex) Search(title string) (SearchResults, error) {
 
 	// Unauthorized
 	if resp.StatusCode == 401 {
-		return SearchResults{}, errors.New("You are not authorized to access that server")
+		return SearchResults{}, errors.New("you are not authorized to access that server")
 	}
 
 	defer resp.Body.Close()
@@ -214,7 +214,7 @@ func (p *Plex) GetMetadataChildren(key string) (MetadataChildren, error) {
 
 	// Unauthorized
 	if resp.StatusCode == 401 {
-		return MetadataChildren{}, errors.New("You are not authorized to access that server")
+		return MetadataChildren{}, errors.New("you are not authorized to access that server")
 	}
 
 	defer resp.Body.Close()
@@ -231,7 +231,7 @@ func (p *Plex) GetMetadataChildren(key string) (MetadataChildren, error) {
 // GetEpisodes returns episodes of a season of a show
 func (p *Plex) GetEpisodes(key string) (SearchResultsEpisode, error) {
 	if key == "" {
-		return SearchResultsEpisode{}, errors.New("Key is required")
+		return SearchResultsEpisode{}, errors.New("key is required")
 	}
 
 	query := fmt.Sprintf("%s/library/metadata/%s/children", p.URL, key)
@@ -244,7 +244,7 @@ func (p *Plex) GetEpisodes(key string) (SearchResultsEpisode, error) {
 
 	// Unauthorized
 	if resp.StatusCode == 401 {
-		return SearchResultsEpisode{}, errors.New("You are not authorized to access that server")
+		return SearchResultsEpisode{}, errors.New("you are not authorized to access that server")
 	}
 
 	defer resp.Body.Close()
@@ -261,7 +261,7 @@ func (p *Plex) GetEpisodes(key string) (SearchResultsEpisode, error) {
 // GetEpisode returns a single episode of a show.
 func (p *Plex) GetEpisode(key string) (SearchResultsEpisode, error) {
 	if key == "" {
-		return SearchResultsEpisode{}, errors.New("Key is required")
+		return SearchResultsEpisode{}, errors.New("key is required")
 	}
 
 	query := fmt.Sprintf("%s/library/metadata/%s", p.URL, key)
@@ -274,7 +274,7 @@ func (p *Plex) GetEpisode(key string) (SearchResultsEpisode, error) {
 
 	// Unauthorized
 	if resp.StatusCode == 401 {
-		return SearchResultsEpisode{}, errors.New("You are not authorized to access that server")
+		return SearchResultsEpisode{}, errors.New("you are not authorized to access that server")
 	}
 
 	defer resp.Body.Close()
@@ -300,7 +300,7 @@ func (p *Plex) GetOnDeck() (SearchResultsEpisode, error) {
 
 	// Unauthorized
 	if resp.StatusCode == 401 {
-		return SearchResultsEpisode{}, errors.New("You are not authorized to access that server")
+		return SearchResultsEpisode{}, errors.New("you are not authorized to access that server")
 	}
 
 	defer resp.Body.Close()
@@ -325,7 +325,7 @@ func (p *Plex) GetPlaylists() (MediaMetadata, error) {
 
 	// Unauthorized
 	if resp.StatusCode == 401 {
-		return MediaMetadata{}, errors.New("You are not authorized to access that server")
+		return MediaMetadata{}, errors.New("you are not authorized to access that server")
 	}
 
 	defer resp.Body.Close()
@@ -351,7 +351,7 @@ func (p *Plex) GetPlaylist(key int) (SearchResultsEpisode, error) {
 
 	// Unauthorized
 	if resp.StatusCode == 401 {
-		return SearchResultsEpisode{}, errors.New("You are not authorized to access that server")
+		return SearchResultsEpisode{}, errors.New("you are not authorized to access that server")
 	}
 
 	defer resp.Body.Close()
@@ -384,7 +384,7 @@ func (p *Plex) Test() (bool, error) {
 	defer resp.Body.Close()
 
 	if resp.StatusCode == 401 {
-		return false, errors.New("You are not authorized to access this server")
+		return false, errors.New("you are not authorized to access this server")
 	} else if resp.StatusCode != 200 {
 		statusCode := strconv.Itoa(resp.StatusCode)
 		return false, errors.New("Server replied with " + statusCode + " status code")
@@ -397,7 +397,7 @@ func (p *Plex) Test() (bool, error) {
 func (p *Plex) KillTranscodeSession(sessionKey string) (bool, error) {
 
 	if sessionKey == "" {
-		return false, errors.New("Missing sessionKey")
+		return false, errors.New("missing sessionKey")
 	}
 
 	query := p.URL + "/video/:/transcode/universal/stop?session=" + sessionKey
@@ -411,10 +411,10 @@ func (p *Plex) KillTranscodeSession(sessionKey string) (bool, error) {
 	defer resp.Body.Close()
 
 	if resp.StatusCode == 401 {
-		return false, errors.New("You are not authorized to access this server")
+		return false, errors.New("you are not authorized to access this server")
 	} else if resp.StatusCode != 200 {
 		statusCode := strconv.Itoa(resp.StatusCode)
-		return false, errors.New("Server replied with " + statusCode + " status code")
+		return false, errors.New("server replied with " + statusCode + " status code")
 	}
 
 	return true, nil
@@ -435,7 +435,7 @@ func (p *Plex) GetTranscodeSessions() (TranscodeSessionsResponse, error) {
 	defer resp.Body.Close()
 
 	if resp.StatusCode == 401 {
-		return result, errors.New("You are not authorized to access this server")
+		return result, errors.New("you are not authorized to access this server")
 	} else if resp.StatusCode != 200 {
 		statusCode := strconv.Itoa(resp.StatusCode)
 		return result, errors.New("Server replied with " + statusCode + " status code")
@@ -460,7 +460,7 @@ func (p *Plex) GetPlexTokens(token string) (DevicesResponse, error) {
 	defer resp.Body.Close()
 
 	if resp.StatusCode == 401 {
-		return result, errors.New("You are not authorized to access this server")
+		return result, errors.New("you are not authorized to access this server")
 	} else if resp.StatusCode != 200 {
 		statusCode := strconv.Itoa(resp.StatusCode)
 		return result, errors.New("Server replied with " + statusCode + " status code")
@@ -484,7 +484,7 @@ func (p *Plex) DeletePlexToken(token string) (bool, error) {
 	defer resp.Body.Close()
 
 	if resp.StatusCode == 401 {
-		return result, errors.New("You are not authorized to access this server")
+		return result, errors.New("you are not authorized to access this server")
 	} else if resp.StatusCode != 200 {
 		statusCode := strconv.Itoa(resp.StatusCode)
 		return result, errors.New("Server replied with " + statusCode + " status code")
@@ -513,7 +513,7 @@ func (p *Plex) GetFriends() ([]Friends, error) {
 	defer resp.Body.Close()
 
 	if resp.StatusCode == 401 {
-		return []Friends{}, errors.New("You are not authorized to access this server")
+		return []Friends{}, errors.New("you are not authorized to access this server")
 	} else if resp.StatusCode != 200 {
 		statusCode := strconv.Itoa(resp.StatusCode)
 		return []Friends{}, errors.New("Server replied with " + statusCode + " status code")
@@ -926,11 +926,11 @@ func (p *Plex) GetLibraryContent(sectionKey string, filter string) (SearchResult
 	}
 
 	if resp.StatusCode == http.StatusUnauthorized {
-		return SearchResults{}, errors.New("You are not authorized to access that server")
+		return SearchResults{}, errors.New("you are not authorized to access that server")
 	}
 
 	if resp.StatusCode == http.StatusBadRequest {
-		return SearchResults{}, errors.New("There was an error in the request")
+		return SearchResults{}, errors.New("there was an error in the request")
 	}
 
 	defer resp.Body.Close()
