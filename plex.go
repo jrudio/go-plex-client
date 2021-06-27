@@ -314,6 +314,31 @@ func (p *Plex) GetOnDeck() (SearchResultsEpisode, error) {
 	return results, nil
 }
 
+// Get All Playlists of Server
+func (p *Plex) GetPlaylists() (MediaMetadata, error) {
+	query := fmt.Sprintf("%s/playlists", p.URL)
+	resp, err := p.get(query, p.Headers)
+
+	if err != nil {
+		return MediaMetadata{}, err
+	}
+
+	// Unauthorized
+	if resp.StatusCode == 401 {
+		return MediaMetadata{}, errors.New("You are not authorized to access that server")
+	}
+
+	defer resp.Body.Close()
+
+	var results MediaMetadata
+
+	if err := json.NewDecoder(resp.Body).Decode(&results); err != nil {
+		return MediaMetadata{}, err
+	}
+
+	return results, nil
+}
+
 // GetPlaylist gets all videos in a playlist.
 func (p *Plex) GetPlaylist(key int) (SearchResultsEpisode, error) {
 	query := fmt.Sprintf("%s/playlists/%d/items", p.URL, key)
