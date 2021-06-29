@@ -24,6 +24,41 @@ func (p *Plex) options(query string) (*http.Response, error) {
 	return resp, nil
 }
 
+func (p *Plex) grab(query string, h headers) (*http.Response, error) {
+	client := p.DownloadClient
+
+	req, reqErr := http.NewRequest("GET", query, nil)
+
+	if reqErr != nil {
+		return &http.Response{}, reqErr
+	}
+
+	req.Header.Add("Accept", h.Accept)
+	req.Header.Add("X-Plex-Platform", h.Platform)
+	req.Header.Add("X-Plex-Platform-Version", h.PlatformVersion)
+	req.Header.Add("X-Plex-Provides", h.Provides)
+	req.Header.Add("X-Plex-Client-Identifier", p.ClientIdentifier)
+	req.Header.Add("X-Plex-Product", h.Product)
+	req.Header.Add("X-Plex-Version", h.Version)
+	req.Header.Add("X-Plex-Device", h.Device)
+	// req.Header.Add("X-Plex-Container-Size", h.ContainerSize)
+	// req.Header.Add("X-Plex-Container-Start", h.ContainerStart)
+	req.Header.Add("X-Plex-Token", p.Token)
+
+	// optional headers
+	if h.TargetClientIdentifier != "" {
+		req.Header.Add("X-Plex-Target-Identifier", h.TargetClientIdentifier)
+	}
+
+	resp, err := client.Do(req)
+
+	if err != nil {
+		return &http.Response{}, err
+	}
+
+	return resp, nil
+}
+
 func (p *Plex) get(query string, h headers) (*http.Response, error) {
 	client := p.HTTPClient
 

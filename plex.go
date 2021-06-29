@@ -7,11 +7,14 @@ import (
 	"encoding/xml"
 	"errors"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"os"
 	"runtime"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -51,6 +54,7 @@ func New(baseURL, token string) (*Plex, error) {
 		Timeout: 3 * time.Second,
 	}
 
+	p.DownloadClient = http.Client{}
 	p.Headers = defaultHeaders()
 	// id, err := uuid.NewRandom()
 
@@ -286,6 +290,59 @@ func (p *Plex) GetEpisode(key string) (SearchResultsEpisode, error) {
 	}
 
 	return results, nil
+}
+
+// Download media associated with metadata
+func (p *Plex) Download(meta Metadata) error {
+	origin := "./library"
+	parentTitle := meta.ParentTitle
+	grandparentTitle := meta.GrandparentTitle
+	path := fmt.Sprintf("%s/%s/%s", origin, grandparentTitle, parentTitle)
+	err := os.MkdirAll(path, 0700)
+	if err != nil {
+		return err
+	}
+	for _, media := range meta.Media {
+
+		for _, part := range media.Part {
+
+			split := strings.Split(part.File, "/")
+			file := split[len(split)-1]
+			filepath := fmt.Sprintf("%s/%s", path, file)
+			err = p.downloadPart(part, filepath)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
+func (p *Plex) downloadPart(part Part, filepath string) error {
+
+	query := fmt.Sprintf("%s%s?download=1&x-Plex-Token=%s", p.URL, part.Key, p.Token)
+
+	resp, err := p.grab(query, p.Headers)
+	if err != nil {
+		return err
+	}
+
+	// Unauthorized
+	if resp.StatusCode == 401 {
+		return errors.New("you are not authorized to access that server")
+	}
+
+	out, err := os.Create(filepath)
+	if err != nil {
+		return err
+	}
+	defer out.Close()
+
+	_, err = io.Copy(out, resp.Body)
+
+	return err
+
 }
 
 // GetOnDeck gets the on-deck videos.
