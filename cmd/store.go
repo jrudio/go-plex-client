@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/dgraph-io/badger"
+	"github.com/dgraph-io/badger/v3"
 )
 
 type store struct {
@@ -38,10 +38,9 @@ func initDataStore(dirName string) (store, error) {
 		}
 	}
 
-	options := badger.DefaultOptions
+	options := badger.DefaultOptions(dirName)
 
-	options.Dir = dirName
-	options.ValueDir = dirName
+	options = options.WithLoggingLevel(badger.WARNING)
 
 	kvStore, err := badger.Open(options)
 
@@ -88,15 +87,11 @@ func (s store) getSecret() []byte {
 			return err
 		}
 
-		_secret, err := item.Value()
+		return item.Value(func(val []byte) error {
+			secret = append([]byte{}, val...)
 
-		if err != nil {
-			return err
-		}
-
-		secret = _secret
-
-		return nil
+			return nil
+		})
 	})
 
 	return secret
@@ -104,7 +99,7 @@ func (s store) getSecret() []byte {
 
 func (s store) saveSecret(secret []byte) error {
 	return s.db.Update(func(txn *badger.Txn) error {
-		return txn.Set(s.keys.appSecret, secret, 0)
+		return txn.Set(s.keys.appSecret, secret)
 	})
 }
 
@@ -118,15 +113,11 @@ func (s store) getPlexToken() (string, error) {
 			return err
 		}
 
-		_plexToken, err := item.Value()
+		return item.Value(func(val []byte) error {
+			plexToken = string(append([]byte{}, val...))
 
-		if err != nil {
-			return err
-		}
-
-		plexToken = string(_plexToken)
-
-		return nil
+			return nil
+		})
 	}); err != nil {
 		return plexToken, err
 	}
@@ -140,7 +131,7 @@ func (s store) getPlexToken() (string, error) {
 
 func (s store) savePlexToken(token string) error {
 	if err := s.db.Update(func(txn *badger.Txn) error {
-		return txn.Set(s.keys.plexToken, []byte(token), 0x00)
+		return txn.Set(s.keys.plexToken, []byte(token))
 	}); err != nil {
 		return err
 	}
@@ -162,21 +153,17 @@ func (s store) getPlexServer() (server, error) {
 			return err
 		}
 
-		serializedServer, err := item.Value()
+		return item.Value(func(val []byte) error {
+			serializedServer := append([]byte{}, val...)
 
-		if err != nil {
-			return err
-		}
+			plexServer, err = unserializeServer(serializedServer)
 
-		_plexServer, err := unserializeServer(serializedServer)
+			if err != nil {
+				return err
+			}
 
-		if err != nil {
-			return err
-		}
-
-		plexServer = _plexServer
-
-		return nil
+			return nil
+		})
 	})
 
 	return plexServer, err
@@ -189,6 +176,6 @@ func (s store) savePlexServer(plexServer server) error {
 	}
 
 	return s.db.Update(func(txn *badger.Txn) error {
-		return txn.Set(s.keys.plexServer, serializedServer, 0)
+		return txn.Set(s.keys.plexServer, serializedServer)
 	})
 }
