@@ -527,29 +527,75 @@ type BaseAPIResponse struct {
 // UserPlexTV plex.tv user. should be used when interacting with plex.tv as the id is an int
 type UserPlexTV struct {
 	// ID is an int when signing in to Plex.tv but a string when access own server
-	ID                  int    `json:"id"`
-	UUID                string `json:"uuid"`
-	Email               string `json:"email"`
-	JoinedAt            string `json:"joined_at"`
-	Username            string `json:"username"`
-	Thumb               string `json:"thumb"`
-	HasPassword         bool   `json:"hasPassword"`
-	AuthToken           string `json:"authToken"`
-	AuthenticationToken string `json:"authenticationToken"`
-	Subscription        struct {
-		Active   bool     `json:"active"`
-		Status   string   `json:"Active"`
-		Plan     string   `json:"lifetime"`
-		Features []string `json:"features"`
+	ID                int    `json:"id"`
+	UUID              string `json:"uuid"`
+	Email             string `json:"email"`
+	FriendlyName      string `json:"friendlyName"`
+	Locale            string `json:"locale"` // can be null
+	Confirmed         bool   `json:"confirmed"`
+	EmailOnlyAuth     bool   `json:"emailOnlyAuth"`
+	Protected         bool   `json:"protected"`
+	MailingListStatus string `json:"mailingListStatus"`
+	MailingListActive bool   `json:"mailingListActive"`
+	ScrobbleTypes     string `json:"scrobbleTypes"`
+	Country           string `json:"country"`
+	JoinedAt          string `json:"joined_at"`
+	Username          string `json:"username"`
+	Thumb             string `json:"thumb"`
+	HasPassword       bool   `json:"hasPassword"`
+	AuthToken         string `json:"authToken"`
+	// AuthenticationToken string `json:"authenticationToken"`
+	Subscription struct {
+		Active         bool     `json:"active"`
+		Status         string   `json:"Active"`
+		Plan           string   `json:"lifetime"`       // can be null
+		SubscribedAt   string   `json:"subscribedAt"`   // can be null
+		PaymentService string   `json:"paymentService"` // can be null
+		Features       []string `json:"features"`
 	} `json:"subscription"`
-	Roles struct {
-		Roles []string `json:"roles"`
-	} `json:"roles"`
-	Entitlements []string    `json:"entitlements"`
-	ConfirmedAt  string      `json:"confirmedAt"`
-	ForumID      json.Number `json:"forumId"`
-	RememberMe   bool        `json:"rememberMe"`
-	Title        string      `json:"title"`
+	SubscriptionDescription string `json:"subscriptionDescription"` // can be null
+	Restricted              bool   `json:"restricted"`
+	Anonymous               string `json:"anonymous"` // can be null
+	Home                    bool   `json:"home"`
+	Guest                   bool   `json:"guest"`
+	HomeSize                int64  `json:"homeSize"` // type may be wrong
+	HomeAdmin               bool   `json:"homeAdmin"`
+	MaxHomeSize             int64  `json:"maxHomeSize"` // type may be wrong
+	CertificateVersion      int64  `json:"certificateVersion"`
+	RememberExpiresAt       int64  `json:"rememberExpiresAt"`
+	Profile                 struct {
+		AutoSelectAudio              bool   `json:"autoSelectAudio"`
+		DefaultAudioLanguage         string `json:"defaultAudioLanguage"`
+		DefaultSubtitleLanguage      string `json:"defaultSubtitleLanguage"`
+		AutoSelectSubtitle           int64  `json:"autoSelectSubtitle"`
+		DefaultSubtitleAccessibility int64  `json:"defaultSubtitleAccessibility"`
+		DefaultSubtitleForced        int64  `json:"defaultSubtitleForced"`
+	} `json:"profile"`
+	Subscriptions        []string   `json:"subscriptions"`
+	PastSubscriptions    []string   `json:"pastSubscriptions"`
+	Trials               []string   `json:"trials"`
+	Services             []Services `json:"services"`
+	AdsConsent           string     `json:"adsConsent"`           // can be null
+	AdsConsentSetAt      string     `json:"adsConsentSetAt"`      // can be null
+	AdsConsentReminderAt string     `json:"adsConsentReminderAt"` // can be null
+	ExperimentalFeatures bool       `json:"experimentalFeatures"`
+	TwoFactorEnabled     bool       `json:"twoFactorEnabled"`
+	BackupCodesCreated   bool       `json:"backupCodesCreated"`
+	// Roles                struct {
+	// 	Roles []string `json:"roles"`
+	// } `json:"roles"`
+	Entitlements []string `json:"entitlements"`
+	// ConfirmedAt  string      `json:"confirmedAt"`
+	// ForumID    json.Number `json:"forumId"`
+	// RememberMe bool   `json:"rememberMe"`
+	Title string `json:"title"`
+}
+
+type Services struct {
+	Identifier string `json:"identifier"`
+	Endpoint   string `json:"endpoint"`
+	Token      string `json:"token"`
+	Status     string `json:"status"`
 }
 
 // User plex server user. only difference is id is a string
@@ -580,10 +626,8 @@ type User struct {
 	Title        string   `json:"title"`
 }
 
-// SignInResponse ...
-type SignInResponse struct {
-	User UserPlexTV `json:"user"`
-}
+// SignInResponse response from plex.tv sign in
+type SignInResponse UserPlexTV
 
 // ServerInfo is the result of the https://plex.tv/api/servers endpoint
 type ServerInfo struct {
