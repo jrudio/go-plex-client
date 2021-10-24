@@ -11,7 +11,6 @@ type store struct {
 	db       *badger.DB
 	isClosed bool
 	keys     storeKeys
-	secret   []byte
 }
 
 type storeKeys struct {
@@ -73,34 +72,6 @@ func (s store) Close() {
 	}
 
 	s.isClosed = true
-}
-
-func (s store) getSecret() []byte {
-	var secret []byte
-
-	// an error is returned when the key is not found
-	// so just return an empty secret
-	s.db.View(func(txn *badger.Txn) error {
-		item, err := txn.Get(s.keys.appSecret)
-
-		if err != nil {
-			return err
-		}
-
-		return item.Value(func(val []byte) error {
-			secret = append([]byte{}, val...)
-
-			return nil
-		})
-	})
-
-	return secret
-}
-
-func (s store) saveSecret(secret []byte) error {
-	return s.db.Update(func(txn *badger.Txn) error {
-		return txn.Set(s.keys.appSecret, secret)
-	})
 }
 
 func (s store) getPlexToken() (string, error) {
