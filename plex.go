@@ -101,16 +101,19 @@ func SignIn(username, password string) (*Plex, error) {
 		},
 	}
 
-	query := plexURL + "/users/sign_in.json"
+	query := plexURL + "/api/v2/users/signin"
 
 	// Encode login in the specific format they require
 	body := url.Values{}
-	body.Add("user[login]", username)
-	body.Add("user[password]", password)
+	body.Add("login", username)
+	body.Add("password", password)
+	body.Add("noGuest", "true")
+	body.Add("skipAuthentication", "true")
 
 	newHeaders := p.Headers
 	// Doesn't like having a content type, even form-data
-	newHeaders.ContentType = ""
+	newHeaders.ContentType = "application/x-www-form-urlencoded"
+	newHeaders.Accept = "application/json"
 	resp, err := p.post(query, []byte(body.Encode()), newHeaders)
 
 	if err != nil {
@@ -129,7 +132,7 @@ func SignIn(username, password string) (*Plex, error) {
 		return &Plex{}, err
 	}
 
-	p.Token = signInResponse.User.AuthToken
+	p.Token = signInResponse.AuthToken
 
 	return &p, err
 }

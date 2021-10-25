@@ -6,23 +6,23 @@ import (
 	"time"
 )
 
-func (p *Plex) options(query string) (*http.Response, error) {
-	client := p.HTTPClient
+// func (p *Plex) options(query string) (*http.Response, error) {
+// 	client := p.HTTPClient
 
-	req, reqErr := http.NewRequest("OPTIONS", query, nil)
+// 	req, reqErr := http.NewRequest("OPTIONS", query, nil)
 
-	if reqErr != nil {
-		return &http.Response{}, reqErr
-	}
+// 	if reqErr != nil {
+// 		return &http.Response{}, reqErr
+// 	}
 
-	resp, err := client.Do(req)
+// 	resp, err := client.Do(req)
 
-	if err != nil {
-		return &http.Response{}, err
-	}
+// 	if err != nil {
+// 		return &http.Response{}, err
+// 	}
 
-	return resp, nil
-}
+// 	return resp, nil
+// }
 
 func (p *Plex) get(query string, h headers) (*http.Response, error) {
 	client := p.HTTPClient

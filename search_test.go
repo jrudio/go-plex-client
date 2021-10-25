@@ -5,13 +5,13 @@ import "testing"
 func TestExtractKeyFromRatingKey(t *testing.T) {
 	keys := [][]string{
 		// Shows: test - expect
-		[]string{"/library/metadata/18/children", "18"},
-		[]string{"/library/metadata/1/children", "1"},
+		{"/library/metadata/18/children", "18"},
+		{"/library/metadata/1/children", "1"},
 		// Movies: test - expect
-		[]string{"/library/metadata/797", "797"},
-		[]string{"/library/metadata/33", "33"},
-		[]string{"/library/metadata/700", "700"},
-		[]string{"/library/metadata/7", "7"},
+		{"/library/metadata/797", "797"},
+		{"/library/metadata/33", "33"},
+		{"/library/metadata/700", "700"},
+		{"/library/metadata/7", "7"},
 	}
 
 	p := Plex{}
@@ -28,13 +28,13 @@ func TestExtractKeyFromRatingKey(t *testing.T) {
 func TestExtractKeyFromRatingKeyRegex(t *testing.T) {
 	keys := [][]string{
 		// Shows: test - expect
-		[]string{"/library/metadata/18/children", "18"},
-		[]string{"/library/metadata/1/children", "1"},
+		{"/library/metadata/18/children", "18"},
+		{"/library/metadata/1/children", "1"},
 		// Movies: test - expect
-		[]string{"/library/metadata/797", "797"},
-		[]string{"/library/metadata/33", "33"},
-		[]string{"/library/metadata/700", "700"},
-		[]string{"/library/metadata/7", "7"},
+		{"/library/metadata/797", "797"},
+		{"/library/metadata/33", "33"},
+		{"/library/metadata/700", "700"},
+		{"/library/metadata/7", "7"},
 	}
 
 	p := Plex{}
@@ -51,9 +51,9 @@ func TestExtractKeyFromRatingKeyRegex(t *testing.T) {
 func TestExtractKeyAndThumbFromURL(t *testing.T) {
 	thumbs := [][]string{
 		// test - expect
-		[]string{"/library/metadata/1/thumb/1459739349", "1", "1459739349"},
-		[]string{"/library/metadata/551/thumb/1455861333", "551", "1455861333"},
-		[]string{"/library/metadata/786/thumb/1463374779", "786", "1463374779"},
+		{"/library/metadata/1/thumb/1459739349", "1", "1459739349"},
+		{"/library/metadata/551/thumb/1455861333", "551", "1455861333"},
+		{"/library/metadata/786/thumb/1463374779", "786", "1463374779"},
 	}
 
 	p := Plex{}

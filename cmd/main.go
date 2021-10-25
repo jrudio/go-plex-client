@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/jrudio/go-plex-client"
-	"github.com/mitchellh/go-homedir"
 	"github.com/urfave/cli"
 )
 
@@ -15,12 +13,7 @@ const (
 )
 
 var (
-	title          string
-	baseURL        string
-	token          string
-	isVerbose      bool
-	plexConn       *plex.Plex
-	storeDirectory string
+	isVerbose bool
 )
 
 type server struct {
@@ -46,13 +39,6 @@ func main() {
 	app.Name = "plex-cli"
 	app.Usage = "Interact with your plex server and plex.tv from the command line"
 	app.Version = "0.0.1"
-
-	if dir, err := homedir.Dir(); err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	} else {
-		storeDirectory = dir
-	}
 
 	app.Flags = []cli.Flag{
 		cli.BoolFlag{
