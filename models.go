@@ -54,6 +54,7 @@ type Metadata struct {
 	GrandparentThumb      string       `json:"grandparentThumb"`
 	GrandparentTitle      string       `json:"grandparentTitle"`
 	GUID                  string       `json:"guid"`
+	AltGUIDs              []AltGUID    `json:"Guid"`
 	Index                 int64        `json:"index"`
 	Key                   string       `json:"key"`
 	LastViewedAt          int          `json:"lastViewedAt"`
@@ -82,6 +83,11 @@ type Metadata struct {
 	Year                  int          `json:"year"`
 	Director              []TaggedData `json:"Director"`
 	Writer                []TaggedData `json:"Writer"`
+}
+
+// AltGUID represents a Globally Unique Identifier for a metadata provider that is not actively being used.
+type AltGUID struct {
+	ID string `json:"id"`
 }
 
 // MetadataV1 ...
