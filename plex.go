@@ -7,11 +7,15 @@ import (
 	"encoding/xml"
 	"errors"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"os"
+	"path/filepath"
 	"runtime"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -50,6 +54,8 @@ func New(baseURL, token string) (*Plex, error) {
 	p.HTTPClient = http.Client{
 		Timeout: 3 * time.Second,
 	}
+
+	p.DownloadClient = http.Client{}
 
 	p.Headers = defaultHeaders()
 	// id, err := uuid.NewRandom()
@@ -315,6 +321,52 @@ func (p *Plex) GetOnDeck() (SearchResultsEpisode, error) {
 	}
 
 	return results, nil
+}
+
+// Download media associated with metadata
+func (p *Plex) Download(meta Metadata, path string) error {
+
+	path = filepath.Join(path)
+
+	for _, media := range meta.Media {
+
+		for _, part := range media.Part {
+
+			// get original filename from original path
+			split := strings.Split(part.File, "/")
+			file := split[len(split)-1]
+			// compute filepath
+			fp := fmt.Sprintf("%s/%s", path, file)
+			fp = filepath.Join(fp)
+
+			query := fmt.Sprintf("%s%s?download=1", p.URL, part.Key)
+
+			resp, err := p.grab(query, p.Headers)
+			if err != nil {
+				return err
+			}
+
+			// Unauthorized
+			if resp.StatusCode == 401 {
+				return errors.New("you are not authorized to access that server")
+			}
+
+			out, err := os.Create(fp)
+			if err != nil {
+				return err
+			}
+			defer out.Close()
+
+			_, err = io.Copy(out, resp.Body)
+
+			if err != nil {
+				return err
+			}
+
+		}
+	}
+
+	return nil
 }
 
 // GetPlaylist gets all videos in a playlist.
