@@ -869,3 +869,69 @@ func getMetadata(c *cli.Context) error {
 
 	return nil
 }
+
+func downloadMedia(c *cli.Context) error {
+	db, err := startDB()
+
+	if err != nil {
+		return cli.NewExitError(err, 1)
+	}
+
+	defer db.Close()
+
+	plexConn, err := initPlex(db, true, true)
+
+	if err != nil {
+		return err
+	}
+
+	if c.NArg() == 0 {
+		return cli.NewExitError("search term is required", 1)
+	}
+
+	downloadPath := c.Args().Get(2)
+
+	if downloadPath == "" {
+		downloadPath = "."
+	}
+
+	// search for media
+	results, err := plexConn.Search(c.Args().First())
+
+	if err != nil {
+		return cli.NewExitError(err, 1)
+	}
+
+	if len(results.MediaContainer.Metadata) == 0 {
+		return cli.NewExitError("no results found", 1)
+	}
+
+	// prompt user for media selection
+	fmt.Println("results:")
+
+	for i, result := range results.MediaContainer.Metadata {
+		fmt.Printf("\t[%d] %s\n", i, result.Title)
+	}
+
+	// we use -1 to indicate that the user has not selected a media
+	selection := -1
+
+	fmt.Printf("choose media to download:")
+	fmt.Scanln(&selection)
+
+	// bound check user input
+	if selection < 0 || selection > len(results.MediaContainer.Metadata)-1 {
+		return cli.NewExitError("invalid selection", 1)
+	}
+
+	selectedMedia := results.MediaContainer.Metadata[selection]
+
+	// download media
+	if err := plexConn.Download(selectedMedia, downloadPath); err != nil {
+		return cli.NewExitError(err, 1)
+	}
+
+	fmt.Printf("successfully downloaded %s\n", selectedMedia.Title)
+
+	return nil
+}
