@@ -324,7 +324,7 @@ func (p *Plex) GetOnDeck() (SearchResultsEpisode, error) {
 }
 
 // Download media associated with metadata
-func (p *Plex) Download(meta Metadata, path string, createFolders bool) error {
+func (p *Plex) Download(meta Metadata, path string, createFolders bool, skipIfExists bool) error {
 
 	path = filepath.Join(path)
 	if createFolders {
@@ -348,6 +348,12 @@ func (p *Plex) Download(meta Metadata, path string, createFolders bool) error {
 			file := split[len(split)-1]
 
 			fp := filepath.Join(path, file)
+
+			_, exists := os.Stat(fp)
+
+			if exists == nil && skipIfExists {
+				return nil
+			}
 
 			query := fmt.Sprintf("%s%s?download=1", p.URL, part.Key)
 
