@@ -335,9 +335,8 @@ func (p *Plex) Download(meta Metadata, path string) error {
 			// get original filename from original path
 			split := strings.Split(part.File, "/")
 			file := split[len(split)-1]
-			// compute filepath
-			fp := fmt.Sprintf("%s/%s", path, file)
-			fp = filepath.Join(fp)
+
+			fp := filepath.Join(path, file)
 
 			query := fmt.Sprintf("%s%s?download=1", p.URL, part.Key)
 
