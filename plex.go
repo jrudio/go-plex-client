@@ -324,9 +324,20 @@ func (p *Plex) GetOnDeck() (SearchResultsEpisode, error) {
 }
 
 // Download media associated with metadata
-func (p *Plex) Download(meta Metadata, path string) error {
+func (p *Plex) Download(meta Metadata, path string, createFolders bool) error {
 
 	path = filepath.Join(path)
+	if createFolders {
+
+		if meta.ParentTitle != "" && meta.GrandparentTitle != "" { // for tv shows and music
+			path = filepath.Join(path, meta.GrandparentTitle, meta.ParentTitle)
+		} else { // for movies
+			path = filepath.Join(path, meta.Title)
+		}
+		if err := os.MkdirAll(path, 0700); err != nil {
+			return err
+		}
+	}
 
 	for _, media := range meta.Media {
 
