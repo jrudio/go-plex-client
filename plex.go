@@ -326,6 +326,10 @@ func (p *Plex) GetOnDeck() (SearchResultsEpisode, error) {
 // Download media associated with metadata
 func (p *Plex) Download(meta Metadata, path string, createFolders bool, skipIfExists bool) error {
 
+	if len(meta.Media) == 0 {
+		return fmt.Errorf("no media associated with metadata, skipping")
+	}
+
 	path = filepath.Join(path)
 	if createFolders {
 
