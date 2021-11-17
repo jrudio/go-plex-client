@@ -324,9 +324,24 @@ func (p *Plex) GetOnDeck() (SearchResultsEpisode, error) {
 }
 
 // Download media associated with metadata
-func (p *Plex) Download(meta Metadata, path string) error {
+func (p *Plex) Download(meta Metadata, path string, createFolders bool, skipIfExists bool) error {
+
+	if len(meta.Media) == 0 {
+		return fmt.Errorf("no media associated with metadata, skipping")
+	}
 
 	path = filepath.Join(path)
+	if createFolders {
+
+		if meta.ParentTitle != "" && meta.GrandparentTitle != "" { // for tv shows and music
+			path = filepath.Join(path, meta.GrandparentTitle, meta.ParentTitle)
+		} else { // for movies
+			path = filepath.Join(path, meta.Title)
+		}
+		if err := os.MkdirAll(path, 0700); err != nil {
+			return err
+		}
+	}
 
 	for _, media := range meta.Media {
 
@@ -335,9 +350,14 @@ func (p *Plex) Download(meta Metadata, path string) error {
 			// get original filename from original path
 			split := strings.Split(part.File, "/")
 			file := split[len(split)-1]
-			// compute filepath
-			fp := fmt.Sprintf("%s/%s", path, file)
-			fp = filepath.Join(fp)
+
+			fp := filepath.Join(path, file)
+
+			_, exists := os.Stat(fp)
+
+			if exists == nil && skipIfExists {
+				return nil
+			}
 
 			query := fmt.Sprintf("%s%s?download=1", p.URL, part.Key)
 

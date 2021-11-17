@@ -895,6 +895,10 @@ func downloadMedia(c *cli.Context) error {
 		downloadPath = "."
 	}
 
+	createFolders := c.Bool("folders")
+
+	skipIfExists := c.Bool("skip")
+
 	// search for media
 	results, err := plexConn.Search(c.Args().First())
 
@@ -927,7 +931,7 @@ func downloadMedia(c *cli.Context) error {
 	selectedMedia := results.MediaContainer.Metadata[selection]
 
 	// download media
-	if err := plexConn.Download(selectedMedia, downloadPath); err != nil {
+	if err := plexConn.Download(selectedMedia, downloadPath, createFolders, skipIfExists); err != nil {
 		return cli.NewExitError(err, 1)
 	}
 
