@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"errors"
+	"fmt"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -111,7 +112,7 @@ func CheckPIN(id int, clientIdentifier string) (PinResponse, error) {
 
 	// we are not authorized yet
 	if pinInformation.AuthToken == "" {
-		return pinInformation, errors.New("pin is not authorized yet")
+		return pinInformation, errors.New(ErrorPINNotAuthorized)
 	}
 
 	// we are authorized! Yay!
@@ -149,7 +150,7 @@ func (p Plex) LinkAccount(code string) error {
 
 	// should return 204 for success
 	if resp.StatusCode != http.StatusNoContent {
-		return errors.New("failed to link account: " + resp.Status)
+		return fmt.Errorf(ErrorLinkAccount, resp.Status)
 	}
 
 	return nil
@@ -228,7 +229,7 @@ func (p Plex) SetWebhooks(webhooks []string) error {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusCreated {
-		return errors.New("setting webhook failed")
+		return errors.New(ErrorFailedToSetWebhook)
 	}
 
 	return nil
