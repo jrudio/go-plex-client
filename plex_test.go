@@ -111,7 +111,7 @@ func TestPlexTest(t *testing.T) {
 	}
 
 	if !result {
-		t.Error(errors.New("The plex test returned false"))
+		t.Error(errors.New("the plex test returned false"))
 		return
 	}
 }
