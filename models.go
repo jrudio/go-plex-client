@@ -102,6 +102,7 @@ type MetadataV1 struct {
 	LibrarySectionID string    `json:"librarySectionID"`
 	Media            []MediaV1 `json:"Media"`
 	Rating           string    `json:"rating"`
+	SessionKey       string    `json:"sessionKey"`
 	UpdatedAt        string    `json:"updatedAt"`
 	ViewOffset       string    `json:"viewOffset"`
 	Year             string    `json:"year"`
