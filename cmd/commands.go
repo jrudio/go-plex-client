@@ -6,6 +6,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 
@@ -860,6 +861,42 @@ func getMetadata(c *cli.Context) error {
 	}
 
 	result, err := plexConn.GetMetadata(c.Args().First())
+
+	if err != nil {
+		return cli.NewExitError(err, 1)
+	}
+
+	fmt.Println(result)
+
+	return nil
+}
+
+func getPlaylist(c *cli.Context) error {
+	db, err := startDB()
+
+	if err != nil {
+		return cli.NewExitError(err, 1)
+	}
+
+	defer db.Close()
+
+	plexConn, err := initPlex(db, true, true)
+
+	if err != nil {
+		return err
+	}
+
+	if c.NArg() == 0 {
+		return cli.NewExitError("playlist id is required", 1)
+	}
+
+	playlistID, err := strconv.ParseInt(c.Args().First(), 10, 64)
+
+	if err != nil {
+		return cli.NewExitError(err, 1)
+	}
+
+	result, err := plexConn.GetPlaylist(int(playlistID))
 
 	if err != nil {
 		return cli.NewExitError(err, 1)
