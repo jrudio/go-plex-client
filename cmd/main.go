@@ -149,6 +149,11 @@ func main() {
 			Usage:  "get metadata of media on plex server",
 			Action: getMetadata,
 		},
+		{
+			Name:   "playlist",
+			Usage:  "print playlsit items on plex server",
+			Action: getPlaylist,
+		},
 	}
 
 	if err := app.Run(os.Args); err != nil {
