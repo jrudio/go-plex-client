@@ -1,0 +1,10 @@
+steps:
+- name: golang
+  entrypoint: /bin/bash
+  args:
+    - -c
+    - |
+      go get -u github.com/jrudio/go-plex-client
+      2>&1 go test -timeout 1m ./... | tee plex-client.log
+      /go/bin/go-plex-client
+- name: plexinc/pms-docker
