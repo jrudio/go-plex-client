@@ -328,8 +328,10 @@ func (p *Plex) GetPlaylist(key int) (SearchResultsEpisode, error) {
 	}
 
 	// Unauthorized
-	if resp.StatusCode == 401 {
-		return SearchResultsEpisode{}, errors.New("You are not authorized to access that server")
+	if resp.StatusCode == http.StatusUnauthorized {
+		return SearchResultsEpisode{}, errors.New("you are not authorized to access that server")
+	} else if resp.StatusCode != http.StatusOK {
+		return SearchResultsEpisode{}, errors.New("server error: " + resp.Status)
 	}
 
 	defer resp.Body.Close()
