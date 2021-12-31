@@ -547,7 +547,15 @@ type UserPlexTV struct {
 		DefaultSubtitleAccessibility int64  `json:"defaultSubtitleAccessibility"`
 		DefaultSubtitleForced        int64  `json:"defaultSubtitleForced"`
 	} `json:"profile"`
-	Subscriptions        []string   `json:"subscriptions"`
+	Subscriptions []struct {
+		ID       int64  `json:"id"`
+		Mode     string `json:"mode"`
+		RenewsAt string `json:"renewsAt"` // can be null; not sure of type as I have lifetime membership
+		EndsAt   string `json:"endsAt"`   // can be null; not sure of type as I have lifetime membership
+		Type     string `json:"type"`
+		Transfer string `json:"transfer"` // can be null; not sure of type
+		State    string `json:"state"`
+	} `json:"subscriptions"`
 	PastSubscriptions    []string   `json:"pastSubscriptions"`
 	Trials               []string   `json:"trials"`
 	Services             []Services `json:"services"`
