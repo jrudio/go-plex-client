@@ -149,6 +149,21 @@ func main() {
 			Usage:  "get metadata of media on plex server",
 			Action: getMetadata,
 		},
+		{
+			Name:   "download",
+			Usage:  "download media from your plex server",
+			Action: downloadMedia,
+			Flags: []cli.Flag{
+				cli.BoolFlag{
+					Name:  "folders",
+					Usage: "create folder hierarchy",
+				},
+				cli.BoolFlag{
+					Name:  "skip",
+					Usage: "skip download if file already exists",
+				},
+			},
+		},
 	}
 
 	if err := app.Run(os.Args); err != nil {

@@ -15,11 +15,14 @@ import (
 )
 
 const (
-	errKeyNotFound        = "Key not found"
-	errNoPlexToken        = "no plex auth token in datastore"
-	errPleaseSignIn       = "use command 'sign-in' or 'link-app' to authorize us"
-	errNoPlexServerInfo   = "no plex server in datastore"
-	errPleaseChooseServer = "use command 'pick-server' to pick a plex server :)"
+	errKeyNotFound          = "key not found"
+	errNoPlexToken          = "no plex auth token in datastore"
+	errPleaseSignIn         = "use command 'sign-in' or 'link-app' to authorize us"
+	errNoPlexServerInfo     = "no plex server in datastore"
+	errPleaseChooseServer   = "use command 'pick-server' to pick a plex server :)"
+	errFailedToGetPlexToken = "failed to get plex token: %v"
+	errInvalidSelection     = "invalid selection"
+	errEpisodeIdIsRequired  = "episode id is required"
 )
 
 func initPlex(db store, checkForToken bool, checkForServerInfo bool) (*plex.Plex, error) {
@@ -33,7 +36,7 @@ func initPlex(db store, checkForToken bool, checkForServerInfo bool) (*plex.Plex
 		if err != nil && err.Error() == errKeyNotFound {
 			return plexConn, fmt.Errorf("%s\n%s", errNoPlexToken, errPleaseSignIn)
 		} else if err != nil {
-			return plexConn, fmt.Errorf("failed getting plex token: %v", err)
+			return plexConn, fmt.Errorf(errFailedToGetPlexToken, err)
 		}
 
 		return plex.New("", plexToken)
@@ -46,7 +49,7 @@ func initPlex(db store, checkForToken bool, checkForServerInfo bool) (*plex.Plex
 	plexToken, err := db.getPlexToken()
 
 	if err != nil {
-		return plexConn, fmt.Errorf("failed getting plex token: %v", err)
+		return plexConn, fmt.Errorf(errFailedToGetPlexToken, err)
 	}
 
 	plexServer, err := db.getPlexServer()
@@ -444,7 +447,7 @@ func pickServer(c *cli.Context) error {
 
 	// bound check input
 	if serverIndex < 0 || serverIndex > (len(servers)-1) {
-		return errors.New("invalid selection")
+		return errors.New(errInvalidSelection)
 	}
 
 	selectedServer := servers[serverIndex]
@@ -463,7 +466,7 @@ func pickServer(c *cli.Context) error {
 
 	// bound check again
 	if urlIndex < 0 || urlIndex > (len(selectedServer.Connection)-1) {
-		return errors.New("invalid selection")
+		return errors.New(errInvalidSelection)
 	}
 
 	// persist selection to disk
@@ -674,7 +677,7 @@ func getEpisode(c *cli.Context) error {
 	}
 
 	if c.NArg() == 0 {
-		return cli.NewExitError("episode id is required", 1)
+		return cli.NewExitError(errEpisodeIdIsRequired, 1)
 	}
 
 	result, err := plexConn.GetEpisode(c.Args().First())
@@ -793,7 +796,7 @@ func stopPlayback(c *cli.Context) error {
 
 	// bound check user input
 	if sessionIndex < 0 || sessionIndex > sessionCount-1 {
-		return cli.NewExitError("invalid selection", 1)
+		return cli.NewExitError(errInvalidSelection, 1)
 	}
 
 	selectedSession := sessions.MediaContainer.Metadata[sessionIndex]
@@ -856,7 +859,7 @@ func getMetadata(c *cli.Context) error {
 	}
 
 	if c.NArg() == 0 {
-		return cli.NewExitError("episode id is required", 1)
+		return cli.NewExitError(errEpisodeIdIsRequired, 1)
 	}
 
 	result, err := plexConn.GetMetadata(c.Args().First())
@@ -866,6 +869,76 @@ func getMetadata(c *cli.Context) error {
 	}
 
 	fmt.Println(result)
+
+	return nil
+}
+
+func downloadMedia(c *cli.Context) error {
+	db, err := startDB()
+
+	if err != nil {
+		return cli.NewExitError(err, 1)
+	}
+
+	defer db.Close()
+
+	plexConn, err := initPlex(db, true, true)
+
+	if err != nil {
+		return err
+	}
+
+	if c.NArg() == 0 {
+		return cli.NewExitError("search term is required", 1)
+	}
+
+	downloadPath := c.Args().Get(2)
+
+	if downloadPath == "" {
+		downloadPath = "."
+	}
+
+	createFolders := c.Bool("folders")
+
+	skipIfExists := c.Bool("skip")
+
+	// search for media
+	results, err := plexConn.Search(c.Args().First())
+
+	if err != nil {
+		return cli.NewExitError(err, 1)
+	}
+
+	if len(results.MediaContainer.Metadata) == 0 {
+		return cli.NewExitError("no results found", 1)
+	}
+
+	// prompt user for media selection
+	fmt.Println("results:")
+
+	for i, result := range results.MediaContainer.Metadata {
+		fmt.Printf("\t[%d] %s\n", i, result.Title)
+	}
+
+	// we use -1 to indicate that the user has not selected a media
+	selection := -1
+
+	fmt.Printf("choose media to download:")
+	fmt.Scanln(&selection)
+
+	// bound check user input
+	if selection < 0 || selection > len(results.MediaContainer.Metadata)-1 {
+		return cli.NewExitError(errInvalidSelection, 1)
+	}
+
+	selectedMedia := results.MediaContainer.Metadata[selection]
+
+	// download media
+	if err := plexConn.Download(selectedMedia, downloadPath, createFolders, skipIfExists); err != nil {
+		return cli.NewExitError(err, 1)
+	}
+
+	fmt.Printf("successfully downloaded %s\n", selectedMedia.Title)
 
 	return nil
 }
