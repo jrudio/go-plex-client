@@ -15,6 +15,7 @@ type Plex struct {
 	ClientIdentifier string
 	Headers          headers
 	HTTPClient       http.Client
+	DownloadClient   http.Client
 }
 
 // SearchResults a list of media returned when searching

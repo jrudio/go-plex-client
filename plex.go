@@ -7,11 +7,14 @@ import (
 	"encoding/xml"
 	"errors"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"os"
+	"path/filepath"
 	"runtime"
-	"strconv"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -44,12 +47,14 @@ func New(baseURL, token string) (*Plex, error) {
 	// allow empty url so caller can use GetServers() to set the server url later
 
 	if baseURL == "" && token == "" {
-		return &p, errors.New("url or a token is required")
+		return &p, errors.New(ErrorUrlTokenRequired)
 	}
 
 	p.HTTPClient = http.Client{
 		Timeout: 3 * time.Second,
 	}
+
+	p.DownloadClient = http.Client{}
 
 	p.Headers = defaultHeaders()
 	// id, err := uuid.NewRandom()
@@ -140,7 +145,7 @@ func SignIn(username, password string) (*Plex, error) {
 // Search your Plex Server for media
 func (p *Plex) Search(title string) (SearchResults, error) {
 	if title == "" {
-		return SearchResults{}, errors.New("ERROR: A title is required")
+		return SearchResults{}, fmt.Errorf(ErrorCommon, ErrorTitleRequired)
 	}
 
 	title = url.QueryEscape(title)
@@ -155,8 +160,8 @@ func (p *Plex) Search(title string) (SearchResults, error) {
 	}
 
 	// Unauthorized
-	if resp.StatusCode == 401 {
-		return SearchResults{}, errors.New("You are not authorized to access that server")
+	if resp.StatusCode == http.StatusUnauthorized {
+		return SearchResults{}, errors.New(ErrorNotAuthorized)
 	}
 
 	defer resp.Body.Close()
@@ -171,7 +176,7 @@ func (p *Plex) Search(title string) (SearchResults, error) {
 // GetMetadata can get some media info
 func (p *Plex) GetMetadata(key string) (MediaMetadata, error) {
 	if key == "" {
-		return MediaMetadata{}, errors.New("ERROR: A key is required")
+		return MediaMetadata{}, fmt.Errorf(ErrorCommon, ErrorKeyIsRequired)
 	}
 
 	var results MediaMetadata
@@ -187,7 +192,7 @@ func (p *Plex) GetMetadata(key string) (MediaMetadata, error) {
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return results, errors.New("server error: " + resp.Status)
+		return results, fmt.Errorf(ErrorServer, resp.Status)
 	}
 
 	defer resp.Body.Close()
@@ -202,7 +207,7 @@ func (p *Plex) GetMetadata(key string) (MediaMetadata, error) {
 // GetMetadataChildren can get a show's season titles. My use-case would be getting the season titles after using Search()
 func (p *Plex) GetMetadataChildren(key string) (MetadataChildren, error) {
 	if key == "" {
-		return MetadataChildren{}, errors.New("ERROR: A key is required")
+		return MetadataChildren{}, fmt.Errorf(ErrorCommon, ErrorKeyIsRequired)
 	}
 
 	query := fmt.Sprintf("%s/library/metadata/%s/children", p.URL, key)
@@ -216,8 +221,8 @@ func (p *Plex) GetMetadataChildren(key string) (MetadataChildren, error) {
 	}
 
 	// Unauthorized
-	if resp.StatusCode == 401 {
-		return MetadataChildren{}, errors.New("You are not authorized to access that server")
+	if resp.StatusCode == http.StatusUnauthorized {
+		return MetadataChildren{}, errors.New(ErrorNotAuthorized)
 	}
 
 	defer resp.Body.Close()
@@ -234,7 +239,7 @@ func (p *Plex) GetMetadataChildren(key string) (MetadataChildren, error) {
 // GetEpisodes returns episodes of a season of a show
 func (p *Plex) GetEpisodes(key string) (SearchResultsEpisode, error) {
 	if key == "" {
-		return SearchResultsEpisode{}, errors.New("Key is required")
+		return SearchResultsEpisode{}, fmt.Errorf(ErrorCommon, ErrorKeyIsRequired)
 	}
 
 	query := fmt.Sprintf("%s/library/metadata/%s/children", p.URL, key)
@@ -246,8 +251,8 @@ func (p *Plex) GetEpisodes(key string) (SearchResultsEpisode, error) {
 	}
 
 	// Unauthorized
-	if resp.StatusCode == 401 {
-		return SearchResultsEpisode{}, errors.New("You are not authorized to access that server")
+	if resp.StatusCode == http.StatusUnauthorized {
+		return SearchResultsEpisode{}, errors.New(ErrorNotAuthorized)
 	}
 
 	defer resp.Body.Close()
@@ -264,7 +269,7 @@ func (p *Plex) GetEpisodes(key string) (SearchResultsEpisode, error) {
 // GetEpisode returns a single episode of a show.
 func (p *Plex) GetEpisode(key string) (SearchResultsEpisode, error) {
 	if key == "" {
-		return SearchResultsEpisode{}, errors.New("Key is required")
+		return SearchResultsEpisode{}, fmt.Errorf(ErrorCommon, ErrorKeyIsRequired)
 	}
 
 	query := fmt.Sprintf("%s/library/metadata/%s", p.URL, key)
@@ -276,8 +281,8 @@ func (p *Plex) GetEpisode(key string) (SearchResultsEpisode, error) {
 	}
 
 	// Unauthorized
-	if resp.StatusCode == 401 {
-		return SearchResultsEpisode{}, errors.New("You are not authorized to access that server")
+	if resp.StatusCode == http.StatusUnauthorized {
+		return SearchResultsEpisode{}, errors.New(ErrorNotAuthorized)
 	}
 
 	defer resp.Body.Close()
@@ -302,8 +307,8 @@ func (p *Plex) GetOnDeck() (SearchResultsEpisode, error) {
 	}
 
 	// Unauthorized
-	if resp.StatusCode == 401 {
-		return SearchResultsEpisode{}, errors.New("You are not authorized to access that server")
+	if resp.StatusCode == http.StatusUnauthorized {
+		return SearchResultsEpisode{}, errors.New(ErrorNotAuthorized)
 	}
 
 	defer resp.Body.Close()
@@ -315,6 +320,72 @@ func (p *Plex) GetOnDeck() (SearchResultsEpisode, error) {
 	}
 
 	return results, nil
+}
+
+// Download media associated with metadata
+func (p *Plex) Download(meta Metadata, path string, createFolders bool, skipIfExists bool) error {
+
+	if len(meta.Media) == 0 {
+		return fmt.Errorf("no media associated with metadata, skipping")
+	}
+
+	path = filepath.Join(path)
+	if createFolders {
+
+		if meta.ParentTitle != "" && meta.GrandparentTitle != "" { // for tv shows and music
+			path = filepath.Join(path, meta.GrandparentTitle, meta.ParentTitle)
+		} else { // for movies
+			path = filepath.Join(path, meta.Title)
+		}
+		if err := os.MkdirAll(path, 0700); err != nil {
+			return err
+		}
+	}
+
+	for _, media := range meta.Media {
+
+		for _, part := range media.Part {
+
+			// get original filename from original path
+			split := strings.Split(part.File, "/")
+			file := split[len(split)-1]
+
+			fp := filepath.Join(path, file)
+
+			_, exists := os.Stat(fp)
+
+			if exists == nil && skipIfExists {
+				return nil
+			}
+
+			query := fmt.Sprintf("%s%s?download=1", p.URL, part.Key)
+
+			resp, err := p.grab(query, p.Headers)
+			if err != nil {
+				return err
+			}
+
+			// Unauthorized
+			if resp.StatusCode == http.StatusUnauthorized {
+				return errors.New(ErrorNotAuthorized)
+			}
+
+			out, err := os.Create(fp)
+			if err != nil {
+				return err
+			}
+			defer out.Close()
+
+			_, err = io.Copy(out, resp.Body)
+
+			if err != nil {
+				return err
+			}
+
+		}
+	}
+
+	return nil
 }
 
 // GetPlaylist gets all videos in a playlist.
@@ -329,9 +400,9 @@ func (p *Plex) GetPlaylist(key int) (SearchResultsEpisode, error) {
 
 	// Unauthorized
 	if resp.StatusCode == http.StatusUnauthorized {
-		return SearchResultsEpisode{}, errors.New("you are not authorized to access that server")
+		return SearchResultsEpisode{}, errors.New(ErrorNotAuthorized)
 	} else if resp.StatusCode != http.StatusOK {
-		return SearchResultsEpisode{}, errors.New("server error: " + resp.Status)
+		return SearchResultsEpisode{}, fmt.Errorf(ErrorServer, resp.Status)
 	}
 
 	defer resp.Body.Close()
@@ -363,11 +434,10 @@ func (p *Plex) Test() (bool, error) {
 
 	defer resp.Body.Close()
 
-	if resp.StatusCode == 401 {
-		return false, errors.New("You are not authorized to access this server")
-	} else if resp.StatusCode != 200 {
-		statusCode := strconv.Itoa(resp.StatusCode)
-		return false, errors.New("Server replied with " + statusCode + " status code")
+	if resp.StatusCode == http.StatusUnauthorized {
+		return false, errors.New(ErrorNotAuthorized)
+	} else if resp.StatusCode != http.StatusOK {
+		return false, fmt.Errorf(ErrorServerReplied, resp.StatusCode)
 	}
 
 	return true, nil
@@ -377,7 +447,7 @@ func (p *Plex) Test() (bool, error) {
 func (p *Plex) KillTranscodeSession(sessionKey string) (bool, error) {
 
 	if sessionKey == "" {
-		return false, errors.New("Missing sessionKey")
+		return false, errors.New(ErrorMissingSessionKey)
 	}
 
 	query := p.URL + "/video/:/transcode/universal/stop?session=" + sessionKey
@@ -390,11 +460,10 @@ func (p *Plex) KillTranscodeSession(sessionKey string) (bool, error) {
 
 	defer resp.Body.Close()
 
-	if resp.StatusCode == 401 {
-		return false, errors.New("You are not authorized to access this server")
-	} else if resp.StatusCode != 200 {
-		statusCode := strconv.Itoa(resp.StatusCode)
-		return false, errors.New("Server replied with " + statusCode + " status code")
+	if resp.StatusCode == http.StatusUnauthorized {
+		return false, errors.New(ErrorNotAuthorized)
+	} else if resp.StatusCode != http.StatusOK {
+		return false, fmt.Errorf(ErrorServerReplied, resp.StatusCode)
 	}
 
 	return true, nil
@@ -414,11 +483,10 @@ func (p *Plex) GetTranscodeSessions() (TranscodeSessionsResponse, error) {
 
 	defer resp.Body.Close()
 
-	if resp.StatusCode == 401 {
-		return result, errors.New("You are not authorized to access this server")
-	} else if resp.StatusCode != 200 {
-		statusCode := strconv.Itoa(resp.StatusCode)
-		return result, errors.New("Server replied with " + statusCode + " status code")
+	if resp.StatusCode == http.StatusUnauthorized {
+		return result, errors.New(ErrorNotAuthorized)
+	} else if resp.StatusCode != http.StatusOK {
+		return result, fmt.Errorf(ErrorServerReplied, resp.StatusCode)
 	}
 
 	return result, json.NewDecoder(resp.Body).Decode(&result)
@@ -439,11 +507,10 @@ func (p *Plex) GetPlexTokens(token string) (DevicesResponse, error) {
 
 	defer resp.Body.Close()
 
-	if resp.StatusCode == 401 {
-		return result, errors.New("You are not authorized to access this server")
-	} else if resp.StatusCode != 200 {
-		statusCode := strconv.Itoa(resp.StatusCode)
-		return result, errors.New("Server replied with " + statusCode + " status code")
+	if resp.StatusCode == http.StatusUnauthorized {
+		return result, errors.New(ErrorNotAuthorized)
+	} else if resp.StatusCode != http.StatusOK {
+		return result, fmt.Errorf(ErrorServerReplied, resp.StatusCode)
 	}
 
 	return result, json.NewDecoder(resp.Body).Decode(&result)
@@ -463,11 +530,10 @@ func (p *Plex) DeletePlexToken(token string) (bool, error) {
 
 	defer resp.Body.Close()
 
-	if resp.StatusCode == 401 {
-		return result, errors.New("You are not authorized to access this server")
-	} else if resp.StatusCode != 200 {
-		statusCode := strconv.Itoa(resp.StatusCode)
-		return result, errors.New("Server replied with " + statusCode + " status code")
+	if resp.StatusCode == http.StatusUnauthorized {
+		return result, errors.New(ErrorNotAuthorized)
+	} else if resp.StatusCode != http.StatusOK {
+		return result, fmt.Errorf(ErrorServerReplied, resp.StatusCode)
 	}
 
 	return result, json.NewDecoder(resp.Body).Decode(&result)
@@ -492,11 +558,10 @@ func (p *Plex) GetFriends() ([]Friends, error) {
 
 	defer resp.Body.Close()
 
-	if resp.StatusCode == 401 {
-		return []Friends{}, errors.New("You are not authorized to access this server")
-	} else if resp.StatusCode != 200 {
-		statusCode := strconv.Itoa(resp.StatusCode)
-		return []Friends{}, errors.New("Server replied with " + statusCode + " status code")
+	if resp.StatusCode == http.StatusUnauthorized {
+		return []Friends{}, errors.New(ErrorNotAuthorized)
+	} else if resp.StatusCode != http.StatusOK {
+		return []Friends{}, fmt.Errorf(ErrorServerReplied, resp.StatusCode)
 	}
 
 	respBytes, err := ioutil.ReadAll(resp.Body)
@@ -535,7 +600,7 @@ func (p *Plex) RemoveFriend(id string) (bool, error) {
 
 	defer resp.Body.Close()
 
-	if resp.StatusCode != 200 && resp.StatusCode != 400 {
+	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusBadRequest {
 		return false, errors.New(resp.Status)
 	}
 
@@ -642,7 +707,7 @@ func (p *Plex) UpdateFriendAccess(userID string, params UpdateFriendParams) (boo
 
 	resp.Body.Close()
 
-	if resp.StatusCode != 200 {
+	if resp.StatusCode != http.StatusOK {
 		return false, errors.New(resp.Status)
 	}
 
@@ -661,7 +726,7 @@ func (p *Plex) RemoveFriendAccessToLibrary(userID, machineID, serverID string) (
 
 	resp.Body.Close()
 
-	if resp.StatusCode != 200 {
+	if resp.StatusCode != http.StatusOK {
 		return false, errors.New(resp.Status)
 	}
 
@@ -683,7 +748,7 @@ func (p *Plex) CheckUsernameOrEmail(usernameOrEmail string) (bool, error) {
 
 	defer resp.Body.Close()
 
-	if resp.StatusCode != 200 && resp.StatusCode != 400 {
+	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusBadRequest {
 		return false, errors.New(resp.Status)
 	}
 
@@ -906,11 +971,11 @@ func (p *Plex) GetLibraryContent(sectionKey string, filter string) (SearchResult
 	}
 
 	if resp.StatusCode == http.StatusUnauthorized {
-		return SearchResults{}, errors.New("You are not authorized to access that server")
+		return SearchResults{}, errors.New(ErrorNotAuthorized)
 	}
 
 	if resp.StatusCode == http.StatusBadRequest {
-		return SearchResults{}, errors.New("There was an error in the request")
+		return SearchResults{}, errors.New("there was an error in the request")
 	}
 
 	defer resp.Body.Close()
@@ -1071,7 +1136,7 @@ func (p *Plex) AddLabelToMedia(mediaType, sectionID, id, label, locked string) (
 
 	defer resp.Body.Close()
 
-	return resp.StatusCode == 200, nil
+	return resp.StatusCode == http.StatusOK, nil
 }
 
 // RemoveLabelFromMedia to remove a label from a piece of media Requires a Plex Pass.
@@ -1104,7 +1169,7 @@ func (p *Plex) RemoveLabelFromMedia(mediaType, sectionID, id, label, locked stri
 
 	defer resp.Body.Close()
 
-	return resp.StatusCode == 200, nil
+	return resp.StatusCode == http.StatusOK, nil
 }
 
 // GetSessions of devices currently consuming media

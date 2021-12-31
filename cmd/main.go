@@ -150,6 +150,21 @@ func main() {
 			Action: getMetadata,
 		},
 		{
+			Name:   "download",
+			Usage:  "download media from your plex server",
+			Action: downloadMedia,
+			Flags: []cli.Flag{
+				cli.BoolFlag{
+					Name:  "folders",
+					Usage: "create folder hierarchy",
+				},
+				cli.BoolFlag{
+					Name:  "skip",
+					Usage: "skip download if file already exists",
+				},
+			},
+		},
+		{
 			Name:   "playlist",
 			Usage:  "print playlsit items on plex server",
 			Action: getPlaylist,
