@@ -68,7 +68,7 @@ type Metadata struct {
 	ParentRatingKey       string       `json:"parentRatingKey"`
 	ParentThumb           string       `json:"parentThumb"`
 	ParentTitle           string       `json:"parentTitle"`
-	RatingCount           string       `json:"ratingCount"`
+	RatingCount           int          `json:"ratingCount"`
 	Rating                float64      `json:"rating"`
 	RatingKey             string       `json:"ratingKey"`
 	SessionKey            string       `json:"sessionKey"`
