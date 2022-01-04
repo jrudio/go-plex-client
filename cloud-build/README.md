@@ -1,6 +1,13 @@
-build go-plex-client
-- make sure no build errors
--
+CI/CD Flow
+==
+
+1. run go test
+
+1. build go-plex-client
+
+1. push to Artifact Registry
+
+1. test cli against a docker instance of Plex Media Server
 
 
 boot up PMS-linux-container
