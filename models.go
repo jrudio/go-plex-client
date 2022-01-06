@@ -3,6 +3,7 @@ package plex
 import (
 	"encoding/json"
 	"encoding/xml"
+	"fmt"
 	"net/http"
 	"time"
 )
@@ -91,6 +92,37 @@ type AltGUID struct {
 	ID string `json:"id"`
 }
 
+type boolOrInt struct {
+	bool
+}
+
+func (b *boolOrInt) UnmarshalJSON(data []byte) error {
+	var isInt int
+
+	if err := json.Unmarshal(data, &isInt); err == nil {
+		if isInt == 0 || isInt == 1 {
+
+			if isInt != 0 && isInt != 1 {
+				return fmt.Errorf("invalid boolOrInt: %d", isInt)
+			}
+
+			b.bool = isInt == 1
+
+			return nil
+		}
+	}
+
+	var isBool bool
+
+	if err := json.Unmarshal(data, &isBool); err != nil {
+		return err
+	}
+
+	b.bool = isBool
+
+	return nil
+}
+
 // Media media info
 type Media struct {
 	AspectRatio           json.Number `json:"aspectRatio"`
@@ -103,7 +135,7 @@ type Media struct {
 	Has64bitOffsets       bool        `json:"has64bitOffsets"`
 	Height                int         `json:"height"`
 	ID                    json.Number `json:"id"`
-	OptimizedForStreaming bool        `json:"optimizedForStreaming"` // plex can return int or boolean: 0 or 1; true or false
+	OptimizedForStreaming boolOrInt   `json:"optimizedForStreaming"` // plex can return int (GetMetadata(), GetPlaylist()) or boolean (GetSessions()): 0 or 1; true or false
 	Selected              bool        `json:"selected"`
 	VideoCodec            string      `json:"videoCodec"`
 	VideoFrameRate        string      `json:"videoFrameRate"`
@@ -788,7 +820,7 @@ type Part struct {
 	HasThumbnail          string      `json:"hasThumbnail"`
 	ID                    json.Number `json:"id"`
 	Key                   string      `json:"key"`
-	OptimizedForStreaming bool        `json:"optimizedForStreaming"`
+	OptimizedForStreaming boolOrInt   `json:"optimizedForStreaming"`
 	Selected              bool        `json:"selected"`
 	Size                  int         `json:"size"`
 	Stream                []Stream    `json:"Stream"`
