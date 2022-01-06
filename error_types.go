@@ -14,4 +14,5 @@ const (
 	ErrorPINNotAuthorized   = "pin is not authorized yet"
 	ErrorLinkAccount        = "failed to link account: %s"
 	ErrorFailedToSetWebhook = "failed to set webhook"
+	ErrorWebhook            = "webhook error: %s"
 )
