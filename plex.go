@@ -401,6 +401,8 @@ func (p *Plex) GetPlaylist(key int) (SearchResultsEpisode, error) {
 	// Unauthorized
 	if resp.StatusCode == http.StatusUnauthorized {
 		return SearchResultsEpisode{}, errors.New(ErrorNotAuthorized)
+	} else if resp.StatusCode != http.StatusOK {
+		return SearchResultsEpisode{}, fmt.Errorf(ErrorServer, resp.Status)
 	}
 
 	defer resp.Body.Close()
