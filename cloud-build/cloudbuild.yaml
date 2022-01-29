@@ -1,0 +1,16 @@
+steps:
+# - name: golang
+#   entrypoint: /usr/local/go/bin/go
+#   args: ["version"]
+- name: golang
+  entrypoint: /bin/bash
+  args:
+    - -c
+    - |
+      # go get -u github.com/jrudio/go-plex-client
+      # go test
+      go build -o plex-cli
+- name: plexinc/pms-docker
+  args: ["ls", "./plex-cli", "test-commands"]
+options:
+  # logging: CLOUD_LOGGING_ONLY

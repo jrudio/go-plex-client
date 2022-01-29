@@ -503,76 +503,77 @@ type BaseAPIResponse struct {
 // UserPlexTV plex.tv user. should be used when interacting with plex.tv as the id is an int
 type UserPlexTV struct {
 	// ID is an int when signing in to Plex.tv but a string when access own server
-	ID                int    `json:"id"`
-	UUID              string `json:"uuid"`
-	Email             string `json:"email"`
-	FriendlyName      string `json:"friendlyName"`
-	Locale            string `json:"locale"` // can be null
-	Confirmed         bool   `json:"confirmed"`
-	EmailOnlyAuth     bool   `json:"emailOnlyAuth"`
-	Protected         bool   `json:"protected"`
-	MailingListStatus string `json:"mailingListStatus"`
-	MailingListActive bool   `json:"mailingListActive"`
-	ScrobbleTypes     string `json:"scrobbleTypes"`
-	Country           string `json:"country"`
-	JoinedAt          string `json:"joined_at"`
-	Username          string `json:"username"`
-	Thumb             string `json:"thumb"`
-	HasPassword       bool   `json:"hasPassword"`
-	AuthToken         string `json:"authToken"`
+	ID                int    `json:"id" xml:"id,attr"`
+	UUID              string `json:"uuid" xml:"uuid,attr"`
+	Email             string `json:"email" xml:"email,attr"`
+	FriendlyName      string `json:"friendlyName" xml:"friendlyName,attr"`
+	Locale            string `json:"locale" xml:"locale,attr"` // can be null
+	Confirmed         bool   `json:"confirmed" xml:"confirmed,attr"`
+	EmailOnlyAuth     bool   `json:"emailOnlyAuth" xml:"emailOnlyAuth,attr"`
+	Protected         bool   `json:"protected" xml:"protected,attr"`
+	MailingListStatus string `json:"mailingListStatus" xml:"mailingListStatus,attr"`
+	MailingListActive bool   `json:"mailingListActive" xml:"mailingListActive,attr"`
+	ScrobbleTypes     string `json:"scrobbleTypes" xml:"scrobbleTypes,attr"`
+	Country           string `json:"country" xml:"country,attr"`
+	JoinedAt          string `json:"joined_at" xml:"joined_at,attr"`
+	Username          string `json:"username" xml:"username,attr"`
+	Thumb             string `json:"thumb" xml:"thumb,attr"`
+	HasPassword       bool   `json:"hasPassword" xml:"hasPassword,attr"`
+	AuthToken         string `json:"authToken" xml:"authToken,attr"`
 	// AuthenticationToken string `json:"authenticationToken"`
 	Subscription struct {
-		Active         bool     `json:"active"`
-		Status         string   `json:"Active"`
-		Plan           string   `json:"lifetime"`       // can be null
-		SubscribedAt   string   `json:"subscribedAt"`   // can be null
-		PaymentService string   `json:"paymentService"` // can be null
-		Features       []string `json:"features"`
-	} `json:"subscription"`
-	SubscriptionDescription string `json:"subscriptionDescription"` // can be null
-	Restricted              bool   `json:"restricted"`
-	Anonymous               string `json:"anonymous"` // can be null
-	Home                    bool   `json:"home"`
-	Guest                   bool   `json:"guest"`
-	HomeSize                int64  `json:"homeSize"` // type may be wrong
-	HomeAdmin               bool   `json:"homeAdmin"`
-	MaxHomeSize             int64  `json:"maxHomeSize"` // type may be wrong
-	CertificateVersion      int64  `json:"certificateVersion"`
-	RememberExpiresAt       int64  `json:"rememberExpiresAt"`
+		Active         bool     `json:"active" xml:"active,attr"`
+		Status         string   `json:"Active" xml:"Active,attr"`
+		Plan           string   `json:"lifetime" xml:"lifetime,attr"`             // can be null
+		SubscribedAt   string   `json:"subscribedAt" xml:"subscribedAt,attr"`     // can be null
+		PaymentService string   `json:"paymentService" xml:"paymentService,attr"` // can be null
+		Features       []string `json:"features" xml:"features,attr"`
+	} `json:"subscription" xml:"subscription"`
+	SubscriptionDescription string `json:"subscriptionDescription" xml:"subscriptionDescription"` // can be null
+	Restricted              bool   `json:"restricted" xml:"restricted"`
+	Anonymous               string `json:"anonymous" xml:"anonymous"` // can be null
+	Home                    bool   `json:"home" xml:"home"`
+	Guest                   bool   `json:"guest" xml:"guest"`
+	HomeSize                int64  `json:"homeSize" xml:"homeSize"` // type may be wrong
+	HomeAdmin               bool   `json:"homeAdmin" xml:"homeAdmin"`
+	MaxHomeSize             int64  `json:"maxHomeSize" xml:"maxHomeSize"` // type may be wrong
+	CertificateVersion      int64  `json:"certificateVersion" xml:"certificateVersion"`
+	RememberExpiresAt       int64  `json:"rememberExpiresAt" xml:"rememberExpiresAt"`
 	Profile                 struct {
-		AutoSelectAudio              bool   `json:"autoSelectAudio"`
-		DefaultAudioLanguage         string `json:"defaultAudioLanguage"`
-		DefaultSubtitleLanguage      string `json:"defaultSubtitleLanguage"`
-		AutoSelectSubtitle           int64  `json:"autoSelectSubtitle"`
-		DefaultSubtitleAccessibility int64  `json:"defaultSubtitleAccessibility"`
-		DefaultSubtitleForced        int64  `json:"defaultSubtitleForced"`
-	} `json:"profile"`
+		AutoSelectAudio              bool   `json:"autoSelectAudio" xml:"autoSelectAudio"`
+		DefaultAudioLanguage         string `json:"defaultAudioLanguage" xml:"defaultAudioLanguage"`
+		DefaultSubtitleLanguage      string `json:"defaultSubtitleLanguage" xml:"defaultSubtitleLanguage"`
+		AutoSelectSubtitle           int64  `json:"autoSelectSubtitle" xml:"autoSelectSubtitle"`
+		DefaultSubtitleAccessibility int64  `json:"defaultSubtitleAccessibility" xml:"defaultSubtitleAccessibility"`
+		DefaultSubtitleForced        int64  `json:"defaultSubtitleForced" xml:"defaultSubtitleForced"`
+	} `json:"profile" xml:"profile"`
 	Subscriptions []struct {
-		ID       int64  `json:"id"`
-		Mode     string `json:"mode"`
-		RenewsAt string `json:"renewsAt"` // can be null; not sure of type as I have lifetime membership
-		EndsAt   string `json:"endsAt"`   // can be null; not sure of type as I have lifetime membership
-		Type     string `json:"type"`
-		Transfer string `json:"transfer"` // can be null; not sure of type
-		State    string `json:"state"`
-	} `json:"subscriptions"`
-	PastSubscriptions    []string   `json:"pastSubscriptions"`
-	Trials               []string   `json:"trials"`
-	Services             []Services `json:"services"`
-	AdsConsent           string     `json:"adsConsent"`           // can be null
-	AdsConsentSetAt      string     `json:"adsConsentSetAt"`      // can be null
-	AdsConsentReminderAt string     `json:"adsConsentReminderAt"` // can be null
-	ExperimentalFeatures bool       `json:"experimentalFeatures"`
-	TwoFactorEnabled     bool       `json:"twoFactorEnabled"`
-	BackupCodesCreated   bool       `json:"backupCodesCreated"`
+		ID       int64  `json:"id" xml:"id"`
+		Mode     string `json:"mode" xml:"mode"`
+		RenewsAt string `json:"renewsAt" xml:"renewsAt"` // can be null; not sure of type as I have lifetime membership
+		EndsAt   string `json:"endsAt" xml:"endsAt"`     // can be null; not sure of type as I have lifetime membership
+		Type     string `json:"type" xml:"type"`
+		Transfer string `json:"transfer" xml:"transfer"` // can be null; not sure of type
+		State    string `json:"state" xml:"state"`
+	} `json:"subscriptions" xml:"subscriptions"`
+	PastSubscriptions    []string   `json:"pastSubscriptions" xml:"pastSubscriptions"`
+	Trials               []string   `json:"trials" xml:"trials"`
+	Services             []Services `json:"services" xml:"services"`
+	AdsConsent           string     `json:"adsConsent" xml:"adsConsent"`                     // can be null
+	AdsConsentSetAt      string     `json:"adsConsentSetAt" xml:"adsConsentSetAt"`           // can be null
+	AdsConsentReminderAt string     `json:"adsConsentReminderAt" xml:"adsConsentReminderAt"` // can be null
+	ExperimentalFeatures bool       `json:"experimentalFeatures" xml:"experimentalFeatures"`
+	TwoFactorEnabled     bool       `json:"twoFactorEnabled" xml:"twoFactorEnabled"`
+	BackupCodesCreated   bool       `json:"backupCodesCreated" xml:"backupCodesCreated"`
 	// Roles                struct {
 	// 	Roles []string `json:"roles"`
 	// } `json:"roles"`
-	Entitlements []string `json:"entitlements"`
+	Entitlements []string `json:"entitlements" xml:"entitlements"`
 	// ConfirmedAt  string      `json:"confirmedAt"`
 	// ForumID    json.Number `json:"forumId"`
 	// RememberMe bool   `json:"rememberMe"`
-	Title string `json:"title"`
+	Title   string   `json:"title" xml:"title"`
+	XMLName xml.Name `xml:"user"`
 }
 
 type Services struct {

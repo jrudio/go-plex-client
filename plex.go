@@ -93,6 +93,14 @@ func New(baseURL, token string) (*Plex, error) {
 // SignIn creates a plex instance using a user name and password instead of an auth
 // token.
 func SignIn(username, password string) (*Plex, error) {
+	if username == "" {
+		return &Plex{}, errors.New("username is required")
+	}
+
+	if password == "" {
+		return &Plex{}, errors.New("password is required")
+	}
+
 	id, err := uuid.NewRandom()
 
 	if err != nil {
