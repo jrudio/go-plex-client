@@ -400,6 +400,31 @@ type inviteFriendSettings struct {
 	FilterTelevision  string `json:"filterTelevision"`
 }
 
+type invitedFriendsResponse struct {
+	XMLName           xml.Name        `xml:"MediaContainer"`
+	FriendlyName      string          `xml:"friendlyName,attr"`
+	Identifier        string          `xml:"identifier,attr"`
+	MachineIdentifier string          `xml:"machineIdentifier,attr"`
+	Size              int             `xml:"size,attr"`
+	InvitedFriends    []InvitedFriend `xml:"Invite"`
+}
+
+type InvitedFriend struct {
+	ID           string `xml:"id,attr"`
+	CreatedAt    string `xml:"createdAt,attr"`
+	IsFriend     bool   `xml:"friend,attr"`
+	IsHome       bool   `xml:"home,attr"`
+	IsServer     bool   `xml:"server,attr"`
+	Username     string `xml:"username,attr"`
+	Email        string `xml:"email,attr"`
+	Thumb        string `xml:"thumb,attr"`
+	FriendlyName string `xml:"friendlyName,attr"`
+	Server       struct {
+		Name         string `xml:"name,attr"`
+		NumLibraries string `xml:"numLibraries,attr"`
+	} `xml:"Server"`
+}
+
 type resourcesResponse struct {
 	XMLName xml.Name     `xml:"MediaContainer"`
 	Size    int          `xml:"size,attr"`

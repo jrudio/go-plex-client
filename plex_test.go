@@ -33,7 +33,7 @@ func init() {
 func newTestServer(code int, body string) (*httptest.Server, *Plex) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(code)
-		w.Header().Set("Content-Type", "application/xml")
+		w.Header().Set("Content-Type", applicationXml)
 		fmt.Fprintln(w, body)
 	}))
 
@@ -189,5 +189,34 @@ func TestInviteFriendResponse(t *testing.T) {
 
 	if err := xml.Unmarshal(testData, result); err != nil {
 		t.Error(err.Error())
+	}
+}
+
+func TestPlex_GetInvitedFriends_Response(t *testing.T) {
+	testData := []byte(`
+<?xml version="1.0" encoding="UTF-8"?>
+<MediaContainer friendlyName="myPlex" identifier="com.plexapp.plugins.myplex" machineIdentifier="abc123abc123abc123abc123abc123abc123" size="3">
+  <Invite id="email1@gmail.com" createdAt="1639964970" friend="0" home="0" server="1" username="" email="email1@gmail.com" thumb="" friendlyName="email1@gmail.com">
+    <Server name="Server123" numLibraries="3"/>
+  </Invite>
+  <Invite id="19661994" createdAt="1643379560" friend="0" home="1" server="0" username="home-user" email="home-user@gmail.com" thumb="https://plex.tv/users/abc/avatar?c=123" friendlyName="home-user"/>
+  <Invite id="22522496" createdAt="1643574613" friend="1" home="0" server="1" username="existing-user" email="existing-user@umn.edu" thumb="https://plex.tv/users/xyz/avatar?c=456" friendlyName="existing-user">
+    <Server name="Server123" numLibraries="3"/>
+  </Invite>
+</MediaContainer>
+	`)
+
+	result := new(invitedFriendsResponse)
+
+	if err := xml.Unmarshal(testData, result); err != nil {
+		t.Error(err.Error())
+	}
+}
+
+func TestPlex_RemoveInvitedFriend(t *testing.T) {
+	success, err := plexConn.RemoveInvitedFriend("email-id-dne@gmail.com", false, true, false)
+	if err.Error() != "404 Not Found" {
+		// expect a 404
+		t.Errorf("success: %v, error: %v", success, err)
 	}
 }

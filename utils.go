@@ -172,7 +172,7 @@ func (p *Plex) post(query string, body []byte, h headers) (*http.Response, error
 		return &http.Response{}, err
 	}
 
-	// req.Header.Set("Content-Type", "application/json")
+	// req.Header.Set("Content-Type", applicationJson)
 	req.Header.Add("Accept", h.Accept)
 	req.Header.Add("X-Plex-Platform", h.Platform)
 	req.Header.Add("X-Plex-Platform-Version", h.PlatformVersion)
@@ -270,4 +270,12 @@ func (p *Plex) put(query string, body []byte, h headers) (*http.Response, error)
 	}
 
 	return resp, nil
+}
+
+func boolToOneOrZero(input bool) string {
+	if input {
+		return "1"
+	} else {
+		return "0"
+	}
 }

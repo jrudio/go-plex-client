@@ -20,7 +20,11 @@ import (
 	"github.com/google/uuid"
 )
 
-const plexURL = "https://plex.tv"
+const (
+	plexURL         = "https://plex.tv"
+	applicationXml  = "application/xml"
+	applicationJson = "application/json"
+)
 
 func defaultHeaders() headers {
 	version := "0.0.1"
@@ -34,8 +38,8 @@ func defaultHeaders() headers {
 		ClientIdentifier: "go-plex-client-v" + version,
 		ContainerSize:    "Plex-Container-Size=50",
 		ContainerStart:   "X-Plex-Container-Start=0",
-		Accept:           "application/json",
-		ContentType:      "application/json",
+		Accept:           applicationJson,
+		ContentType:      applicationJson,
 	}
 }
 
@@ -118,7 +122,7 @@ func SignIn(username, password string) (*Plex, error) {
 	newHeaders := p.Headers
 	// Doesn't like having a content type, even form-data
 	newHeaders.ContentType = "application/x-www-form-urlencoded"
-	newHeaders.Accept = "application/json"
+	newHeaders.Accept = applicationJson
 	resp, err := p.post(query, []byte(body.Encode()), newHeaders)
 
 	if err != nil {
@@ -548,7 +552,7 @@ func (p *Plex) GetFriends() ([]Friends, error) {
 
 	newHeaders := p.Headers
 
-	newHeaders.Accept = "application/xml"
+	newHeaders.Accept = applicationXml
 
 	resp, err := p.get(query, newHeaders)
 
@@ -733,6 +737,70 @@ func (p *Plex) RemoveFriendAccessToLibrary(userID, machineID, serverID string) (
 	return true, nil
 }
 
+// GetInvitedFriends get all invited friends with request still pending
+func (p *Plex) GetInvitedFriends() ([]InvitedFriend, error) {
+
+	query := plexURL + "/api/invites/requested"
+	newHeaders := p.Headers
+	newHeaders.Accept = applicationXml
+
+	resp, err := p.get(query, newHeaders)
+	if err != nil {
+		return []InvitedFriend{}, err
+	}
+
+	if resp.StatusCode == http.StatusUnauthorized {
+		return []InvitedFriend{}, errors.New(ErrorNotAuthorized)
+	} else if resp.StatusCode != http.StatusOK {
+		return []InvitedFriend{}, fmt.Errorf(ErrorServerReplied, resp.StatusCode)
+	}
+
+	var invitedFriendsResp invitedFriendsResponse
+	defer resp.Body.Close()
+	err = xml.NewDecoder(resp.Body).Decode(&invitedFriendsResp)
+	if err != nil {
+		return []InvitedFriend{}, err
+	}
+
+	return invitedFriendsResp.InvitedFriends, nil
+}
+
+// RemoveInvitedFriend cancel pending friend invite
+func (p *Plex) RemoveInvitedFriend(inviteID string, isFriend, isServer, isHome bool) (bool, error) {
+	query := plexURL + "/api/invites/requested/" + url.QueryEscape(inviteID)
+
+	parsedQuery, parseErr := url.Parse(query)
+	if parseErr != nil {
+		return false, parseErr
+	}
+
+	vals := parsedQuery.Query()
+	vals.Add("friend", boolToOneOrZero(isFriend))
+	vals.Add("server", boolToOneOrZero(isServer))
+	vals.Add("home", boolToOneOrZero(isHome))
+
+	parsedQuery.RawQuery = vals.Encode()
+
+	query = parsedQuery.String()
+
+	resp, err := p.delete(query, p.Headers)
+	if err != nil {
+		return false, err
+	}
+
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusBadRequest {
+		return false, errors.New(resp.Status)
+	}
+
+	result := new(resultResponse)
+	if err := xml.NewDecoder(resp.Body).Decode(result); err != nil {
+		return false, err
+	}
+
+	return result.Response.Code == 0, nil
+}
+
 // CheckUsernameOrEmail will check if the username is a Plex user or will verify an email is valid
 func (p *Plex) CheckUsernameOrEmail(usernameOrEmail string) (bool, error) {
 
@@ -767,7 +835,7 @@ func (p *Plex) StopPlayback(machineID string) error {
 
 	newHeaders := p.Headers
 
-	newHeaders.Accept = "application/xml"
+	newHeaders.Accept = applicationXml
 	newHeaders.TargetClientIdentifier = machineID
 
 	resp, err := p.get(query, newHeaders)
@@ -898,7 +966,7 @@ func (p *Plex) GetSections(machineID string) ([]ServerSections, error) {
 
 	newHeaders := p.Headers
 
-	newHeaders.Accept = "application/xml"
+	newHeaders.Accept = applicationXml
 
 	resp, err := p.get(query, newHeaders)
 
@@ -1211,7 +1279,7 @@ func (p *Plex) TerminateSession(sessionID string, reason string) error {
 	query := fmt.Sprintf("%s/status/sessions/terminate?sessionId=%s&reason=%s", p.URL, sessionID, reason)
 
 	newHeaders := p.Headers
-	newHeaders.Accept = "application/xml"
+	newHeaders.Accept = applicationXml
 
 	resp, err := p.get(query, newHeaders)
 
