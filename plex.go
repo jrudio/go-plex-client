@@ -1071,6 +1071,25 @@ func (p *Plex) DeleteLibrary(key string) error {
 	return nil
 }
 
+// DeleteMediaByID removes the media from your Plex server via media key (or id)
+func (p *Plex) DeleteMediaByID(id string) error {
+	query := fmt.Sprintf("%s/library/metadata/%s", p.URL, id)
+
+	resp, err := p.delete(query, p.Headers)
+
+	if err != nil {
+		return err
+	}
+
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return errors.New(resp.Status)
+	}
+
+	return nil
+}
+
 // GetLibraryLabels of your plex server
 func (p *Plex) GetLibraryLabels(sectionKey, sectionIndex string) (LibraryLabels, error) {
 
