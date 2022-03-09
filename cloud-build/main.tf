@@ -1,17 +1,18 @@
 provider "google" {
-  credentials = file("~/service-accounts/abc.json") # todo: use env variable
-  project = "pms-environment" # todo: use env variable
   region = "us-west1" # this is cheaper than using Los Angeles
 }
 
-provider "google_compute_instance" "default" {
-  name = "pms-linux-latest"
-  machine_type = "e2-micro"
-  zone = "us-west1-a"
+resource "google_storage_bucket" "media-bucket" {
+  name = "pms-media"
+  location = "us-west1"
+  storage_class = "STANDARD"
 
-  boot_disk {
-    initialize_params {
-      image = "ubuntu-os-cloud/ubuntu-1604-xenial-v20170202"
-    }
+  versioning {
+    enabled = true
+  }
+
+  labels = {
+    "env" = "dev"
+    "go-plex-client-bucket" = "guest"
   }
 }

@@ -1,3 +1,14 @@
+Architecture
+==
+
+Cloud Storage -> example.mp4
+Cloud Build -> spawns PMS
+              -> downloads example.mp4 for PMS library
+Cloud Build -> test go-plex-client within golang docker image with proper environment variables
+              -> sends http requests to container running PMS for integration testing
+              -> sends http requests to plex.tv for integration testing
+
+
 CI/CD Flow
 ==
 
@@ -24,7 +35,13 @@ Use PubSub to listen for build status and report via Cloud Function to either:
 - badge in repository
 - selected PR
 
+Why:
+===
+Cloud Build has free 120 minutes per day on e2-medium machines[1]
+
 Resources:
+
+[1] https://cloud.google.com/build/pricing
 
 [1] https://cloud.google.com/build/docs/building/build-go#configuring_go_builds
 

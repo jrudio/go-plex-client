@@ -1,8 +1,10 @@
 package main
 
 import (
+	"encoding/xml"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -811,32 +813,46 @@ func stopPlayback(c *cli.Context) error {
 }
 
 func getAccountInfo(c *cli.Context) error {
-	db, err := startDB()
+	// db, err := startDB()
 
-	if err != nil {
-		return cli.NewExitError(err, 1)
-	}
+	// if err != nil {
+	// 	return cli.NewExitError(err, 1)
+	// }
 
-	defer db.Close()
+	// defer db.Close()
 
-	plexConn, err := initPlex(db, true, false)
+	// plexConn, err := initPlex(db, true, false)
 
-	if err != nil {
-		return cli.NewExitError(err, 1)
-	}
+	// if err != nil {
+	// 	return cli.NewExitError(err, 1)
+	// }
 
-	plexConn.HTTPClient.Timeout = time.Minute * 1
+	// plexConn.HTTPClient.Timeout = time.Minute * 1
 
-	account, err := plexConn.MyAccount()
+	// account, err := plexConn.MyAccount()
 
-	if err != nil {
-		return cli.NewExitError(err, 1)
-	}
+	// if err != nil {
+	// 	return cli.NewExitError(err, 1)
+	// }
 
 	// fmt.Println(account.Subscription.Features, account.Roles.Roles)
 	// fmt.Println(account.Entitlements)
 
-	fmt.Printf("%+v\n", account)
+	// fmt.Printf("%+v\n", account)
+
+	file, _ := ioutil.ReadFile("./sign-in.xml")
+
+	var account plex.UserPlexTV
+
+	if err := xml.Unmarshal(file, &account); err != nil {
+		return cli.NewExitError(err, 1)
+	}
+
+	if account.ID == 0 {
+		return cli.NewExitError("parse xml failed", 1)
+	}
+
+	fmt.Println(account.Username)
 
 	return nil
 }

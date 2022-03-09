@@ -2,15 +2,31 @@ steps:
 # - name: golang
 #   entrypoint: /usr/local/go/bin/go
 #   args: ["version"]
-- name: golang
-  entrypoint: /bin/bash
+#   waitFor: ['-']
+- name: 'gcr.io/cloud-builders/gsutil'
+  entrypoint: 'bash'
   args:
-    - -c
-    - |
-      # go get -u github.com/jrudio/go-plex-client
-      # go test
-      go build -o plex-cli
-- name: plexinc/pms-docker
-  args: ["ls", "./plex-cli", "test-commands"]
+  - -c
+  - gsutil cp gs://$MEDIA_BUCKET/example.mp4 .
+- name: 'bash'
+  args: ['ls', '-lh']
+# - name: plexinc/pms-docker
+#   # watch for 'done.txt' in current directory to successfully exit from this step
+#   # 'done.txt' will be generated from 'go test' step when finished
+#   args: [
+#     '--network', 'host',
+#     '-v', '/workspace/media:/data',
+#     '-v', '/workspace/transcode:/transcode',
+#     '-v', '/workspace/db:/config',
+#   ]
+#   waitFor: ['-']
+#   secretEnv: ['PLEX_CLAIM']
+# - name: golang
+#   entrypoint: /bin/bash
+#   args: ["go", "build", "-o", "plex-cli"]
+availableSecrets:
+  secretManager:
+  - versionName: projects/pms-environment/secrets/go-plex-client-guest-claim-token/versions/latest
+    env: 'PLEX_CLAIM'
 options:
   # logging: CLOUD_LOGGING_ONLY
