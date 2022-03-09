@@ -976,3 +976,33 @@ func getPlaylist(c *cli.Context) error {
 
 	return nil
 }
+
+func deleteMedia(c *cli.Context) error {
+	db, err := startDB()
+
+	if err != nil {
+		return cli.NewExitError(err, 1)
+	}
+
+	defer db.Close()
+
+	plexConn, err := initPlex(db, true, true)
+
+	if err != nil {
+		return err
+	}
+
+	if c.NArg() == 0 {
+		return cli.NewExitError("media id is required", 1)
+	}
+
+	mediaID := c.Args().First()
+
+	if err := plexConn.DeleteMediaByID(mediaID); err != nil {
+		return cli.NewExitError(err, 1)
+	}
+
+	fmt.Printf("successfully deleted media '%s'\n", mediaID)
+
+	return nil
+}
