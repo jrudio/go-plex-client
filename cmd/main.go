@@ -169,6 +169,17 @@ func main() {
 			Usage:  "print playlsit items on plex server",
 			Action: getPlaylist,
 		},
+		{
+			Name:  "delete",
+			Usage: "delete a resource from your plex server",
+			Subcommands: []cli.Command{
+				{
+					Name:   "media",
+					Usage:  "delete media from your plex server",
+					Action: deleteMedia,
+				},
+			},
+		},
 	}
 
 	if err := app.Run(os.Args); err != nil {
