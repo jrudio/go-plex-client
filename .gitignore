@@ -1,4 +1,5 @@
 plex
 vendor/*
-*.sh
+stop-pms.sh
+start-pms.sh
 .idea
