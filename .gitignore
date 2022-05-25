@@ -3,3 +3,4 @@ vendor/*
 stop-pms.sh
 start-pms.sh
 .idea
+env.user.list

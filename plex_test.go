@@ -24,7 +24,7 @@ func init() {
 		var err error
 
 		if plexConn, err = New(plexHost, plexToken); err != nil {
-			fmt.Fprintf(os.Stderr, "%v", err)
+			fmt.Fprintf(os.Stderr, "failed creating plex connection: %v\n", err)
 			os.Exit(1)
 		}
 	}
@@ -33,34 +33,15 @@ func init() {
 	password = os.Getenv("PLEX_PASSWORD")
 
 	if username == "" {
-		fmt.Fprintf(os.Stderr, "env var PLEX_USERNAME is required for testing")
+		fmt.Fprintf(os.Stderr, "env var PLEX_USERNAME is required for testing\n")
 		os.Exit(1)
 	}
 
 	if password == "" {
-		fmt.Fprintf(os.Stderr, "env var PLEX_PASSWORD is required for testing")
+		fmt.Fprintf(os.Stderr, "env var PLEX_PASSWORD is required for testing\n")
 		os.Exit(1)
 	}
 }
-
-// func newTestServer(code int, body string) (*httptest.Server, *Plex) {
-// 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-// 		w.WriteHeader(code)
-// 		w.Header().Set("Content-Type", "application/xml")
-// 		fmt.Fprintln(w, body)
-// 	}))
-
-// 	transport := &http.Transport{
-// 		Proxy: func(req *http.Request) (*url.URL, error) {
-// 			return url.Parse(server.URL)
-// 		},
-// 	}
-
-// 	httpClient := http.Client{Transport: transport}
-// 	plex := &Plex{URL: server.URL, Token: "", HTTPClient: httpClient}
-
-// 	return server, plex
-// }
 
 // TestSignIn make sure env vars PLEX_USERNAME and PLEX_PASSWORD are for a valid user
 func TestSignIn(t *testing.T) {
