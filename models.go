@@ -75,6 +75,7 @@ type Metadata struct {
 	SessionKey            string       `json:"sessionKey"`
 	Summary               string       `json:"summary"`
 	Thumb                 string       `json:"thumb"`
+	UserRating            float64      `json:"userRating"`
 	Media                 []Media      `json:"Media"`
 	Title                 string       `json:"title"`
 	TitleSort             string       `json:"titleSort"`
