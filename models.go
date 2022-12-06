@@ -71,6 +71,7 @@ type Metadata struct {
 	ParentTitle           string       `json:"parentTitle"`
 	RatingCount           int          `json:"ratingCount"`
 	Rating                float64      `json:"rating"`
+	Ratings               []Rating     `json:"Rating"`
 	RatingKey             string       `json:"ratingKey"`
 	SessionKey            string       `json:"sessionKey"`
 	Summary               string       `json:"summary"`
@@ -136,7 +137,6 @@ type Media struct {
 	Height                int         `json:"height"`
 	ID                    json.Number `json:"id"`
 	OptimizedForStreaming boolOrInt   `json:"optimizedForStreaming"` // plex can return int (GetMetadata(), GetPlaylist()) or boolean (GetSessions()): 0 or 1; true or false
-
 	Selected              bool        `json:"selected"`
 	VideoCodec            string      `json:"videoCodec"`
 	VideoFrameRate        string      `json:"videoFrameRate"`
@@ -893,4 +893,11 @@ type CurrentSessions struct {
 		Metadata []Metadata `json:"Metadata"`
 		Size     int        `json:"size"`
 	} `json:"MediaContainer"`
+}
+
+// Rating
+type Rating struct {
+	Image string      `json:"image"`
+	Type  string      `json:"type"`
+	Value json.Number `json:"value"`
 }
