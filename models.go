@@ -137,13 +137,13 @@ type Media struct {
 	ID                    json.Number `json:"id"`
 	OptimizedForStreaming boolOrInt   `json:"optimizedForStreaming"` // plex can return int (GetMetadata(), GetPlaylist()) or boolean (GetSessions()): 0 or 1; true or false
 
-	Selected              bool        `json:"selected"`
-	VideoCodec            string      `json:"videoCodec"`
-	VideoFrameRate        string      `json:"videoFrameRate"`
-	VideoProfile          string      `json:"videoProfile"`
-	VideoResolution       string      `json:"videoResolution"`
-	Width                 int         `json:"width"`
-	Part                  []Part      `json:"Part"`
+	Selected        bool   `json:"selected"`
+	VideoCodec      string `json:"videoCodec"`
+	VideoFrameRate  string `json:"videoFrameRate"`
+	VideoProfile    string `json:"videoProfile"`
+	VideoResolution string `json:"videoResolution"`
+	Width           int    `json:"width"`
+	Part            []Part `json:"Part"`
 }
 
 // MediaContainer contains media info
