@@ -18,7 +18,7 @@ import (
 const (
 	errKeyNotFound        = "Key not found"
 	errNoPlexToken        = "no plex auth token in datastore"
-	errPleaseSignIn       = "use command 'sign-in' or 'link-app' to authorize us"
+	errPleaseSignIn       = "use command 'signin' or 'link-app' to authorize us"
 	errNoPlexServerInfo   = "no plex server in datastore"
 	errPleaseChooseServer = "use command 'pick-server' to pick a plex server :)"
 )
