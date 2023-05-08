@@ -137,13 +137,13 @@ type Media struct {
 	ID                    json.Number `json:"id"`
 	OptimizedForStreaming boolOrInt   `json:"optimizedForStreaming"` // plex can return int (GetMetadata(), GetPlaylist()) or boolean (GetSessions()): 0 or 1; true or false
 
-	Selected              bool        `json:"selected"`
-	VideoCodec            string      `json:"videoCodec"`
-	VideoFrameRate        string      `json:"videoFrameRate"`
-	VideoProfile          string      `json:"videoProfile"`
-	VideoResolution       string      `json:"videoResolution"`
-	Width                 int         `json:"width"`
-	Part                  []Part      `json:"Part"`
+	Selected        bool   `json:"selected"`
+	VideoCodec      string `json:"videoCodec"`
+	VideoFrameRate  string `json:"videoFrameRate"`
+	VideoProfile    string `json:"videoProfile"`
+	VideoResolution string `json:"videoResolution"`
+	Width           int    `json:"width"`
+	Part            []Part `json:"Part"`
 }
 
 // MediaContainer contains media info
@@ -614,7 +614,26 @@ type UserPlexTV struct {
 		Transfer string `json:"transfer"` // can be null; not sure of type
 		State    string `json:"state"`
 	} `json:"subscriptions"`
-	PastSubscriptions    []string   `json:"pastSubscriptions"`
+	PastSubscriptions []struct {
+		Billing struct {
+			InternalPaymentMethod map[string]interface{} `json:"internalPaymentMethod"`
+			PaymentMethodId       string                 `json:"paymentMethodId"` // can be null; not sure of type
+		}
+		CanConvert    bool   `json:"canConvert"`
+		CanDowngrade  bool   `json:"canDowngrade"`
+		CanReactivate bool   `json:"canReactivate"`
+		CanUpgrade    bool   `json:"canUpgrade"`
+		Cancelled     bool   `json:"cancelled"`
+		EndsAt        int64  `json:"endsAt"`
+		GracePeriod   bool   `json:"gracePeriod"`
+		ID            string `json:"id"`   // can be null; not sure of type
+		Mode          string `json:"mode"` // can be null; not sure of type
+		OnHold        bool   `json:"onHold"`
+		RenewsAt      string `json:"renewsAt"` // can be null; not sure of type
+		State         string `json:"state"`
+		Transfer      string `json:"transfer"` // can be null; not sure of type
+		Type          string `json:"type"`
+	} `json:"pastSubscriptions"`
 	Trials               []string   `json:"trials"`
 	Services             []Services `json:"services"`
 	AdsConsent           string     `json:"adsConsent"`           // can be null
