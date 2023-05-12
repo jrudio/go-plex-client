@@ -87,8 +87,16 @@ type Metadata struct {
 	Director              []TaggedData `json:"Director"`
 	Genre                 []TaggedData `json:"Genre"`
 	Producer              []TaggedData `json:"Producer"`
+	Ratings               []Rating     `json:"Rating"`
 	Role                  []TaggedData `json:"Role"`
 	Writer                []TaggedData `json:"Writer"`
+}
+
+// Rating ...
+type Rating struct {
+	Image string `json:"image"`
+	Value float64 `json:"value"`
+	Type  string `json:"type"`
 }
 
 // AltGUID represents a Globally Unique Identifier for a metadata provider that is not actively being used.
