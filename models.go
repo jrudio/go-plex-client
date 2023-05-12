@@ -83,11 +83,12 @@ type Metadata struct {
 	ViewCount             json.Number  `json:"viewCount"`
 	ViewOffset            int          `json:"viewOffset"`
 	Year                  int          `json:"year"`
-	Director              []TaggedData `json:"Director"`
-	Writer                []TaggedData `json:"Writer"`
-	Role                  []TaggedData `json:"Role"`
 	Country               []TaggedData `json:"Country"`
+	Director              []TaggedData `json:"Director"`
 	Genre                 []TaggedData `json:"Genre"`
+	Producer              []TaggedData `json:"Producer"`
+	Role                  []TaggedData `json:"Role"`
+	Writer                []TaggedData `json:"Writer"`
 }
 
 // AltGUID represents a Globally Unique Identifier for a metadata provider that is not actively being used.
