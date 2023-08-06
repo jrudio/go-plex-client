@@ -962,7 +962,10 @@ func getPlaylists(c *cli.Context) error {
 		return err
 	}
 
-	fmt.Println(result)
+	fmt.Printf("%d playlists found\n", len(result))
+	for _, playlist := range result {
+		fmt.Printf("ID %d - '%s'\n", playlist.ID, playlist.Title)
+	}
 
 	return nil
 }

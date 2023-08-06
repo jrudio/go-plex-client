@@ -410,14 +410,14 @@ func (p *Plex) GetPlaylists() ([]*Playlist, error) {
 
 	defer resp.Body.Close()
 
-	var playlistsContainer *playlistMediaContainer
+	var playlistsContainer *playlistsResponse
 
 	if err := json.NewDecoder(resp.Body).Decode(&playlistsContainer); err != nil {
 		return nil, err
 	}
 
-	playlists := make([]*Playlist, len(playlistsContainer.MediaContainer))
-	for playlistIndex, containerPlaylist := range playlistsContainer.MediaContainer {
+	playlists := make([]*Playlist, len(playlistsContainer.MediaContainer.Metadata))
+	for playlistIndex, containerPlaylist := range playlistsContainer.MediaContainer.Metadata {
 		playlistID, err := strconv.ParseInt(containerPlaylist.RatingKey, 10, 64)
 		if err != nil {
 			return nil, fmt.Errorf("unable to parse rating key '%s' into an integer", containerPlaylist.RatingKey)
@@ -427,7 +427,7 @@ func (p *Plex) GetPlaylists() ([]*Playlist, error) {
 			MediaType:       containerPlaylist.Type,
 			Title:           containerPlaylist.Title,
 			Summary:         containerPlaylist.Summary,
-			IsSmartPlaylist: containerPlaylist.Smart == 1,
+			IsSmartPlaylist: containerPlaylist.Smart,
 			PlaylistType:    PlaylistType(containerPlaylist.PlaylistType),
 			Composite:       containerPlaylist.Composite,
 			Icon:            containerPlaylist.Icon,

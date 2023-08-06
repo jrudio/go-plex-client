@@ -939,8 +939,11 @@ type Playlist struct {
 	UpdatedAt       time.Time
 }
 
-type playlistMediaContainer struct {
-	MediaContainer []*playlistResponse `json:"MediaContainer"`
+type playlistsResponse struct {
+	MediaContainer struct {
+		Metadata []*playlistResponse `json:"Metadata"`
+		Size     int                 `json:"size"`
+	} `json:"MediaContainer"`
 }
 
 type playlistResponse struct {
@@ -948,7 +951,7 @@ type playlistResponse struct {
 	Type         string `json:"type"`
 	Title        string `json:"title"`
 	Summary      string `json:"summary"`
-	Smart        int    `json:"smart"`
+	Smart        bool   `json:"smart"`
 	PlaylistType string `json:"playlistType"`
 	Composite    string `json:"composite"`
 	Icon         string `json:"icon"`
