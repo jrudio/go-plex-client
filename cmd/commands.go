@@ -941,6 +941,32 @@ func downloadMedia(c *cli.Context) error {
 	return nil
 }
 
+func getPlaylists(c *cli.Context) error {
+	db, err := startDB()
+
+	if err != nil {
+		return cli.NewExitError(err, 1)
+	}
+
+	defer db.Close()
+
+	plexConn, err := initPlex(db, true, true)
+
+	if err != nil {
+		return err
+	}
+
+	result, err := plexConn.GetPlaylists()
+
+	if err != nil {
+		return err
+	}
+
+	fmt.Println(result)
+
+	return nil
+}
+
 func getPlaylist(c *cli.Context) error {
 	db, err := startDB()
 
