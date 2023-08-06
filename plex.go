@@ -14,6 +14,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strconv"
 	"strings"
 	"time"
 
@@ -390,6 +391,55 @@ func (p *Plex) Download(meta Metadata, path string, createFolders bool, skipIfEx
 	}
 
 	return nil
+}
+
+func (p *Plex) GetPlaylists() ([]*Playlist, error) {
+	query := fmt.Sprintf("%s/playlists", p.URL)
+
+	resp, err := p.get(query, p.Headers)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if resp.StatusCode == http.StatusUnauthorized {
+		return nil, errors.New(ErrorNotAuthorized)
+	} else if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf(ErrorServer, resp.Status)
+	}
+
+	defer resp.Body.Close()
+
+	var playlistsContainer *playlistsResponse
+
+	if err := json.NewDecoder(resp.Body).Decode(&playlistsContainer); err != nil {
+		return nil, err
+	}
+
+	playlists := make([]*Playlist, len(playlistsContainer.MediaContainer.Metadata))
+	for playlistIndex, containerPlaylist := range playlistsContainer.MediaContainer.Metadata {
+		playlistID, err := strconv.ParseInt(containerPlaylist.RatingKey, 10, 64)
+		if err != nil {
+			return nil, fmt.Errorf("unable to parse rating key '%s' into an integer", containerPlaylist.RatingKey)
+		}
+		playlists[playlistIndex] = &Playlist{
+			ID:              int(playlistID),
+			MediaType:       containerPlaylist.Type,
+			Title:           containerPlaylist.Title,
+			Summary:         containerPlaylist.Summary,
+			IsSmartPlaylist: containerPlaylist.Smart,
+			PlaylistType:    PlaylistType(containerPlaylist.PlaylistType),
+			Composite:       containerPlaylist.Composite,
+			Icon:            containerPlaylist.Icon,
+			ViewCount:       containerPlaylist.ViewCount,
+			LastViewedAt:    time.Unix(containerPlaylist.LastViewedAt/1000, 0),
+			Duration:        time.Duration(containerPlaylist.Duration) * time.Millisecond,
+			AddedAt:         time.Unix(containerPlaylist.AddedAt/1000, 0),
+			UpdatedAt:       time.Unix(containerPlaylist.UpdatedAt/1000, 0),
+		}
+	}
+
+	return playlists, nil
 }
 
 // GetPlaylist gets all videos in a playlist.

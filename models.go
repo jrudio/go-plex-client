@@ -913,3 +913,52 @@ type CurrentSessions struct {
 		Size     int        `json:"size"`
 	} `json:"MediaContainer"`
 }
+
+type PlaylistType string
+
+const (
+	PlaylistTypeAudio PlaylistType = "audio"
+	PlaylistTypePhoto PlaylistType = "photo"
+	PlaylistTypeVideo PlaylistType = "video"
+)
+
+type Playlist struct {
+	ID              int
+	MediaType       string
+	Title           string
+	Summary         string
+	IsSmartPlaylist bool
+	PlaylistType    PlaylistType
+	Composite       string
+	Icon            string
+	ViewCount       int
+	LastViewedAt    time.Time
+	Duration        time.Duration
+	ItemCount       int
+	AddedAt         time.Time
+	UpdatedAt       time.Time
+}
+
+type playlistsResponse struct {
+	MediaContainer struct {
+		Metadata []*playlistResponse `json:"Metadata"`
+		Size     int                 `json:"size"`
+	} `json:"MediaContainer"`
+}
+
+type playlistResponse struct {
+	RatingKey    string `json:"ratingKey"`
+	Type         string `json:"type"`
+	Title        string `json:"title"`
+	Summary      string `json:"summary"`
+	Smart        bool   `json:"smart"`
+	PlaylistType string `json:"playlistType"`
+	Composite    string `json:"composite"`
+	Icon         string `json:"icon"`
+	ViewCount    int    `json:"viewCount"`
+	LastViewedAt int64  `json:"lastViewedAt"`
+	Duration     int    `json:"duration"`
+	LeafCount    int    `json:"leafCount"`
+	AddedAt      int64  `json:"addedAt"`
+	UpdatedAt    int64  `json:"updatedAt"`
+}
