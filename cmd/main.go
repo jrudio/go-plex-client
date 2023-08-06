@@ -185,6 +185,11 @@ func main() {
 				},
 			},
 		},
+		{
+			Name:   "token",
+			Usage:  "sets the plex token to be used for subsequent commands",
+			Action: setToken,
+		},
 	}
 
 	if err := app.Run(os.Args); err != nil {
