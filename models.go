@@ -47,6 +47,7 @@ type Metadata struct {
 	User                  User         `json:"User"`
 	AddedAt               int          `json:"addedAt"`
 	Art                   string       `json:"art"`
+	ChildCount            int          `json:"childCount"`
 	ContentRating         string       `json:"contentRating"`
 	Duration              int          `json:"duration"`
 	GrandparentArt        string       `json:"grandparentArt"`
