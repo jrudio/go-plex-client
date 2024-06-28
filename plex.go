@@ -420,6 +420,39 @@ func (p *Plex) GetPlaylist(key int) (SearchResultsEpisode, error) {
 	return results, nil
 }
 
+// Get list of playlists
+func (p *Plex) GetPlaylists(playListType string) (SearchResults, error) {
+
+	plType := url.QueryEscape(playListType)
+	var query string
+	if plType != "" {
+		query = p.URL + "/playlists?playlistType=" + plType
+	} else {
+		query = p.URL + "/playlists"
+	}
+
+	var results SearchResults
+
+	resp, err := p.get(query, p.Headers)
+
+	if err != nil {
+		return SearchResults{}, err
+	}
+
+	// Unauthorized
+	if resp.StatusCode == http.StatusUnauthorized {
+		return SearchResults{}, errors.New(ErrorNotAuthorized)
+	}
+
+	defer resp.Body.Close()
+
+	if err := json.NewDecoder(resp.Body).Decode(&results); err != nil {
+		return SearchResults{}, err
+	}
+
+	return results, nil
+}
+
 // GetThumbnail returns the response of a request to pms thumbnail
 // My ideal use case would be to proxy a request to pms without exposing the plex token
 func (p *Plex) GetThumbnail(key, thumbnailID string) (*http.Response, error) {

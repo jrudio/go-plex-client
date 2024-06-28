@@ -10,9 +10,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/jrudio/go-plex-client"
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/urfave/cli"
+
+	"github.com/jrudio/go-plex-client"
 )
 
 const (
@@ -937,6 +938,43 @@ func downloadMedia(c *cli.Context) error {
 	}
 
 	fmt.Printf("successfully downloaded %s\n", selectedMedia.Title)
+
+	return nil
+}
+
+func getPlaylists(c *cli.Context) error {
+	db, err := startDB()
+
+	if err != nil {
+		return cli.NewExitError(err, 1)
+	}
+
+	defer db.Close()
+
+	plexConn, err := initPlex(db, true, true)
+
+	if err != nil {
+		return cli.NewExitError(err, 1)
+	}
+
+	playlistType := strings.Join(c.Args(), " ")
+
+	fmt.Println("searching plex server for " + playlistType)
+
+	results, err := plexConn.GetPlaylists(playlistType)
+
+	if err != nil {
+		return cli.NewExitError(err, 1)
+	}
+
+	if len(results.MediaContainer.Metadata) == 0 {
+		fmt.Println("could not find '" + playlistType + "'")
+		return nil
+	}
+
+	for _, searchResult := range results.MediaContainer.Metadata {
+		fmt.Printf("%s: %s\n", searchResult.Title, searchResult.RatingKey)
+	}
 
 	return nil
 }
