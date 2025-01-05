@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"runtime"
 	"strconv"
 )
 
@@ -38,8 +39,32 @@ type PinResponse struct {
 	}
 }
 
+func (p *PinResponse) Pin() string {
+	return p.Code
+}
+
+type PlexHeaders headers
+
+func defaultPlexHeaders() PlexHeaders {
+	version := "0.0.1"
+
+	return PlexHeaders{
+		Platform:         runtime.GOOS,
+		PlatformVersion:  "0.0.0",
+		Product:          "Go Plex Client",
+		Version:          version,
+		Device:           runtime.GOOS + " " + runtime.GOARCH,
+		ClientIdentifier: "go-plex-client-v" + version,
+		ContainerSize:    "Plex-Container-Size=50",
+		ContainerStart:   "X-Plex-Container-Start=0",
+		Accept:           applicationJson,
+		ContentType:      applicationJson,
+	}
+}
+
+
 // RequestPIN will retrieve a code (valid for 15 minutes) from plex.tv to link an app to your plex account
-func RequestPIN(requestHeaders headers) (PinResponse, error) {
+func RequestPIN(requestHeaders PlexHeaders) (PinResponse, error) {
 	endpoint := "/api/v2/pins.json"
 
 	// POST request and returns a 201 status code
@@ -55,7 +80,7 @@ func RequestPIN(requestHeaders headers) (PinResponse, error) {
 	var pinInformation PinResponse
 
 	if requestHeaders.ClientIdentifier == "" {
-		requestHeaders = defaultHeaders()
+		requestHeaders = defaultPlexHeaders()
 	}
 
 	resp, err := post(plexURL+endpoint, nil, requestHeaders)

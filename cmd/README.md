@@ -1,3 +1,13 @@
+### Getting started
+
+1. go install
+
+### Usage
+
+```
+
+```
+
 ### Commands
 
 ```

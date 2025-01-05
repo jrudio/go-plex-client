@@ -201,7 +201,7 @@ func (p *Plex) post(query string, body []byte, h headers) (*http.Response, error
 }
 
 // post sends a POST request and is the same as plex.post while omitting the plex token header
-func post(query string, body []byte, h headers) (*http.Response, error) {
+func post(query string, body []byte, h PlexHeaders) (*http.Response, error) {
 	client := http.Client{
 		Timeout: 3 * time.Second,
 	}

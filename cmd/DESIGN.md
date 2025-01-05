@@ -23,6 +23,9 @@
 **2. User Interface**
 
 * **2.1 Commands**
+    * **Authorization:**
+        * `plexctl auth login`: Login into Plex
+        * `plexctl auth revoke`: Revoke Plex credentials
     * **Server Management:**
         * `plexctl server status`: Get server status (uptime, version, transcoder load)
         * `plexctl server info`: Get detailed server information (hardware, libraries, etc.)

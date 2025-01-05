@@ -1,11 +1,33 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 
 	"github.com/dgraph-io/badger/v3"
 )
+
+var (
+	isVerbose bool
+)
+
+type server struct {
+	Name string `json:"name"`
+	URL  string `json:"url"`
+}
+
+func (s server) Serialize() ([]byte, error) {
+	return json.Marshal(s)
+}
+
+func unserializeServer(serializedServer []byte) (server, error) {
+	var s server
+
+	err := json.Unmarshal(serializedServer, &s)
+
+	return s, err
+}
 
 type store struct {
 	db       *badger.DB

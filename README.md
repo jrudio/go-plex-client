@@ -1,23 +1,47 @@
 # Plex.tv and Plex Media Server client written in Go
 
-[![godoc](http://img.shields.io/badge/godoc-reference-blue.svg?style=flat)](https://godoc.org/github.com/jrudio/go-plex-client)
+[![Go Reference](https://pkg.go.dev/badge/github.com/jrudio/go-plex-client.svg)](https://pkg.go.dev/github.com/jrudio/go-plex-client)
 
-`go get -u github.com/jrudio/go-plex-client`
+An unofficial client library for your [Plex Media Server](https://www.plex.tv/)
 
-### Cli
+### Command-line tool
 
-You can tinker with this library using the command-line over [here](./cmd)
+You have a few options for getting the command-line tool:
 
-### Usage
+- Download the latest [release](https://github.com/jrudio/go-plex-client/releases)
+
+- `go install github.com/jrudio/go-plex-client/cmd`
+
+- You can also clone and build from source [here](./cmd)
+
+
+
+#### Usage
+
+Go get the library and use it in your application like below:
+
+1. `go get -u github.com/jrudio/go-plex-client`
+
+2. Import and authenticate
 
 ```Go
-plexConnection, err := plex.New("http://192.168.1.2:32400", "myPlexToken")
+import (
+	"github.com/jrudio/go-plex-client"
+)
 
+client, err := plex.New("http://192.168.1.2:32400", "myPlexToken")
+
+// or
+
+
+```
+
+```Go
 // Test your connection to your Plex server
-result, err := plexConnection.Test()
+result, err := client.Test()
 
 // Search for media in your plex server
-results, err := plexConnection.Search("The Walking Dead")
+results, err := client.Search("The Walking Dead")
 
 // Webhook handler to easily handle events on your server
 	wh := plex.NewWebhook()
@@ -55,7 +79,7 @@ events.OnPlaying(func(n NotificationContainer) {
 	sessionID := n.PlaySessionStateNotification[0].SessionKey
 	var title
 
-	sessions, err := plexConnection.GetSessions()
+	sessions, err := client.GetSessions()
 
 	if err != nil {
 		fmt.Printf("failed to fetch sessions on plex server: %v\n", err)
@@ -73,7 +97,7 @@ events.OnPlaying(func(n NotificationContainer) {
 		break
 	}
 
-	metadata, err := plexConnection.GetMetadata(mediaID)
+	metadata, err := client.GetMetadata(mediaID)
 
 	if err != nil {
 		fmt.Printf("failed to get metadata for key %s: %v\n", mediaID, err)
@@ -84,7 +108,5 @@ events.OnPlaying(func(n NotificationContainer) {
 	fmt.Printf("user (id: %s) has started playing %s (id: %s) %s\n", username, userID, title, mediaID)
 })
 
-plexConnection.SubscribeToNotifications(events, ctrlC, onError)
-
-// ... and more! Please checkout plex.go for more methods
+client.SubscribeToNotifications(events, ctrlC, onError)
 ```

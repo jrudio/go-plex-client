@@ -1,21 +1,24 @@
 package main
 
 import (
-	"errors"
+	"context"
+	// "errors"
 	"fmt"
-	"net/url"
-	"os"
-	"path/filepath"
-	"strconv"
-	"strings"
-	"time"
+	// "net/url"
+	// "os"
+	// "path/filepath"
+	// "strconv"
+	// "strings"
+	// "time"
 
 	"github.com/jrudio/go-plex-client"
-	homedir "github.com/mitchellh/go-homedir"
-	"github.com/urfave/cli"
+	// homedir "github.com/mitchellh/go-homedir"
+	"github.com/urfave/cli/v3"
 )
 
 const (
+	homeFolderName = ".plex-cli"
+
 	errKeyNotFound        = "Key not found"
 	errNoPlexToken        = "no plex auth token in datastore"
 	errPleaseSignIn       = "use command 'signin' or 'link-app' to authorize us"
@@ -61,948 +64,948 @@ func initPlex(db store, checkForToken bool, checkForServerInfo bool) (*plex.Plex
 	return plex.New(plexServer.URL, plexToken)
 }
 
-func test(c *cli.Context) error {
+func testConnection(ctx context.Context, c *cli.Command) error {
 	args := c.Args()
 
 	// we need a url and an auth token
-	if len(args) < 2 {
-		return cli.NewExitError("a url and a token is required", 1)
+	if args.Len() < 2 {
+		return cli.Exit("argument URL: Must be specified.", 1)
 	}
 
-	var host string
-	var token string
+	// var host string
+	// var token string
 
 	// check if either argument is a url
-	hostParsed, err := url.Parse(args[0])
+	// hostParsed, err := url.Parse(args[0])
 
-	if err != nil {
-		_host, err := url.Parse(args[1])
+	// if err != nil {
+	// 	_host, err := url.Parse(args[1])
 
-		if err != nil {
-			return cli.NewExitError("a valid url is required", 1)
-		}
+	// 	if err != nil {
+	// 		return cli.NewExitError("a valid url is required", 1)
+	// 	}
 
-		host = _host.String()
-		token = args[0]
-	} else {
-		host = hostParsed.String()
-		token = args[1]
-	}
+	// 	host = _host.String()
+	// 	token = args[0]
+	// } else {
+	// 	host = hostParsed.String()
+	// 	token = args[1]
+	// }
 
-	plexConn, err := plex.New(host, token)
+	// plexConn, err := plex.New(host, token)
 
-	if err != nil {
-		return cli.NewExitError(err, 1)
-	}
+	// if err != nil {
+	// 	return cli.NewExitError(err, 1)
+	// }
 
-	fmt.Println("testing connection to plex...")
+	// fmt.Println("testing connection to plex...")
 
-	result, err := plexConn.Test()
+	// result, err := plexConn.Test()
 
-	if err != nil {
-		return cli.NewExitError(err, 1)
-	}
+	// if err != nil {
+	// 	return cli.NewExitError(err, 1)
+	// }
 
-	if !result {
-		fmt.Println("failed to connect to plex")
-		return nil
-	}
+	// if !result {
+	// 	fmt.Println("failed to connect to plex")
+	// 	return nil
+	// }
 
-	fmt.Println("successfully connected to plex")
-
-	return nil
-}
-
-func endTranscode(c *cli.Context) error {
-	db, err := startDB()
-
-	if err != nil {
-		return cli.NewExitError(err, 1)
-	}
-
-	defer db.Close()
-
-	plexConn, err := initPlex(db, true, true)
-
-	if err != nil {
-		return cli.NewExitError(err, 1)
-	}
-
-	sessionKey := c.Args().First()
-
-	if sessionKey == "" {
-		return cli.NewExitError("Missing required session key", 1)
-	}
-
-	result, err := plexConn.KillTranscodeSession(sessionKey)
-
-	if err != nil {
-		return cli.NewExitError(err, 1)
-	}
-
-	fmt.Println(result)
+	// fmt.Println("successfully connected to plex")
 
 	return nil
 }
 
-func getServersInfo(c *cli.Context) error {
-	db, err := startDB()
+// func endTranscode(c *cli.Context) error {
+// 	db, err := startDB()
 
-	if err != nil {
-		return cli.NewExitError(err, 1)
-	}
+// 	if err != nil {
+// 		return cli.NewExitError(err, 1)
+// 	}
 
-	defer db.Close()
+// 	defer db.Close()
 
-	plexConn, err := initPlex(db, true, false)
+// 	plexConn, err := initPlex(db, true, true)
 
-	if err != nil {
-		return cli.NewExitError(err, 1)
-	}
+// 	if err != nil {
+// 		return cli.NewExitError(err, 1)
+// 	}
 
-	info, err := plexConn.GetServersInfo()
+// 	sessionKey := c.Args().First()
 
-	if err != nil {
-		return err
-	}
+// 	if sessionKey == "" {
+// 		return cli.NewExitError("Missing required session key", 1)
+// 	}
 
-	fmt.Println("Friendly name:", info.FriendlyName)
-	fmt.Println("Machine id:", info.MachineIdentifier)
-	fmt.Println("Size:", info.Size)
-	fmt.Println("Servers:")
+// 	result, err := plexConn.KillTranscodeSession(sessionKey)
 
-	for _, server := range info.Server {
-		fmt.Println("\tName:", server.Name)
-		fmt.Println("\tHost:", server.Host)
-		fmt.Println("\tMachine id:", server.MachineIdentifier)
-		fmt.Println("\tLocal address:", server.LocalAddresses)
-		fmt.Println("\tScheme:", server.Scheme)
-		fmt.Println("\tPort:", server.Port)
-		fmt.Println("\tAddress:", server.Address)
-		fmt.Println("\tCreated at:", server.CreatedAt)
-		fmt.Println("\tUpdated at:", server.UpdatedAt)
-		fmt.Println("\tVersion:", server.Version)
-		fmt.Println("\tAccess token:", server.AccessToken)
-		fmt.Println("\tOwned:", server.Owned)
-		fmt.Println("\t=========================")
-	}
+// 	if err != nil {
+// 		return cli.NewExitError(err, 1)
+// 	}
 
-	return nil
-}
+// 	fmt.Println(result)
 
-func startDB() (store, error) {
-	// create persistent key store in user home directory
-	storeDirectory, err := homedir.Dir()
+// 	return nil
+// }
 
-	if err != nil {
-		return store{}, err
-	}
+// func getServersInfo(c *cli.Context) error {
+// 	db, err := startDB()
 
-	storeDirectory = filepath.Join(storeDirectory, homeFolderName)
+// 	if err != nil {
+// 		return cli.NewExitError(err, 1)
+// 	}
 
-	return initDataStore(storeDirectory)
-}
+// 	defer db.Close()
 
-func getSections(c *cli.Context) error {
-	db, err := startDB()
+// 	plexConn, err := initPlex(db, true, false)
 
-	if err != nil {
-		return cli.NewExitError(err, 1)
-	}
+// 	if err != nil {
+// 		return cli.NewExitError(err, 1)
+// 	}
 
-	defer db.Close()
+// 	info, err := plexConn.GetServersInfo()
 
-	plexConn, err := initPlex(db, true, true)
+// 	if err != nil {
+// 		return err
+// 	}
 
-	if err != nil {
-		return cli.NewExitError(err, 1)
-	}
+// 	fmt.Println("Friendly name:", info.FriendlyName)
+// 	fmt.Println("Machine id:", info.MachineIdentifier)
+// 	fmt.Println("Size:", info.Size)
+// 	fmt.Println("Servers:")
 
-	// Grab machine id of the server we are connected to
-	machineID, err := plexConn.GetMachineID()
+// 	for _, server := range info.Server {
+// 		fmt.Println("\tName:", server.Name)
+// 		fmt.Println("\tHost:", server.Host)
+// 		fmt.Println("\tMachine id:", server.MachineIdentifier)
+// 		fmt.Println("\tLocal address:", server.LocalAddresses)
+// 		fmt.Println("\tScheme:", server.Scheme)
+// 		fmt.Println("\tPort:", server.Port)
+// 		fmt.Println("\tAddress:", server.Address)
+// 		fmt.Println("\tCreated at:", server.CreatedAt)
+// 		fmt.Println("\tUpdated at:", server.UpdatedAt)
+// 		fmt.Println("\tVersion:", server.Version)
+// 		fmt.Println("\tAccess token:", server.AccessToken)
+// 		fmt.Println("\tOwned:", server.Owned)
+// 		fmt.Println("\t=========================")
+// 	}
 
-	if err != nil {
-		return fmt.Errorf("failed to retrieve machine id of plex server: %v", err)
-	}
+// 	return nil
+// }
 
-	sections, err := plexConn.GetSections(machineID)
+// func startDB() (store, error) {
+// 	// create persistent key store in user home directory
+// 	storeDirectory, err := homedir.Dir()
 
-	if err != nil {
-		return fmt.Errorf("failed to retrieve sections: %v", err)
-	}
+// 	if err != nil {
+// 		return store{}, err
+// 	}
 
-	fmt.Println("section count:", len(sections))
+// 	storeDirectory = filepath.Join(storeDirectory, homeFolderName)
 
-	if len(sections) < 1 {
-		return errors.New("sections not found")
-	}
+// 	return initDataStore(storeDirectory)
+// }
 
-	for _, section := range sections {
-		fmt.Println("Section title:", section.Title)
-		fmt.Println("\tID:", section.ID)
-		fmt.Println("\tKey:", section.Key)
-		fmt.Println("\tType:", section.Type)
-		fmt.Println("\t=========================")
-	}
+// func getSections(c *cli.Context) error {
+// 	db, err := startDB()
 
-	return nil
+// 	if err != nil {
+// 		return cli.NewExitError(err, 1)
+// 	}
 
-}
+// 	defer db.Close()
 
-func getSessions(c *cli.Context) error {
-	db, err := startDB()
+// 	plexConn, err := initPlex(db, true, true)
 
-	if err != nil {
-		return cli.NewExitError(fmt.Sprintf("start db failed: %v\n", err), 1)
-	}
+// 	if err != nil {
+// 		return cli.NewExitError(err, 1)
+// 	}
 
-	defer db.Close()
+// 	// Grab machine id of the server we are connected to
+// 	machineID, err := plexConn.GetMachineID()
 
-	plexConn, err := initPlex(db, true, true)
+// 	if err != nil {
+// 		return fmt.Errorf("failed to retrieve machine id of plex server: %v", err)
+// 	}
 
-	if err != nil {
-		return cli.NewExitError("failed to initialize plex: "+err.Error(), 1)
-	}
+// 	sections, err := plexConn.GetSections(machineID)
 
-	// display sessions
-	sessions, err := plexConn.GetSessions()
+// 	if err != nil {
+// 		return fmt.Errorf("failed to retrieve sections: %v", err)
+// 	}
 
-	if err != nil {
-		return cli.NewExitError("failed to get sessions: "+err.Error(), 1)
-	}
+// 	fmt.Println("section count:", len(sections))
 
-	if sessions.MediaContainer.Size == 0 {
-		fmt.Println("no users in sessions")
-		return nil
-	}
+// 	if len(sections) < 1 {
+// 		return errors.New("sections not found")
+// 	}
 
-	for _, session := range sessions.MediaContainer.Metadata {
-		fmt.Print(session.User.Title)
-		userIsWatching := "\t" + session.Session.ID + " (" + session.Type + ") "
+// 	for _, section := range sections {
+// 		fmt.Println("Section title:", section.Title)
+// 		fmt.Println("\tID:", section.ID)
+// 		fmt.Println("\tKey:", section.Key)
+// 		fmt.Println("\tType:", section.Type)
+// 		fmt.Println("\t=========================")
+// 	}
 
-		if session.GrandparentTitle != "" {
-			userIsWatching += session.GrandparentTitle + " - " + session.ParentTitle
-			userIsWatching += " - " + session.Title
-		} else {
-			userIsWatching += session.Title + " (" + string(session.Year) + ")"
-		}
+// 	return nil
 
-		fmt.Println(userIsWatching)
-	}
+// }
 
-	return nil
-}
+// func getSessions(c *cli.Context) error {
+// 	db, err := startDB()
 
-func authorizeApp(c *cli.Context) error {
-	db, err := startDB()
+// 	if err != nil {
+// 		return cli.NewExitError(fmt.Sprintf("start db failed: %v\n", err), 1)
+// 	}
 
-	if err != nil {
-		return cli.NewExitError(err, 1)
-	}
+// 	defer db.Close()
 
-	defer db.Close()
+// 	plexConn, err := initPlex(db, true, true)
 
-	plexToken, err := db.getPlexToken()
+// 	if err != nil {
+// 		return cli.NewExitError("failed to initialize plex: "+err.Error(), 1)
+// 	}
 
-	if err != nil {
-		return cli.NewExitError("failed to get plex token from datastore: "+err.Error(), 1)
-	}
+// 	// display sessions
+// 	sessions, err := plexConn.GetSessions()
 
-	plexServer, err := db.getPlexServer()
+// 	if err != nil {
+// 		return cli.NewExitError("failed to get sessions: "+err.Error(), 1)
+// 	}
 
-	if err != nil {
-		return cli.NewExitError("failed to get plex server info from datastore: "+err.Error(), 1)
-	}
+// 	if sessions.MediaContainer.Size == 0 {
+// 		fmt.Println("no users in sessions")
+// 		return nil
+// 	}
 
-	plexConn, err := plex.New(plexServer.URL, plexToken)
+// 	for _, session := range sessions.MediaContainer.Metadata {
+// 		fmt.Print(session.User.Title)
+// 		userIsWatching := "\t" + session.Session.ID + " (" + session.Type + ") "
 
-	if err != nil {
-		return cli.NewExitError("failed to initialize plex: "+err.Error(), 1)
-	}
+// 		if session.GrandparentTitle != "" {
+// 			userIsWatching += session.GrandparentTitle + " - " + session.ParentTitle
+// 			userIsWatching += " - " + session.Title
+// 		} else {
+// 			userIsWatching += session.Title + " (" + string(session.Year) + ")"
+// 		}
 
-	code := c.Args().First()
-	codeLen := len(code)
+// 		fmt.Println(userIsWatching)
+// 	}
 
-	fmt.Println("code", code)
+// 	return nil
+// }
 
-	if codeLen < 1 || codeLen > 4 {
-		return errors.New("a 4 character code is required")
-	}
+// func authorizeApp(c *cli.Context) error {
+// 	db, err := startDB()
 
-	fmt.Println("attempting to link app with code " + code + "...")
+// 	if err != nil {
+// 		return cli.NewExitError(err, 1)
+// 	}
 
-	if err := plexConn.LinkAccount(code); err != nil {
-		return err
-	}
+// 	defer db.Close()
 
-	fmt.Println("successfully linked app, enjoy!")
+// 	plexToken, err := db.getPlexToken()
 
-	return nil
-}
+// 	if err != nil {
+// 		return cli.NewExitError("failed to get plex token from datastore: "+err.Error(), 1)
+// 	}
 
-// linkApp give user 4 character code that can be used authorized our app
-func linkApp(c *cli.Context) error {
-	db, err := startDB()
+// 	plexServer, err := db.getPlexServer()
 
-	if err != nil {
-		return cli.NewExitError(err, 1)
-	}
+// 	if err != nil {
+// 		return cli.NewExitError("failed to get plex server info from datastore: "+err.Error(), 1)
+// 	}
 
-	defer db.Close()
+// 	plexConn, err := plex.New(plexServer.URL, plexToken)
 
-	// just need headers
-	plexConn, err := initPlex(db, false, false)
+// 	if err != nil {
+// 		return cli.NewExitError("failed to initialize plex: "+err.Error(), 1)
+// 	}
 
-	if err != nil {
-		return cli.NewExitError(fmt.Sprintf("could not create headers: %v", err), 1)
-	}
+// 	code := c.Args().First()
+// 	codeLen := len(code)
 
-	info, err := plex.RequestPIN(plexConn.Headers)
+// 	fmt.Println("code", code)
 
-	if err != nil {
-		return cli.NewExitError("request plex pin failed: "+err.Error(), 1)
-	}
+// 	if codeLen < 1 || codeLen > 4 {
+// 		return errors.New("a 4 character code is required")
+// 	}
 
-	expireAtParsed, err := time.Parse(time.RFC3339, info.ExpiresAt)
+// 	fmt.Println("attempting to link app with code " + code + "...")
 
-	if err != nil {
-		return cli.NewExitError(fmt.Sprintf("could not get expiration for plex pin: %v", err), 1)
-	}
+// 	if err := plexConn.LinkAccount(code); err != nil {
+// 		return err
+// 	}
 
-	expires := time.Until(expireAtParsed).String()
+// 	fmt.Println("successfully linked app, enjoy!")
 
-	fmt.Printf("your pin %s and expires in %s\n", info.Code, expires)
+// 	return nil
+// }
 
-	var authToken string
+// // linkApp give user 4 character code that can be used authorized our app
+// func linkApp(c *cli.Context) error {
+// 	db, err := startDB()
 
-	for {
-		pinInformation, err := plex.CheckPIN(info.ID, plexConn.ClientIdentifier)
+// 	if err != nil {
+// 		return cli.NewExitError(err, 1)
+// 	}
 
-		if err != nil {
-			fmt.Printf("\r%v", err)
-		}
+// 	defer db.Close()
 
-		// expiresAt := pinInformation.ExpiresAt
+// 	// just need headers
+// 	plexConn, err := initPlex(db, false, false)
 
-		// stop checking if time is expired
-		// if time.Until(time.Unix(int64(expiresAt), 0)).Minutes() < 0 {
-		// 	return errors.New("code has expired - please request another one")
-		// }
+// 	if err != nil {
+// 		return cli.NewExitError(fmt.Sprintf("could not create headers: %v", err), 1)
+// 	}
 
-		if pinInformation.AuthToken != "" {
-			authToken = pinInformation.AuthToken
-			break
-		}
+// 	info, err := plex.RequestPIN(plexConn.Headers)
 
-		time.Sleep(1 * time.Second)
-	}
+// 	if err != nil {
+// 		return cli.NewExitError("request plex pin failed: "+err.Error(), 1)
+// 	}
 
-	fmt.Printf("\ryou have been successfully authorized!\nYour auth token is: %s\n", authToken)
+// 	expireAtParsed, err := time.Parse(time.RFC3339, info.ExpiresAt)
 
-	fmt.Println("saving plex token to disk...")
+// 	if err != nil {
+// 		return cli.NewExitError(fmt.Sprintf("could not get expiration for plex pin: %v", err), 1)
+// 	}
 
-	if err := db.savePlexToken(authToken); err != nil {
-		return cli.NewExitError(fmt.Sprintf("saving plex token failed: %v", err), 1)
-	}
+// 	expires := time.Until(expireAtParsed).String()
 
-	fmt.Println("saved plex token!")
+// 	fmt.Printf("your pin %s and expires in %s\n", info.Code, expires)
 
-	return nil
-}
+// 	var authToken string
 
-func pickServer(c *cli.Context) error {
-	db, err := startDB()
+// 	for {
+// 		pinInformation, err := plex.CheckPIN(info.ID, plexConn.ClientIdentifier)
 
-	if err != nil {
-		return cli.NewExitError(err, 1)
-	}
+// 		if err != nil {
+// 			fmt.Printf("\r%v", err)
+// 		}
 
-	defer db.Close()
+// 		// expiresAt := pinInformation.ExpiresAt
 
-	plexConn, err := initPlex(db, true, false)
+// 		// stop checking if time is expired
+// 		// if time.Until(time.Unix(int64(expiresAt), 0)).Minutes() < 0 {
+// 		// 	return errors.New("code has expired - please request another one")
+// 		// }
 
-	if err != nil {
-		return cli.NewExitError(err, 1)
-	}
+// 		if pinInformation.AuthToken != "" {
+// 			authToken = pinInformation.AuthToken
+// 			break
+// 		}
 
-	// load list of servers
-	servers, err := plexConn.GetServers()
+// 		time.Sleep(1 * time.Second)
+// 	}
 
-	if err != nil {
-		return fmt.Errorf("failed getting plex servers: %v", err)
-	}
+// 	fmt.Printf("\ryou have been successfully authorized!\nYour auth token is: %s\n", authToken)
 
-	fmt.Println("Server list:")
+// 	fmt.Println("saving plex token to disk...")
 
-	for i, server := range servers {
-		fmt.Printf("[%d] - %s\n", i, server.Name)
-	}
+// 	if err := db.savePlexToken(authToken); err != nil {
+// 		return cli.NewExitError(fmt.Sprintf("saving plex token failed: %v", err), 1)
+// 	}
 
-	fmt.Print("\nSelect a server: ")
+// 	fmt.Println("saved plex token!")
 
-	var serverIndex int
-	fmt.Scanln(&serverIndex)
+// 	return nil
+// }
 
-	// bound check input
-	if serverIndex < 0 || serverIndex > (len(servers)-1) {
-		return errors.New("invalid selection")
-	}
+// func pickServer(c *cli.Context) error {
+// 	db, err := startDB()
 
-	selectedServer := servers[serverIndex]
+// 	if err != nil {
+// 		return cli.NewExitError(err, 1)
+// 	}
 
-	// choose to connect via local or remote
-	fmt.Printf("\nshowing local and remote addresses for %s:\n", selectedServer.Name)
+// 	defer db.Close()
 
-	for i, conn := range selectedServer.Connection {
-		fmt.Printf("\t[%d] uri: %s, is local: %t\n", i, conn.Address, conn.Local == 1)
-	}
+// 	plexConn, err := initPlex(db, true, false)
 
-	fmt.Print("\nPick the appropriate address: ")
+// 	if err != nil {
+// 		return cli.NewExitError(err, 1)
+// 	}
 
-	var urlIndex int
-	fmt.Scanln(&urlIndex)
+// 	// load list of servers
+// 	servers, err := plexConn.GetServers()
 
-	// bound check again
-	if urlIndex < 0 || urlIndex > (len(selectedServer.Connection)-1) {
-		return errors.New("invalid selection")
-	}
+// 	if err != nil {
+// 		return fmt.Errorf("failed getting plex servers: %v", err)
+// 	}
 
-	// persist selection to disk
-	fmt.Printf("\nsetting %s as the default server using url %s...\n", selectedServer.Name, selectedServer.Connection[urlIndex].URI)
+// 	fmt.Println("Server list:")
 
-	if err := db.savePlexServer(server{
-		Name: selectedServer.Name,
-		URL:  selectedServer.Connection[urlIndex].URI,
-	}); err != nil {
-		return fmt.Errorf("failed to save server info: %v", err)
-	}
+// 	for i, server := range servers {
+// 		fmt.Printf("[%d] - %s\n", i, server.Name)
+// 	}
 
-	fmt.Println("success!")
+// 	fmt.Print("\nSelect a server: ")
 
-	return nil
-}
+// 	var serverIndex int
+// 	fmt.Scanln(&serverIndex)
 
-// signIn displays the auth token on successful sign in
-func signIn(c *cli.Context) error {
-	db, err := startDB()
+// 	// bound check input
+// 	if serverIndex < 0 || serverIndex > (len(servers)-1) {
+// 		return errors.New("invalid selection")
+// 	}
 
-	if err != nil {
-		return cli.NewExitError(err, 1)
-	}
+// 	selectedServer := servers[serverIndex]
 
-	defer db.Close()
+// 	// choose to connect via local or remote
+// 	fmt.Printf("\nshowing local and remote addresses for %s:\n", selectedServer.Name)
 
-	if c.NArg() != 2 {
-		return cli.NewExitError("signin requires 2 arguments - username and password", 1)
-	}
+// 	for i, conn := range selectedServer.Connection {
+// 		fmt.Printf("\t[%d] uri: %s, is local: %t\n", i, conn.Address, conn.Local == 1)
+// 	}
 
-	username := c.Args()[0]
-	password := c.Args()[1]
+// 	fmt.Print("\nPick the appropriate address: ")
 
-	plexConn, err := plex.SignIn(username, password)
+// 	var urlIndex int
+// 	fmt.Scanln(&urlIndex)
 
-	if err != nil {
-		return cli.NewExitError(err, 1)
-	}
+// 	// bound check again
+// 	if urlIndex < 0 || urlIndex > (len(selectedServer.Connection)-1) {
+// 		return errors.New("invalid selection")
+// 	}
 
-	if plexConn.Token == "" {
-		return cli.NewExitError("failed to receive a plex token", 1)
-	}
+// 	// persist selection to disk
+// 	fmt.Printf("\nsetting %s as the default server using url %s...\n", selectedServer.Name, selectedServer.Connection[urlIndex].URI)
 
-	// fmt.Println("your auth token is:", plexConn.Token)
-	fmt.Println("successfully signed in!")
+// 	if err := db.savePlexServer(server{
+// 		Name: selectedServer.Name,
+// 		URL:  selectedServer.Connection[urlIndex].URI,
+// 	}); err != nil {
+// 		return fmt.Errorf("failed to save server info: %v", err)
+// 	}
 
-	if isVerbose {
-		fmt.Println("saving token locally...")
-	}
+// 	fmt.Println("success!")
 
-	if err := db.savePlexToken(plexConn.Token); err != nil {
-		return cli.NewExitError(err, 1)
-	}
+// 	return nil
+// }
 
-	return nil
-}
+// // signIn displays the auth token on successful sign in
+// func signIn(c *cli.Context) error {
+// 	db, err := startDB()
 
-func getLibraries(c *cli.Context) error {
-	db, err := startDB()
+// 	if err != nil {
+// 		return cli.NewExitError(err, 1)
+// 	}
 
-	if err != nil {
-		return cli.NewExitError(err, 1)
-	}
+// 	defer db.Close()
 
-	defer db.Close()
+// 	if c.NArg() != 2 {
+// 		return cli.NewExitError("signin requires 2 arguments - username and password", 1)
+// 	}
 
-	plexConn, err := initPlex(db, true, true)
+// 	username := c.Args()[0]
+// 	password := c.Args()[1]
 
-	if err != nil {
-		return cli.NewExitError(err, 1)
-	}
+// 	plexConn, err := plex.SignIn(username, password)
 
-	fmt.Println("getting libraries...")
+// 	if err != nil {
+// 		return cli.NewExitError(err, 1)
+// 	}
 
-	libraries, err := plexConn.GetLibraries()
+// 	if plexConn.Token == "" {
+// 		return cli.NewExitError("failed to receive a plex token", 1)
+// 	}
 
-	if err != nil {
-		return cli.NewExitError(fmt.Sprintf("failed fetching libraries: %v", err), 1)
-	}
+// 	// fmt.Println("your auth token is:", plexConn.Token)
+// 	fmt.Println("successfully signed in!")
 
-	for _, dir := range libraries.MediaContainer.Directory {
-		fmt.Println(dir.Title)
-	}
+// 	if isVerbose {
+// 		fmt.Println("saving token locally...")
+// 	}
 
-	return nil
-}
+// 	if err := db.savePlexToken(plexConn.Token); err != nil {
+// 		return cli.NewExitError(err, 1)
+// 	}
 
-func webhooks(c *cli.Context) error {
-	db, err := startDB()
+// 	return nil
+// }
 
-	if err != nil {
-		return cli.NewExitError(err, 1)
-	}
+// func getLibraries(c *cli.Context) error {
+// 	db, err := startDB()
 
-	defer db.Close()
+// 	if err != nil {
+// 		return cli.NewExitError(err, 1)
+// 	}
 
-	plexConn, err := initPlex(db, true, false)
+// 	defer db.Close()
 
-	if err != nil {
-		return cli.NewExitError(err, 1)
-	}
+// 	plexConn, err := initPlex(db, true, true)
 
-	// create webhook
-	newWebhook := c.String("add")
+// 	if err != nil {
+// 		return cli.NewExitError(err, 1)
+// 	}
 
-	if newWebhook != "" {
-		fmt.Println("adding new webhook:", newWebhook)
+// 	fmt.Println("getting libraries...")
 
-		if err := plexConn.AddWebhook(newWebhook); err != nil {
-			return cli.NewExitError(fmt.Sprintf("adding webhook failed: %v", err), 1)
-		}
+// 	libraries, err := plexConn.GetLibraries()
 
-		fmt.Println("success!")
+// 	if err != nil {
+// 		return cli.NewExitError(fmt.Sprintf("failed fetching libraries: %v", err), 1)
+// 	}
 
-		return nil
-	}
+// 	for _, dir := range libraries.MediaContainer.Directory {
+// 		fmt.Println(dir.Title)
+// 	}
 
-	fmt.Println("displaying webhooks...")
+// 	return nil
+// }
 
-	hooks, err := plexConn.GetWebhooks()
+// func webhooks(c *cli.Context) error {
+// 	db, err := startDB()
 
-	if err != nil {
-		return cli.NewExitError(err, 1)
-	}
+// 	if err != nil {
+// 		return cli.NewExitError(err, 1)
+// 	}
 
-	for i, hook := range hooks {
-		fmt.Printf("\t[%d] %s\n", i, hook)
-	}
+// 	defer db.Close()
 
-	// delete webhook
-	if c.Bool("delete") {
-		var index int
+// 	plexConn, err := initPlex(db, true, false)
 
-		fmt.Print("enter a number to delete that webhook: ")
-		fmt.Scan(&index)
+// 	if err != nil {
+// 		return cli.NewExitError(err, 1)
+// 	}
 
-		bounds := len(hooks) - 1
+// 	// create webhook
+// 	newWebhook := c.String("add")
 
-		if index < bounds || index > bounds {
-			return cli.NewExitError("invalid input", 1)
-		}
+// 	if newWebhook != "" {
+// 		fmt.Println("adding new webhook:", newWebhook)
 
-		fmt.Printf("deleting webhook %s at index %d...\n", hooks[index], index)
+// 		if err := plexConn.AddWebhook(newWebhook); err != nil {
+// 			return cli.NewExitError(fmt.Sprintf("adding webhook failed: %v", err), 1)
+// 		}
 
-		hooks = append(hooks[:index], hooks[index+1:]...)
+// 		fmt.Println("success!")
 
-		if err := plexConn.SetWebhooks(hooks); err != nil {
-			return cli.NewExitError(fmt.Sprintf("failed to set webhooks: %v", err), 1)
-		}
+// 		return nil
+// 	}
 
-		fmt.Println("success!")
-	}
+// 	fmt.Println("displaying webhooks...")
 
-	return nil
-}
+// 	hooks, err := plexConn.GetWebhooks()
 
-func search(c *cli.Context) error {
-	db, err := startDB()
+// 	if err != nil {
+// 		return cli.NewExitError(err, 1)
+// 	}
 
-	if err != nil {
-		return cli.NewExitError(err, 1)
-	}
+// 	for i, hook := range hooks {
+// 		fmt.Printf("\t[%d] %s\n", i, hook)
+// 	}
 
-	defer db.Close()
+// 	// delete webhook
+// 	if c.Bool("delete") {
+// 		var index int
 
-	plexConn, err := initPlex(db, true, true)
+// 		fmt.Print("enter a number to delete that webhook: ")
+// 		fmt.Scan(&index)
 
-	if err != nil {
-		return cli.NewExitError(err, 1)
-	}
+// 		bounds := len(hooks) - 1
 
-	title := strings.Join(c.Args(), " ")
+// 		if index < bounds || index > bounds {
+// 			return cli.NewExitError("invalid input", 1)
+// 		}
 
-	fmt.Println("searching plex server for " + title)
+// 		fmt.Printf("deleting webhook %s at index %d...\n", hooks[index], index)
 
-	results, err := plexConn.Search(title)
+// 		hooks = append(hooks[:index], hooks[index+1:]...)
 
-	if err != nil {
-		return cli.NewExitError(err, 1)
-	}
+// 		if err := plexConn.SetWebhooks(hooks); err != nil {
+// 			return cli.NewExitError(fmt.Sprintf("failed to set webhooks: %v", err), 1)
+// 		}
 
-	if len(results.MediaContainer.Metadata) == 0 {
-		fmt.Println("could not find '" + title + "'")
-		return nil
-	}
+// 		fmt.Println("success!")
+// 	}
 
-	for _, searchResult := range results.MediaContainer.Metadata {
-		fmt.Println(searchResult.Title)
-	}
+// 	return nil
+// }
 
-	return nil
-}
+// func search(c *cli.Context) error {
+// 	db, err := startDB()
 
-func getEpisode(c *cli.Context) error {
-	db, err := startDB()
+// 	if err != nil {
+// 		return cli.NewExitError(err, 1)
+// 	}
 
-	if err != nil {
-		return cli.NewExitError(err, 1)
-	}
+// 	defer db.Close()
 
-	defer db.Close()
+// 	plexConn, err := initPlex(db, true, true)
 
-	plexConn, err := initPlex(db, true, true)
+// 	if err != nil {
+// 		return cli.NewExitError(err, 1)
+// 	}
 
-	if err != nil {
-		return err
-	}
+// 	title := strings.Join(c.Args(), " ")
 
-	if c.NArg() == 0 {
-		return cli.NewExitError("episode id is required", 1)
-	}
+// 	fmt.Println("searching plex server for " + title)
 
-	result, err := plexConn.GetEpisode(c.Args().First())
+// 	results, err := plexConn.Search(title)
 
-	if err != nil {
-		return cli.NewExitError(err, 1)
-	}
+// 	if err != nil {
+// 		return cli.NewExitError(err, 1)
+// 	}
 
-	episode := result.MediaContainer.Metadata
+// 	if len(results.MediaContainer.Metadata) == 0 {
+// 		fmt.Println("could not find '" + title + "'")
+// 		return nil
+// 	}
 
-	if len(episode) == 0 {
-		return cli.NewExitError("no episodes found", 1)
-	}
+// 	for _, searchResult := range results.MediaContainer.Metadata {
+// 		fmt.Println(searchResult.Title)
+// 	}
 
-	fmt.Println(episode[0].GrandparentTitle + ": " + episode[0].Title)
+// 	return nil
+// }
 
-	return nil
-}
+// func getEpisode(c *cli.Context) error {
+// 	db, err := startDB()
 
-func getOnDeck(c *cli.Context) error {
-	db, err := startDB()
+// 	if err != nil {
+// 		return cli.NewExitError(err, 1)
+// 	}
 
-	if err != nil {
-		return cli.NewExitError(err, 1)
-	}
+// 	defer db.Close()
 
-	defer db.Close()
+// 	plexConn, err := initPlex(db, true, true)
 
-	plexConn, err := initPlex(db, true, true)
+// 	if err != nil {
+// 		return err
+// 	}
 
-	if err != nil {
-		return cli.NewExitError(err, 1)
-	}
+// 	if c.NArg() == 0 {
+// 		return cli.NewExitError("episode id is required", 1)
+// 	}
 
-	results, err := plexConn.GetOnDeck()
+// 	result, err := plexConn.GetEpisode(c.Args().First())
 
-	if err != nil {
-		return cli.NewExitError(err, 1)
-	}
+// 	if err != nil {
+// 		return cli.NewExitError(err, 1)
+// 	}
 
-	for _, result := range results.MediaContainer.Metadata {
-		fmt.Println(result.Title, result.Rating)
-	}
+// 	episode := result.MediaContainer.Metadata
 
-	return nil
-}
+// 	if len(episode) == 0 {
+// 		return cli.NewExitError("no episodes found", 1)
+// 	}
 
-func unlock(c *cli.Context) error {
-	storeDirectory, err := homedir.Dir()
+// 	fmt.Println(episode[0].GrandparentTitle + ": " + episode[0].Title)
 
-	if err != nil {
-		return cli.NewExitError(err, 1)
-	}
+// 	return nil
+// }
 
-	lockFilePath := filepath.Join(storeDirectory, homeFolderName, "LOCK")
+// func getOnDeck(c *cli.Context) error {
+// 	db, err := startDB()
 
-	if err := os.Remove(lockFilePath); err != nil {
-		return cli.NewExitError(fmt.Sprintf("failed to remove file: %v", err), 1)
-	}
+// 	if err != nil {
+// 		return cli.NewExitError(err, 1)
+// 	}
 
-	fmt.Println("removed LOCK file")
+// 	defer db.Close()
 
-	return nil
-}
+// 	plexConn, err := initPlex(db, true, true)
 
-func stopPlayback(c *cli.Context) error {
-	db, err := startDB()
+// 	if err != nil {
+// 		return cli.NewExitError(err, 1)
+// 	}
 
-	if err != nil {
-		return cli.NewExitError(err, 1)
-	}
+// 	results, err := plexConn.GetOnDeck()
 
-	defer db.Close()
+// 	if err != nil {
+// 		return cli.NewExitError(err, 1)
+// 	}
 
-	plexConn, err := initPlex(db, true, true)
+// 	for _, result := range results.MediaContainer.Metadata {
+// 		fmt.Println(result.Title, result.Rating)
+// 	}
 
-	if err != nil {
-		return cli.NewExitError(err, 1)
-	}
+// 	return nil
+// }
 
-	sessions, err := plexConn.GetSessions()
+// func unlock(c *cli.Context) error {
+// 	storeDirectory, err := homedir.Dir()
 
-	if err != nil {
-		return cli.NewExitError(err, 1)
-	}
+// 	if err != nil {
+// 		return cli.NewExitError(err, 1)
+// 	}
 
-	sessionCount := sessions.MediaContainer.Size
+// 	lockFilePath := filepath.Join(storeDirectory, homeFolderName, "LOCK")
 
-	if sessionCount < 1 {
-		fmt.Println("no users in session")
+// 	if err := os.Remove(lockFilePath); err != nil {
+// 		return cli.NewExitError(fmt.Sprintf("failed to remove file: %v", err), 1)
+// 	}
 
-		return nil
-	}
+// 	fmt.Println("removed LOCK file")
 
-	fmt.Println("current sessions:")
+// 	return nil
+// }
 
-	for i, session := range sessions.MediaContainer.Metadata {
+// func stopPlayback(c *cli.Context) error {
+// 	db, err := startDB()
 
-		title := ""
+// 	if err != nil {
+// 		return cli.NewExitError(err, 1)
+// 	}
 
-		if session.GrandparentTitle != "" {
-			title += session.GrandparentTitle + " - " + session.ParentTitle
-			title += " - " + session.Title
-		} else {
-			title += session.Title + " (" + string(session.Year) + ")"
-		}
+// 	defer db.Close()
 
-		fmt.Printf("\t[%d] %s - %s\n", i, session.User.Title, title)
-	}
+// 	plexConn, err := initPlex(db, true, true)
 
-	fmt.Println("choose a session to stop:")
+// 	if err != nil {
+// 		return cli.NewExitError(err, 1)
+// 	}
 
-	var sessionIndex int
+// 	sessions, err := plexConn.GetSessions()
 
-	fmt.Scanln(&sessionIndex)
+// 	if err != nil {
+// 		return cli.NewExitError(err, 1)
+// 	}
 
-	// bound check user input
-	if sessionIndex < 0 || sessionIndex > sessionCount-1 {
-		return cli.NewExitError("invalid selection", 1)
-	}
+// 	sessionCount := sessions.MediaContainer.Size
 
-	selectedSession := sessions.MediaContainer.Metadata[sessionIndex]
+// 	if sessionCount < 1 {
+// 		fmt.Println("no users in session")
 
-	sessionID := selectedSession.Session.ID
+// 		return nil
+// 	}
 
-	if err := plexConn.TerminateSession(sessionID, "stream stopped by github.com/jrudio/go-plex-client"); err != nil {
-		return cli.NewExitError(err, 1)
-	}
+// 	fmt.Println("current sessions:")
 
-	fmt.Printf("sucessfully stopped %s from continuing %s\n", selectedSession.Title, selectedSession.ParentTitle)
+// 	for i, session := range sessions.MediaContainer.Metadata {
 
-	return nil
-}
+// 		title := ""
 
-func getAccountInfo(c *cli.Context) error {
-	db, err := startDB()
+// 		if session.GrandparentTitle != "" {
+// 			title += session.GrandparentTitle + " - " + session.ParentTitle
+// 			title += " - " + session.Title
+// 		} else {
+// 			title += session.Title + " (" + string(session.Year) + ")"
+// 		}
 
-	if err != nil {
-		return cli.NewExitError(err, 1)
-	}
+// 		fmt.Printf("\t[%d] %s - %s\n", i, session.User.Title, title)
+// 	}
 
-	defer db.Close()
+// 	fmt.Println("choose a session to stop:")
 
-	plexConn, err := initPlex(db, true, false)
+// 	var sessionIndex int
 
-	if err != nil {
-		return cli.NewExitError(err, 1)
-	}
+// 	fmt.Scanln(&sessionIndex)
 
-	plexConn.HTTPClient.Timeout = time.Minute * 1
+// 	// bound check user input
+// 	if sessionIndex < 0 || sessionIndex > sessionCount-1 {
+// 		return cli.NewExitError("invalid selection", 1)
+// 	}
 
-	account, err := plexConn.MyAccount()
+// 	selectedSession := sessions.MediaContainer.Metadata[sessionIndex]
 
-	if err != nil {
-		return cli.NewExitError(err, 1)
-	}
+// 	sessionID := selectedSession.Session.ID
 
-	// fmt.Println(account.Subscription.Features, account.Roles.Roles)
-	// fmt.Println(account.Entitlements)
+// 	if err := plexConn.TerminateSession(sessionID, "stream stopped by github.com/jrudio/go-plex-client"); err != nil {
+// 		return cli.NewExitError(err, 1)
+// 	}
 
-	fmt.Printf("%+v\n", account)
+// 	fmt.Printf("sucessfully stopped %s from continuing %s\n", selectedSession.Title, selectedSession.ParentTitle)
 
-	return nil
-}
+// 	return nil
+// }
 
-func getMetadata(c *cli.Context) error {
-	db, err := startDB()
+// func getAccountInfo(c *cli.Context) error {
+// 	db, err := startDB()
 
-	if err != nil {
-		return cli.NewExitError(err, 1)
-	}
+// 	if err != nil {
+// 		return cli.NewExitError(err, 1)
+// 	}
 
-	defer db.Close()
+// 	defer db.Close()
 
-	plexConn, err := initPlex(db, true, true)
+// 	plexConn, err := initPlex(db, true, false)
 
-	if err != nil {
-		return err
-	}
+// 	if err != nil {
+// 		return cli.NewExitError(err, 1)
+// 	}
 
-	if c.NArg() == 0 {
-		return cli.NewExitError("episode id is required", 1)
-	}
+// 	plexConn.HTTPClient.Timeout = time.Minute * 1
 
-	result, err := plexConn.GetMetadata(c.Args().First())
+// 	account, err := plexConn.MyAccount()
 
-	if err != nil {
-		return cli.NewExitError(err, 1)
-	}
+// 	if err != nil {
+// 		return cli.NewExitError(err, 1)
+// 	}
 
-	fmt.Println(result)
+// 	// fmt.Println(account.Subscription.Features, account.Roles.Roles)
+// 	// fmt.Println(account.Entitlements)
 
-	return nil
-}
+// 	fmt.Printf("%+v\n", account)
 
-func downloadMedia(c *cli.Context) error {
-	db, err := startDB()
+// 	return nil
+// }
 
-	if err != nil {
-		return cli.NewExitError(err, 1)
-	}
+// func getMetadata(c *cli.Context) error {
+// 	db, err := startDB()
 
-	defer db.Close()
+// 	if err != nil {
+// 		return cli.NewExitError(err, 1)
+// 	}
 
-	plexConn, err := initPlex(db, true, true)
+// 	defer db.Close()
 
-	if err != nil {
-		return err
-	}
+// 	plexConn, err := initPlex(db, true, true)
 
-	if c.NArg() == 0 {
-		return cli.NewExitError("search term is required", 1)
-	}
+// 	if err != nil {
+// 		return err
+// 	}
 
-	downloadPath := c.Args().Get(2)
+// 	if c.NArg() == 0 {
+// 		return cli.NewExitError("episode id is required", 1)
+// 	}
 
-	if downloadPath == "" {
-		downloadPath = "."
-	}
+// 	result, err := plexConn.GetMetadata(c.Args().First())
 
-	createFolders := c.Bool("folders")
+// 	if err != nil {
+// 		return cli.NewExitError(err, 1)
+// 	}
 
-	skipIfExists := c.Bool("skip")
+// 	fmt.Println(result)
 
-	// search for media
-	results, err := plexConn.Search(c.Args().First())
+// 	return nil
+// }
 
-	if err != nil {
-		return cli.NewExitError(err, 1)
-	}
+// func downloadMedia(c *cli.Context) error {
+// 	db, err := startDB()
 
-	if len(results.MediaContainer.Metadata) == 0 {
-		return cli.NewExitError("no results found", 1)
-	}
+// 	if err != nil {
+// 		return cli.NewExitError(err, 1)
+// 	}
 
-	// prompt user for media selection
-	fmt.Println("results:")
+// 	defer db.Close()
 
-	for i, result := range results.MediaContainer.Metadata {
-		fmt.Printf("\t[%d] %s\n", i, result.Title)
-	}
+// 	plexConn, err := initPlex(db, true, true)
 
-	// we use -1 to indicate that the user has not selected a media
-	selection := -1
+// 	if err != nil {
+// 		return err
+// 	}
 
-	fmt.Printf("choose media to download:")
-	fmt.Scanln(&selection)
+// 	if c.NArg() == 0 {
+// 		return cli.NewExitError("search term is required", 1)
+// 	}
 
-	// bound check user input
-	if selection < 0 || selection > len(results.MediaContainer.Metadata)-1 {
-		return cli.NewExitError("invalid selection", 1)
-	}
+// 	downloadPath := c.Args().Get(2)
 
-	selectedMedia := results.MediaContainer.Metadata[selection]
+// 	if downloadPath == "" {
+// 		downloadPath = "."
+// 	}
 
-	// download media
-	if err := plexConn.Download(selectedMedia, downloadPath, createFolders, skipIfExists); err != nil {
-		return cli.NewExitError(err, 1)
-	}
+// 	createFolders := c.Bool("folders")
 
-	fmt.Printf("successfully downloaded %s\n", selectedMedia.Title)
+// 	skipIfExists := c.Bool("skip")
 
-	return nil
-}
+// 	// search for media
+// 	results, err := plexConn.Search(c.Args().First())
 
-func getPlaylist(c *cli.Context) error {
-	db, err := startDB()
+// 	if err != nil {
+// 		return cli.NewExitError(err, 1)
+// 	}
 
-	if err != nil {
-		return cli.NewExitError(err, 1)
-	}
+// 	if len(results.MediaContainer.Metadata) == 0 {
+// 		return cli.NewExitError("no results found", 1)
+// 	}
 
-	defer db.Close()
+// 	// prompt user for media selection
+// 	fmt.Println("results:")
 
-	plexConn, err := initPlex(db, true, true)
+// 	for i, result := range results.MediaContainer.Metadata {
+// 		fmt.Printf("\t[%d] %s\n", i, result.Title)
+// 	}
 
-	if err != nil {
-		return err
-	}
+// 	// we use -1 to indicate that the user has not selected a media
+// 	selection := -1
 
-	if c.NArg() == 0 {
-		return cli.NewExitError("playlist id is required", 1)
-	}
+// 	fmt.Printf("choose media to download:")
+// 	fmt.Scanln(&selection)
 
-	playlistID, err := strconv.ParseInt(c.Args().First(), 10, 64)
+// 	// bound check user input
+// 	if selection < 0 || selection > len(results.MediaContainer.Metadata)-1 {
+// 		return cli.NewExitError("invalid selection", 1)
+// 	}
 
-	if err != nil {
-		return cli.NewExitError(err, 1)
-	}
+// 	selectedMedia := results.MediaContainer.Metadata[selection]
 
-	result, err := plexConn.GetPlaylist(int(playlistID))
+// 	// download media
+// 	if err := plexConn.Download(selectedMedia, downloadPath, createFolders, skipIfExists); err != nil {
+// 		return cli.NewExitError(err, 1)
+// 	}
 
-	if err != nil {
-		return cli.NewExitError(err, 1)
-	}
+// 	fmt.Printf("successfully downloaded %s\n", selectedMedia.Title)
 
-	fmt.Println(result)
+// 	return nil
+// }
 
-	return nil
-}
+// func getPlaylist(c *cli.Context) error {
+// 	db, err := startDB()
 
-func deleteMedia(c *cli.Context) error {
-	db, err := startDB()
+// 	if err != nil {
+// 		return cli.NewExitError(err, 1)
+// 	}
 
-	if err != nil {
-		return cli.NewExitError(err, 1)
-	}
+// 	defer db.Close()
 
-	defer db.Close()
+// 	plexConn, err := initPlex(db, true, true)
 
-	plexConn, err := initPlex(db, true, true)
+// 	if err != nil {
+// 		return err
+// 	}
 
-	if err != nil {
-		return err
-	}
+// 	if c.NArg() == 0 {
+// 		return cli.NewExitError("playlist id is required", 1)
+// 	}
 
-	if c.NArg() == 0 {
-		return cli.NewExitError("media id is required", 1)
-	}
+// 	playlistID, err := strconv.ParseInt(c.Args().First(), 10, 64)
 
-	mediaID := c.Args().First()
+// 	if err != nil {
+// 		return cli.NewExitError(err, 1)
+// 	}
 
-	if err := plexConn.DeleteMediaByID(mediaID); err != nil {
-		return cli.NewExitError(err, 1)
-	}
+// 	result, err := plexConn.GetPlaylist(int(playlistID))
 
-	fmt.Printf("successfully deleted media '%s'\n", mediaID)
+// 	if err != nil {
+// 		return cli.NewExitError(err, 1)
+// 	}
 
-	return nil
-}
+// 	fmt.Println(result)
+
+// 	return nil
+// }
+
+// func deleteMedia(c *cli.Context) error {
+// 	db, err := startDB()
+
+// 	if err != nil {
+// 		return cli.NewExitError(err, 1)
+// 	}
+
+// 	defer db.Close()
+
+// 	plexConn, err := initPlex(db, true, true)
+
+// 	if err != nil {
+// 		return err
+// 	}
+
+// 	if c.NArg() == 0 {
+// 		return cli.NewExitError("media id is required", 1)
+// 	}
+
+// 	mediaID := c.Args().First()
+
+// 	if err := plexConn.DeleteMediaByID(mediaID); err != nil {
+// 		return cli.NewExitError(err, 1)
+// 	}
+
+// 	fmt.Printf("successfully deleted media '%s'\n", mediaID)
+
+// 	return nil
+// }
