@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 	// "errors"
-	"fmt"
+	// "fmt"
 	// "net/url"
 	// "os"
 	// "path/filepath"
@@ -11,58 +11,59 @@ import (
 	// "strings"
 	// "time"
 
-	"github.com/jrudio/go-plex-client"
+	// "github.com/jrudio/go-plex-client"
 	// homedir "github.com/mitchellh/go-homedir"
 	"github.com/urfave/cli/v3"
 )
 
-const (
-	homeFolderName = ".plex-cli"
+// const (
+// 	configDir = "~/.config/.plexctl"
 
-	errKeyNotFound        = "Key not found"
-	errNoPlexToken        = "no plex auth token in datastore"
-	errPleaseSignIn       = "use command 'signin' or 'link-app' to authorize us"
-	errNoPlexServerInfo   = "no plex server in datastore"
-	errPleaseChooseServer = "use command 'pick-server' to pick a plex server :)"
-)
+// 	errKeyNotFound        = "Key not found"
+// 	errNoPlexToken        = "no plex auth token in datastore"
+// 	errPleaseSignIn       = "use command 'signin' or 'link-app' to authorize us"
+// 	errNoPlexServerInfo   = "no plex server in datastore"
+// 	errPleaseChooseServer = "use command 'pick-server' to pick a plex server :)"
+// )
 
-func initPlex(db store, checkForToken bool, checkForServerInfo bool) (*plex.Plex, error) {
-	var plexConn *plex.Plex
+// func initPlex(db store, checkForToken bool, checkForServerInfo bool) (*plex.Plex, error) {
+// 	var plexConn *plex.Plex
 
-	if !checkForToken && !checkForServerInfo {
-		return plex.New("", "abc123")
-	} else if checkForToken && !checkForServerInfo {
-		plexToken, err := db.getPlexToken()
+// 	if !checkForToken && !checkForServerInfo {
+// 		return plex.New("", "abc123")
+// 	} else if checkForToken && !checkForServerInfo {
+// 		plexToken, err := db.getPlexToken()
 
-		if err != nil && err.Error() == errKeyNotFound {
-			return plexConn, fmt.Errorf("%s\n%s", errNoPlexToken, errPleaseSignIn)
-		} else if err != nil {
-			return plexConn, fmt.Errorf("failed getting plex token: %v", err)
-		}
+// 		if err != nil && err.Error() == errKeyNotFound {
+// 			return plexConn, fmt.Errorf("%s\n%s", errNoPlexToken, errPleaseSignIn)
+// 		} else if err != nil {
+// 			return plexConn, fmt.Errorf("failed getting plex token: %v", err)
+// 		}
 
-		return plex.New("", plexToken)
-	} else if !checkForToken && checkForServerInfo {
-		// why would a caller use this?
-		// we'll just capture the edge-case?
-		return plexConn, fmt.Errorf("wait what")
-	}
+// 		return plex.New("", plexToken)
+// 	} else if !checkForToken && checkForServerInfo {
+// 		// why would a caller use this?
+// 		// we'll just capture the edge-case?
+// 		return plexConn, fmt.Errorf("wait what")
+// 	}
 
-	plexToken, err := db.getPlexToken()
+// 	plexToken, err := db.getPlexToken()
 
-	if err != nil {
-		return plexConn, fmt.Errorf("failed getting plex token: %v", err)
-	}
+// 	if err != nil {
+// 		return plexConn, fmt.Errorf("failed getting plex token: %v", err)
+// 	}
 
-	plexServer, err := db.getPlexServer()
+// 	plexServer, err := db.getPlexServer()
 
-	if err != nil && err.Error() == errKeyNotFound {
-		return plexConn, fmt.Errorf("%s\n%s", errNoPlexServerInfo, errPleaseChooseServer)
-	} else if err != nil {
-		return plexConn, fmt.Errorf("failed getting plex server info from data store: %v", err)
-	}
+// 	if err != nil && err.Error() == errKeyNotFound {
+// 		return plexConn, fmt.Errorf("%s\n%s", errNoPlexServerInfo, errPleaseChooseServer)
+// 	} else if err != nil {
+// 		return plexConn, fmt.Errorf("failed getting plex server info from data store: %v", err)
+// 	}
 
-	return plex.New(plexServer.URL, plexToken)
-}
+// 	return plex.New(plexServer.URL, plexToken)
+// }
+
 
 func testConnection(ctx context.Context, c *cli.Command) error {
 	args := c.Args()
