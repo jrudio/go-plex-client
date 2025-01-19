@@ -1,7 +1,6 @@
 package db
 
 import (
-	// "encoding/json"
 	"fmt"
 
 	"github.com/dgraph-io/badger/v3"
@@ -11,38 +10,22 @@ var (
 	isVerbose bool
 )
 
-// type server struct {
-// 	Name string `json:"name"`
-// 	URL  string `json:"url"`
-// }
-
-// func (s server) Serialize() ([]byte, error) {
-// 	return json.Marshal(s)
-// }
-
-// func unserializeServer(serializedServer []byte) (server, error) {
-// 	var s server
-
-// 	err := json.Unmarshal(serializedServer, &s)
-
-// 	return s, err
-// }
-
 type DB struct {
 	conn       *badger.DB
 	isClosed bool
-	// keys     storeKeys
+	keys     storeKeys
 }
 
 type DBOptions struct {
 	IsVerbose bool
 }
 
-// type storeKeys struct {
-// 	appSecret  []byte
-// 	plexToken  []byte
-// 	plexServer []byte
-// }
+type storeKeys struct {
+	authorizations []byte
+	// appSecret  []byte
+	// plexToken  []byte
+	// plexServer []byte
+}
 
 func New(dir string) (*DB, error) {
 	db := new(DB)
@@ -52,7 +35,6 @@ func New(dir string) (*DB, error) {
 	}
 
 	options := badger.DefaultOptions(dir)
-
 	options = options.WithLoggingLevel(badger.WARNING)
 
 	conn, err := badger.Open(options)
@@ -66,32 +48,86 @@ func New(dir string) (*DB, error) {
 	}
 
 	db.conn = conn
-	// db.keys = storeKeys{
+	db.keys = storeKeys{
+		authorizations: []byte(KeyAuthorizations),
 	// 	appSecret:  []byte("app-secret"),
 	// 	plexToken:  []byte("plex-token"),
 	// 	plexServer: []byte("plex-server"),
-	// }
+	}
+
+	if err = db.initKeys(); err != nil {
+		return db, err
+	}
 
 	return db, nil
 }
 
-func (d DB) Close() {
-	if d.isClosed {
+func (db *DB) initKeys() error {
+	return db.AddKey(db.keys.authorizations)
+}
+
+func (db *DB) Close() {
+	if db.isClosed {
 		fmt.Println("data store already closed")
 		return
 	}
 
-	if err := d.conn.Close(); err != nil {
+	if err := db.conn.Close(); err != nil {
 		fmt.Printf("data store failed to closed: %v\n", err)
 	}
 
-	d.isClosed = true
+	db.isClosed = true
 }
 
-func (d DB) AddKey() error {
-	tx := d.conn.NewTransaction(true)
+func (db DB) AddKey(key []byte) error {
+	return db.conn.Update(func (txn *badger.Txn) error {
+		_, err := txn.Get(key)
 
-	tx.SetEntry()
+		if err == badger.ErrKeyNotFound {
+			// initialize key
+			// fmt.Printf("key '%v' doesn't exist adding...\n", key)
+
+			entry := badger.NewEntry(key, []byte{})
+
+			return txn.SetEntry(entry)
+		}
+
+		return nil
+	})
+}
+
+func (db DB) getData(key []byte) ([]byte, error) {
+	data := []byte{}
+
+	err := db.conn.View(func(txn *badger.Txn) error {
+		item, err := txn.Get(key)
+
+		if err != nil {
+			return err
+		}
+
+		return item.Value(func(val []byte) error {
+			data = append([]byte{}, val...)
+
+			return nil
+		})
+	})
+
+	if err != nil {
+		return data, err
+	}
+
+	return data, nil
+}
+
+// saveData provides a straightforward save to database method
+// we should not encounter badger.ErrKeyNotFound if we properly create the keys in our init process
+func (db DB) saveData(key []byte, data []byte) error {
+	return db.conn.Update(func(txn *badger.Txn) error {
+		entry := badger.NewEntry(key, data)
+
+		return txn.SetEntry(entry)
+	})
 }
 
 // func (s DB) getPlexToken() (string, error) {

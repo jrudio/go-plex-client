@@ -10,19 +10,21 @@ import (
 	"github.com/urfave/cli/v3"
 )
 
-var (
-	dbDir = "plexctl"
+const (
+	clientIdentifier = "plexctl"
 )
 
 var (
 	dbConn *db.DB
+	dbDir = "plexctl"
+	cmds commands.CMDs
 )
 
 func init() {
-	isDirExists := func(dir string) bool {
+	isDirNotExists := func(dir string) bool {
 		_, err := os.Stat(dir)
 
-		return os.IsExist(err)
+		return os.IsNotExist(err)
 	}
 
 	createDir := func(dir string) error {
@@ -43,7 +45,7 @@ func init() {
 
 	dbDir = fmt.Sprintf("%s/%s/%s", homeDir, ".config", dbDir)
 
-	if !isDirExists(dbDir) {
+	if isDirNotExists(dbDir) {
 		if err := createDir(dbDir); err != nil {
 			fmt.Printf("create directory for database failed: %v\n", err)
 			return
@@ -57,15 +59,17 @@ func init() {
 		return
 	}
 
-	defer conn.Close()
-
 	dbConn = conn
+
+	cmds = commands.New(conn, clientIdentifier)
 }
 
 func main() {
 	if dbConn == nil {
 		return
 	}
+
+	defer dbConn.Close()
 
 	cmd := &cli.Command{
 		Commands: []*cli.Command{
@@ -80,7 +84,11 @@ func main() {
 				Commands: []*cli.Command{
 					{
 						Name: "login",
-						Action: commands.Login,
+						Action: cmds.Login,
+					},
+					{
+						Name: "list",
+						Action: cmds.ListAccounts,
 					},
 				},
 			},

@@ -1,14 +1,16 @@
-## configurations
-
-```
-current_config string
-name string
-```
-
 ## authorizations
 
 ```
-plex_token string
+emailAddress string
+plexToken string
+isActive bool
+```
+
+## configurations
+
+```
+currentConfig string
+name string
 ```
 
 ## plex_servers
