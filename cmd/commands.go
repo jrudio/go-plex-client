@@ -64,7 +64,6 @@ import (
 // 	return plex.New(plexServer.URL, plexToken)
 // }
 
-
 func testConnection(ctx context.Context, c *cli.Command) error {
 	args := c.Args()
 

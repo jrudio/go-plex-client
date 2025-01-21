@@ -13,6 +13,10 @@ import (
 	"strconv"
 )
 
+const (
+	apiURL = "https://clients.plex.tv"
+)
+
 // ErrorResponse contains a code and an error message
 type ErrorResponse struct {
 	Code    int    `json:"code"`
@@ -61,7 +65,6 @@ func defaultPlexHeaders() PlexHeaders {
 		ContentType:      applicationJson,
 	}
 }
-
 
 // RequestPIN will retrieve a code (valid for 15 minutes) from plex.tv to link an app to your plex account
 func RequestPIN(requestHeaders PlexHeaders) (PinResponse, error) {
@@ -289,12 +292,15 @@ func (p Plex) SetWebhooks(webhooks []string) error {
 }
 
 // MyAccount gets account info (i.e. plex pass, servers, username, etc) from plex tv
-func (p Plex) MyAccount() (UserPlexTV, error) {
-	endpoint := "/users/account"
+func (p *Plex) MyAccount() (UserAccount, error) {
+	endpoint := "/api/v2/user"
 
-	var account UserPlexTV
+	var account UserAccount
+	newHeaders := p.Headers
 
-	resp, err := p.get(plexURL+endpoint, p.Headers)
+	newHeaders.Accept = "application/xml"
+
+	resp, err := p.get(apiURL+endpoint, newHeaders)
 
 	if err != nil {
 		return account, err

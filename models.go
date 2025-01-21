@@ -652,11 +652,120 @@ type UserPlexTV struct {
 	Title string `json:"title"`
 }
 
+type UserAccount struct {
+	XMLName              xml.Name `xml:"user"`
+	AdsConsent           string   `json:"adsConsent" xml:"adsConsent,attr"`
+	AdsConsentSetAt      string   `json:"adsConsentSetAt" xml:"adsConsentSetAt,attr"`
+	AdsConsentReminderAt string   `json:"adsConsentReminderAt" xml:"adsConsentReminderAt,attr"`
+	Anonymous            bool     `json:"anonymous" xml:"anonymous,attr"`
+	AttributionPartner   string   `json:"attributionPartner" xml:"attributionPartner,attr"`
+	AuthToken            string   `json:"authToken" xml:"authToken,attr"`
+	BackupCodesCreated   bool     `json:"backupCodesCreated" xml:"backupCodesCreated,attr"`
+	Confirmed            bool     `json:"confirmed" xml:"confirmed,attr"`
+	Country              string   `json:"country" xml:"country,attr"`
+	Email                string   `json:"email" xml:"email,attr"`
+	EmailOnlyAuth        bool     `json:"emailOnlyAuth" xml:"emailOnlyAuth,attr"`
+	Entitlements         []struct {
+		ID string `json:"id" xml:"id,attr"`
+	} `json:"entitlements" xml:"entitlements>entitlement"`
+	ExperimentalFeatures bool `json:"experimentalFeatures" xml:"experimentalFeatures,attr"`
+
+	FriendlyName      string `json:"friendlyName" xml:"friendlyName,attr"`
+	Guest             bool   `json:"guest" xml:"guest,attr"`
+	HasPassword       bool   `json:"hasPassword" xml:"hasPassword,attr"`
+	Home              bool   `json:"home" xml:"home,attr"`
+	HomeAdmin         bool   `json:"homeAdmin" xml:"homeAdmin,attr"`
+	HomeSize          int    `json:"homeSize" xml:"homeSize,attr"`
+	MaxHomeSize       int    `json:"maxHomeSize" xml:"maxHomeSize,attr"`
+	JoinedAt          int    `json:"joinedAt" xml:"joinedAt,attr"`
+	Locale            string `json:"locale" xml:"locale,attr"`
+	MailingListStatus string `json:"mailingListStatus" xml:"mailingListStatus,attr"`
+	MailingListActive bool   `json:"mailingListActive" xml:"mailingListActive,attr"`
+	PIN               string `json:"pin" xml:"pin,attr"`
+	Profile           struct {
+		AutoSelectAudio              bool   `json:"autoSelectAudio" xml:"autoSelectAudio,attr"`
+		DefaultAudioAccessibility    bool   `json:"defaultAudioAccessibility" xml:"defaultAudioAccessibility,attr"`
+		DefaultAudioLanguage         string `json:"defaultAudioLanguage" xml:"defaultAudioLanguage,attr"`
+		DefaultAudioLanguages        string `json:"defaultAudioLanguages" xml:"defaultAudioLanguages,attr"`
+		DefaultSubtitleLanguage      string `json:"defaultSubtitleLanguage" xml:"defaultSubtitleLanguage,attr"`
+		DefaultSubtitleLanguages     string `json:"defaultSubtitleLanguages" xml:"defaultSubtitleLanguages,attr"`
+		AutoSelectSubtitle           bool   `json:"autoSelectSubtitle" xml:"autoSelectSubtitle,attr"`
+		DefaultSubtitleAccessibility bool   `json:"defaultSubtitleAccessibility" xml:"defaultSubtitleAccessibility,attr"`
+		DefaultSubtitleForced        bool   `json:"defaultSubtitleForced" xml:"defaultSubtitleForced,attr"`
+		MediaReviewsLanguages        string `json:"mediaReviewsLanguages" xml:"mediaReviewsLanguages,attr"`
+		MediaReviewsVisibility       bool   `json:"mediaReviewsVisibility" xml:"mediaReviewsVisibility,attr"`
+		WatchedIndicator             bool   `json:"watchedIndicator" xml:"watchedIndicator,attr"`
+	} `json:"profile" xml:"profile"`
+	Protected         bool       `json:"protected" xml:"protected"`
+	PastSubscriptions []struct{} `xml:"pastSubscriptions,attr"`
+	RememberExpiresAt int        `json:"rememberExpiresAt" xml:"rememberExpiresAt"`
+	Restricted        bool       `json:"restricted" xml:"restricted"`
+	Roles             []struct {
+		ID string `xml:"id,attr"`
+	} `xml:"roles>role"`
+	ScreenTime struct {
+		LimitEnabled  bool `xml:"limit_enabled,attr"`
+		DailyLimit    int  `xml:"daily_limit,attr"`
+		TimeRemaining int  `xml:"time_remaining,attr"`
+		ResetHour     int  `xml:"reset_hour,attr"`
+	} `xml:"screen_time,attr"`
+	ScrobbleTypes string     `json:"scrobbleTypes" xml:"scrobbleTypes,attr"`
+	ServerCount   int        `json:"serverCount" xml:"server_count,attr"`
+	Services      []Services `json:"services" xml:"services>service"`
+	Settings      []struct {
+		ID        string `json:"id" xml:"id,attr"`
+		Hidden    int    `json:"hidden" xml:"hidden,attr"`
+		Type      string `json:"type" xml:"type,attr"`
+		UpdatedAt int    `json:"updatedAt" xml:"updatedAt,attr"`
+		Value     string `json:"value" xml:"value,attr"`
+	} `json:"settings" xml:"settings>setting"`
+	Subscription struct {
+		Active   bool `json:"active" xml:"active,attr"`
+		Features []struct {
+			ID string `json:"id" xml:"id,attr"`
+		} `json:"features" xml:"features>feature"`
+		PaymentService string `json:"paymentService" xml:"paymentService,attr"`
+		SubscribedAt   string `json:"subscribedAt" xml:"subscribedAt,attr"`
+		Status         string `json:"status" xml:"status,attr"`
+		Plan           string `json:"plan" xml:"plan,attr"`
+	} `json:"subscription" xml:"subscription"`
+	SubscriptionDescription string `json:"subscriptionDescription" xml:"subscriptionDescription,attr"`
+	Subscriptions           []struct {
+		Billing struct {
+			PaymentMethodID       string   `json:"paymentMethodId" xml:"paymentMethodId,attr"`
+			InternalPaymentMethod struct{} `json:"internalPaymentMethod" xml:"internalPaymentMethod"`
+		} `json:"billing" xml:"billing"`
+		Canceled      int    `json:"canceled" xml:"canceled,attr"`
+		CanConvert    int    `json:"canConvert" xml:"canConvert,attr"`
+		CanDowngrade  int    `json:"canDowngrade" xml:"canDowngrade,attr"`
+		CanReactivate int    `json:"canReactivate" xml:"canReactivate,attr"`
+		CanUpgrade    int    `json:"canUpgrade" xml:"canUpgrade,attr"`
+		EndsAt        string `json:"endsAt" xml:"endsAt,attr"`
+		GracePeriod   int    `json:"gracePeriod" xml:"gracePeriod,attr"`
+		ID            string `json:"id" xml:"id,attr"`
+		Mode          string `json:"mode" xml:"mode,attr"`
+		OnHold        int    `json:"onHold" xml:"onHold,attr"`
+		RenewsAt      string `json:"renewsAt" xml:"renewsAt,attr"`
+		State         string `json:"state" xml:"state,attr"`
+		Transfer      int    `json:"transfer" xml:"transfer,attr"`
+		Type          string `json:"type" xml:"type,attr"`
+	} `xml:"subscriptions>subscription"`
+	Title            string     `json:"title" xml:"title,attr"`
+	Thumb            string     `json:"thumb" xml:"thumb,attr"`
+	Token            string     `json:"authenticationToken" xml:"authentication_token,attr"`
+	Trials           []struct{} `json:"trials" xml:"trials,attr"`
+	TrialUntil       string     `json:"trialUntil" xml:"trial_until,attr"`
+	TwoFactorEnabled bool       `json:"twoFactorEnabled" xml:"twoFactorEnabled,attr"`
+	Username         string     `json:"username" xml:"username,attr"`
+	UUID             string     `json:"uuid" xml:"uuid,attr"`
+	Version          string     `json:"version" xml:"version,attr"`
+}
+
 type Services struct {
-	Identifier string `json:"identifier"`
-	Endpoint   string `json:"endpoint"`
-	Token      string `json:"token"`
-	Status     string `json:"status"`
+	Identifier string `json:"identifier" xml:"identifier,attr"`
+	Endpoint   string `json:"endpoint" xml:"endpoint,attr"`
+	Token      string `json:"token" xml:"token,attr"`
+	Status     string `json:"status" xml:"status,attr"`
 }
 
 // User plex server user. only difference is id is a string

@@ -3,42 +3,30 @@ package commands
 import (
 	"context"
 	"fmt"
-
-	"github.com/jrudio/go-plex-client"
-	"sync"
 	"time"
 
+	"github.com/jrudio/go-plex-client"
 	"github.com/jrudio/go-plex-client/cmd/db"
 	"github.com/urfave/cli/v3"
 )
 
-// TODO: delete, this is only used for temporary testing implementation
-// func doneInSeconds(seconds int, done chan bool) {
-// 	time.Sleep(time.Duration(seconds) * time.Second)
-
-// 	done <- true
-// }
-
 type CMDs struct {
 	ClientIdentifier string
-	dbConn *db.DB
+	dbClient         *db.DB
 }
 
 func New(dbConn *db.DB, clientIdentifier string) CMDs {
 	return CMDs{
 		ClientIdentifier: clientIdentifier,
-		dbConn: dbConn,
+		dbClient:         dbConn,
 	}
 }
 
 func (cmd CMDs) Login(ctx context.Context, c *cli.Command) error {
 	timeout := 15 * time.Minute
-	// timeout := 5 * time.Second
-	// shortCircuitSeconds := 10
 	interval := 1 * time.Second
 	ticker := time.NewTicker(interval)
-	done := make(chan bool)
-	wg := sync.WaitGroup{}
+	done := make(chan bool, 1)
 
 	headers := plex.PlexHeaders{ClientIdentifier: cmd.ClientIdentifier}
 
@@ -50,20 +38,40 @@ func (cmd CMDs) Login(ctx context.Context, c *cli.Command) error {
 		return cli.Exit(errMsg, 1)
 	}
 
-	fmt.Printf("To authorize plexctl, please navigate to https://plex.tv/link and enter this code: %s\n", resp.Pin())
-
 	timeoutFn := func(done chan bool) {
 		time.Sleep(timeout)
 		done <- true
 	}
 
-	authChecker := func() {
+	saveAuthorizationToDatabase := func(authToken string) error {
+		client, err := plex.New("", authToken)
+
+		if err != nil {
+			return fmt.Errorf("creating plex client failed: %v", err)
+		}
+
+		account, err := client.MyAccount()
+
+		if err != nil {
+			return fmt.Errorf("fetching plex account information failed: %v", err)
+		}
+
+		if err := cmd.dbClient.SaveAuth(db.Authorization{
+			Email:     account.Email,
+			PlexToken: resp.AuthToken,
+		}); err != nil {
+			return fmt.Errorf("saving authorization to database failed: %v", err)
+		}
+
+		return nil
+	}
+
+	authChecker := func(done chan bool, ticker *time.Ticker) {
 		for {
 			select {
 			case <-done:
-				// fmt.Println("stopped checking pin")
+				fmt.Println("stopped checking pin")
 				ticker.Stop()
-				wg.Done()
 				return
 			case <-ticker.C:
 				resp, err := plex.CheckPIN(resp.ID, resp.ClientIdentifier)
@@ -72,46 +80,37 @@ func (cmd CMDs) Login(ctx context.Context, c *cli.Command) error {
 					fmt.Println("pin is expired or doesn't exist, request new pin")
 
 					done <- true
+
+					continue
 				}
 				// else if err != nil && err.Error() == plex.ErrorPINNotAuthorized {
-					// fmt.Println("pin is not authorized yet")
+				// fmt.Println("pin is not authorized yet")
 
 				// }
 
 				if resp.AuthToken != "" && err == nil {
 
+					fmt.Println("plexctl is now authorized, saving credentials...")
 
-					fmt.Println("plexctl is now authorized")
-					fmt.Printf("plex token: %v\n", resp.AuthToken)
+					if err := saveAuthorizationToDatabase(resp.AuthToken); err != nil {
+						fmt.Printf("saving credentials failed: %v\n", err)
+					} else {
+						fmt.Println("successfully saved credentials")
+					}
 
-					// cmd.dbConn.SaveAuth(db.Authorization{
-					// 	Email:     resp.,
-					// 	PlexToken: resp.AuthToken,
-					// })
-
-					// TODO: encrypt and save plex token in local database
-
-					// TODO: successfully exit from goroutines to finish program
 					done <- true
 				}
 			}
 		}
 	}
 
-	// timeout goroutine
+	fmt.Printf("To authorize plexctl, please navigate to https://plex.tv/link and enter this code: %s\n", resp.Pin())
+
 	go timeoutFn(done)
-
-	// TEST: short-circuit the main goroutine and finish gracefuly; delete after successful test
-	// go doneInSeconds(shortCircuitSeconds, done)
-
-	// main goroutine
-	wg.Add(1)
 
 	fmt.Println("checking pin status...")
 
-	go authChecker()
-
-	wg.Wait()
+	authChecker(done, ticker)
 
 	fmt.Println("done")
 
@@ -119,7 +118,7 @@ func (cmd CMDs) Login(ctx context.Context, c *cli.Command) error {
 }
 
 func (cmd CMDs) ListAccounts(ctx context.Context, c *cli.Command) error {
-	auths, err := cmd.dbConn.GetAuthorizations()
+	auths, err := cmd.dbClient.GetAuthorizations()
 
 	if err != nil {
 		return cli.Exit(err, 1)

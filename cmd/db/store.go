@@ -11,7 +11,7 @@ var (
 )
 
 type DB struct {
-	conn       *badger.DB
+	conn     *badger.DB
 	isClosed bool
 	keys     storeKeys
 }
@@ -50,9 +50,9 @@ func New(dir string) (*DB, error) {
 	db.conn = conn
 	db.keys = storeKeys{
 		authorizations: []byte(KeyAuthorizations),
-	// 	appSecret:  []byte("app-secret"),
-	// 	plexToken:  []byte("plex-token"),
-	// 	plexServer: []byte("plex-server"),
+		// 	appSecret:  []byte("app-secret"),
+		// 	plexToken:  []byte("plex-token"),
+		// 	plexServer: []byte("plex-server"),
 	}
 
 	if err = db.initKeys(); err != nil {
@@ -80,7 +80,7 @@ func (db *DB) Close() {
 }
 
 func (db DB) AddKey(key []byte) error {
-	return db.conn.Update(func (txn *badger.Txn) error {
+	return db.conn.Update(func(txn *badger.Txn) error {
 		_, err := txn.Get(key)
 
 		if err == badger.ErrKeyNotFound {

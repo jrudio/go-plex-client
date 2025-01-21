@@ -16,8 +16,8 @@ const (
 
 var (
 	dbConn *db.DB
-	dbDir = "plexctl"
-	cmds commands.CMDs
+	dbDir  = "plexctl"
+	cmds   commands.CMDs
 )
 
 func init() {
@@ -52,7 +52,7 @@ func init() {
 		}
 	}
 
-  conn, err	:= db.New(dbDir)
+	conn, err := db.New(dbDir)
 
 	if err != nil {
 		fmt.Printf("failed to create database: %v\n", err)
@@ -79,15 +79,15 @@ func main() {
 				Action: testConnection,
 			},
 			{
-				Name:   "auth",
-				Usage:  "Authenticate your plexctl client",
+				Name:  "auth",
+				Usage: "Authenticate your plexctl client",
 				Commands: []*cli.Command{
 					{
-						Name: "login",
+						Name:   "login",
 						Action: cmds.Login,
 					},
 					{
-						Name: "list",
+						Name:   "list",
 						Action: cmds.ListAccounts,
 					},
 				},
