@@ -84,10 +84,12 @@ func main() {
 				Commands: []*cli.Command{
 					{
 						Name:   "login",
+						Usage: "Authorize access to Plex Media Server and Plex.tv",
 						Action: cmds.Login,
 					},
 					{
 						Name:   "list",
+						Usage: "List available plex credentials",
 						Action: cmds.ListAccounts,
 					},
 				},
