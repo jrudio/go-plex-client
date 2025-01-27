@@ -636,9 +636,9 @@ type UserPlexTV struct {
 	} `json:"pastSubscriptions"`
 	Trials               []string   `json:"trials"`
 	Services             []Services `json:"services"`
-	AdsConsent           string     `json:"adsConsent"`           // can be null
-	AdsConsentSetAt      string     `json:"adsConsentSetAt"`      // can be null
-	AdsConsentReminderAt string     `json:"adsConsentReminderAt"` // can be null
+	AdsConsent           bool       `json:"adsConsent"`           // can be null
+	AdsConsentSetAt      int        `json:"adsConsentSetAt"`      // can be null
+	AdsConsentReminderAt int        `json:"adsConsentReminderAt"` // can be null
 	ExperimentalFeatures bool       `json:"experimentalFeatures"`
 	TwoFactorEnabled     bool       `json:"twoFactorEnabled"`
 	BackupCodesCreated   bool       `json:"backupCodesCreated"`
