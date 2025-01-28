@@ -931,12 +931,47 @@ func downloadMedia(c *cli.Context) error {
 
 	selectedMedia := results.MediaContainer.Metadata[selection]
 
-	// download media
-	if err := plexConn.Download(selectedMedia, downloadPath, createFolders, skipIfExists); err != nil {
-		return cli.NewExitError(err, 1)
-	}
+	if selectedMedia.ChildCount > 0 {
+		selection = -1
+		selectedMediaChildren, err := plexConn.GetMetadataChildren(selectedMedia.RatingKey)
+		if err != nil {
+			return cli.NewExitError(err, 1)
+		}
+		children := selectedMediaChildren.MediaContainer.Metadata
 
-	fmt.Printf("successfully downloaded %s\n", selectedMedia.Title)
+		for i, result := range children {
+			fmt.Printf("\t[%d] %s\n", i, result.Title)
+		}
+
+		fmt.Printf("choose media to download:")
+		fmt.Scanln(&selection)
+
+		if selection < 0 || selection > len(children)-1 {
+			return cli.NewExitError("invalid selection", 1)
+		}
+
+		selectedSeason := children[selection]
+		selectedSeasonChildren, err := plexConn.GetMetadataChildren(selectedSeason.RatingKey)
+		if err != nil {
+			return cli.NewExitError(err, 1)
+		}
+
+		// download all episodes from a season
+		for _, result := range selectedSeasonChildren.MediaContainer.Metadata {
+			fmt.Printf("downloading %s\n", result.Title)
+			if err := plexConn.Download(result, downloadPath, createFolders, skipIfExists); err != nil {
+				return cli.NewExitError(err, 1)
+			}
+		}
+		fmt.Printf("successfully downloaded %s %s\n", selectedSeason.ParentTitle, selectedSeason.Title)
+	} else {
+		// download media
+		if err := plexConn.Download(selectedMedia, downloadPath, createFolders, skipIfExists); err != nil {
+			return cli.NewExitError(err, 1)
+		}
+
+		fmt.Printf("successfully downloaded %s\n", selectedMedia.Title)
+	}
 
 	return nil
 }
