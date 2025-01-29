@@ -852,13 +852,13 @@ func (p *Plex) StopPlayback(machineID string) error {
 }
 
 // GetDevices returns a list of your Plex devices (servers, players, controllers, etc)
-func (p *Plex) GetDevices() ([]PMSDevices, error) {
+func (p *Plex) GetDevices() ([]Device, error) {
 	query := plexURL + "/api/resources?includeHttps=1"
 
 	resp, err := p.get(query, p.Headers)
 
 	if err != nil {
-		return []PMSDevices{}, err
+		return []Device{}, err
 	}
 
 	defer resp.Body.Close()
@@ -866,20 +866,20 @@ func (p *Plex) GetDevices() ([]PMSDevices, error) {
 	result := new(resourcesResponse)
 
 	if resp.StatusCode != http.StatusOK {
-		return []PMSDevices{}, errors.New(resp.Status)
+		return []Device{}, errors.New(resp.Status)
 	}
 
 	if err := xml.NewDecoder(resp.Body).Decode(result); err != nil {
 		fmt.Println(err.Error())
 
-		return []PMSDevices{}, err
+		return []Device{}, err
 	}
 
 	return result.Device, nil
 }
 
 // GetServers returns a list of your Plex servers
-func (p *Plex) GetServers() ([]PMSDevices, error) {
+func (p *Plex) GetServers() ([]Device, error) {
 
 	// we can use the https://<pms-ip>/media/providers endpoint
 	// but if the caller does not know the ip beforehand, we can grab it
@@ -892,7 +892,7 @@ func (p *Plex) GetServers() ([]PMSDevices, error) {
 	}
 
 	// filter devices for servers
-	var filteredDevices []PMSDevices
+	var filteredDevices []Device
 
 	for _, r := range devices {
 		if r.Provides != "server" {

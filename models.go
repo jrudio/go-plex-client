@@ -459,9 +459,9 @@ type InvitedFriend struct {
 }
 
 type resourcesResponse struct {
-	XMLName xml.Name     `xml:"MediaContainer"`
-	Size    int          `xml:"size,attr"`
-	Device  []PMSDevices `xml:"Device"`
+	XMLName xml.Name `xml:"MediaContainer"`
+	Size    int      `xml:"size,attr"`
+	Device  []Device `xml:"Device"`
 }
 
 type terminateSessionResponse struct {
@@ -469,27 +469,29 @@ type terminateSessionResponse struct {
 	Size    int      `xml:"size,attr"`
 }
 
-// PMSDevices is the result of the https://plex.tv/pms/resources endpoint
-type PMSDevices struct {
+// Device is the authenticated Plex server and clients
+type Device struct {
+	ClientIdentifier     string       `json:"clientIdentifier" xml:"clientIdentifier,attr"`
+	Connections          []Connection `json:"connection" xml:"Connection"`
+	CreatedAt            string       `json:"createdAt" xml:"createdAt,attr"`
+	Device               string       `json:"device" xml:"device,attr"`
+	ID                   string          `json:"id" xml:"id,attr"`
+	LastSeenAt           string       `json:"lastSeenAt" xml:"lastSeenAt,attr"`
+	Model                string       `json:"model" xml:"model,attr"`
 	Name                 string       `json:"name" xml:"name,attr"`
-	Product              string       `json:"product" xml:"product,attr"`
-	ProductVersion       string       `json:"productVersion" xml:"productVersion,attr"`
 	Platform             string       `json:"platform" xml:"platform,attr"`
 	PlatformVersion      string       `json:"platformVersion" xml:"platformVersion,attr"`
-	Device               string       `json:"device" xml:"device,attr"`
-	ClientIdentifier     string       `json:"clientIdentifier" xml:"clientIdentifier,attr"`
-	CreatedAt            string       `json:"createdAt" xml:"createdAt,attr"`
-	LastSeenAt           string       `json:"lastSeenAt" xml:"lastSeenAt,attr"`
-	Provides             string       `json:"provides" xml:"provides,attr"`
-	Owned                string       `json:"owned" xml:"owned,attr"`
-	AccessToken          string       `json:"accessToken" xml:"accessToken,attr"`
-	HTTPSRequired        int          `json:"httpsRequired" xml:"httpsRequired,attr"`
-	Synced               string       `json:"synced" xml:"synced,attr"`
-	Relay                int          `json:"relay" xml:"relay,attr"`
-	PublicAddressMatches string       `json:"publicAddressMatches" xml:"publicAddressMatches,attr"`
-	PublicAddress        string       `json:"publicAddress" xml:"publicAddress,attr"`
 	Presence             string       `json:"presence" xml:"presence,attr"`
-	Connection           []Connection `json:"connection" xml:"Connection"`
+	Product              string       `json:"product" xml:"product,attr"`
+	ProductVersion       string       `json:"productVersion" xml:"productVersion,attr"`
+	Provides             string       `json:"provides" xml:"provides,attr"` // can be 'server' or empty if client
+	PublicAddress        string       `json:"publicAddress" xml:"publicAddress,attr"`
+	ScreenDensity        string       `json:"screenDensity" xml:"screenDensity,attr"`
+	ScreenResolution     string       `json:"screenResolution" xml:"screenResolution,attr"`
+	Synced               string       `json:"synced" xml:"synced,attr"`
+	Token                string       `json:"token" xml:"token,attr"`
+	Vendor               string       `json:"vendor" xml:"vendor,attr"`
+	Version              string       `json:"version" xml:"version,attr"`
 }
 
 // Connection lists options to connect to a device

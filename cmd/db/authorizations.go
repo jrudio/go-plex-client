@@ -18,6 +18,12 @@ type Authorization struct {
 type Authorizations []Authorization
 
 func (db DB) SaveAuth(auth Authorization) error {
+	if auth.Email == "" {
+		return fmt.Errorf("email must be provided")
+	} else if auth.PlexToken == "" {
+		return fmt.Errorf("plex token must be provided")
+	}
+
 	auths, err := db.GetAuthorizations()
 
 	if err != nil {
@@ -43,6 +49,67 @@ func (db DB) SaveAuth(auth Authorization) error {
 
 	if err = db.saveData(db.keys.authorizations, data); err != nil {
 		return fmt.Errorf("saving authorization failed: %v", err)
+	}
+
+	return nil
+}
+
+func (db DB) RemoveAuth(auth Authorization) error {
+	if auth.Email == "" {
+		return fmt.Errorf("email must be provided")
+	}
+
+	auths, err := db.GetAuthorizations()
+
+	if err != nil {
+		return fmt.Errorf("failed getting authorizations: %v", err)
+	}
+
+	index := auths.FindIndexByEmail(auth.Email)
+
+	if index < 0 {
+		return fmt.Errorf("email not found")
+	}
+
+	newAuths := Authorizations{}
+
+	setDefaultCredentials := func(auths Authorizations, newAuths Authorizations) (Authorizations, error) {
+		if len(auths) == 0 {
+			return newAuths, fmt.Errorf("no credentials to make active")
+		}
+
+		firstAuth := auths[0]
+
+		if err := newAuths.SetActive(firstAuth.Email); err != nil {
+			return newAuths, fmt.Errorf("unable to set new auth: %v", err)
+		}
+
+		return newAuths, nil
+	}
+
+	if authLen := len(auths); authLen > 1 {
+		newAuths = append(newAuths, auths[:index]...)
+		newAuths = append(newAuths, auths[index + 1: authLen]...)
+
+		// if what we're removing is active, then set the first credential as active
+		if auths[index].IsActive {
+			newAuths, err = setDefaultCredentials(auths, newAuths)
+
+			if err != nil {
+				return fmt.Errorf("unable to set default credentials: %v", err)
+			}
+
+		}
+	}
+
+	data, err := newAuths.toJSON()
+
+	if err != nil {
+		return fmt.Errorf("failed converting authorization to json: %v", err)
+	}
+
+	if db.saveData([]byte(KeyAuthorizations), data); err != nil {
+		return fmt.Errorf("failed saving authorizations: %v", err)
 	}
 
 	return nil

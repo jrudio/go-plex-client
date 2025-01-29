@@ -200,6 +200,60 @@ func (w webhookErr) Error() string {
 	return w.Err[0].Message
 }
 
+func (p Plex) GetDevicesFromPlexTV() ([]Device, error) {
+	// https://clients.plex.tv/devices.xml (previously https://plex.tv/pms/resources)
+	endpoint := "/devices.xml"
+
+	type mediaContainer struct {
+		Devices []Device `xml:"Device"`
+		XMLName xml.Name `xml:"MediaContainer"`
+	}
+
+	container := mediaContainer{}
+
+	newHeaders := p.Headers
+	newHeaders.Accept = "application/xml"
+
+	resp, err := p.get(apiURL+endpoint, newHeaders)
+
+	if err != nil {
+		return container.Devices, err
+	}
+
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return container.Devices, fmt.Errorf(resp.Status)
+	}
+
+	if err := xml.NewDecoder(resp.Body).Decode(&container); err != nil {
+		return container.Devices, err
+	}
+
+	return container.Devices, err
+}
+
+func (p Plex) RevokeDevice(deviceID string) error {
+	endpoint := fmt.Sprintf("/devices/%s.xml", deviceID)
+
+	newHeaders := p.Headers
+	newHeaders.Accept = "application/xml"
+
+	resp, err := p.delete(apiURL+endpoint, newHeaders)
+
+	if err != nil {
+		return err
+	}
+
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf(resp.Status)
+	}
+
+	return nil
+}
+
 // GetWebhooks fetches all webhooks - requires plex pass
 func (p Plex) GetWebhooks() ([]string, error) {
 	type Hooks struct {

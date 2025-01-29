@@ -58,7 +58,7 @@ func (cmd CMDs) Login(ctx context.Context, c *cli.Command) error {
 
 		if err := cmd.dbClient.SaveAuth(db.Authorization{
 			Email:     account.Email,
-			PlexToken: resp.AuthToken,
+			PlexToken: authToken,
 		}); err != nil {
 			return fmt.Errorf("saving authorization to database failed: %v", err)
 		}
@@ -138,6 +138,79 @@ func (cmd CMDs) ListAccounts(ctx context.Context, c *cli.Command) error {
 		}
 
 		fmt.Printf("%s\t%s\n", isActive, auth.Email)
+	}
+
+	return nil
+}
+
+func (cmd CMDs) RevokeAccount(ctx context.Context, c *cli.Command) error {
+	email := c.Args().Get(0)
+
+	revokeClient := func(client *plex.Plex, account db.Authorization) error {
+		devices, err := client.GetDevicesFromPlexTV()
+
+		if err != nil {
+			return fmt.Errorf("failed fetching plex devices: %v", err)
+		}
+
+		if len(devices) < 1 {
+			return fmt.Errorf("no devices found")
+		}
+
+		isRevoked := false
+
+		for _, device := range devices {
+			if account.PlexToken == device.Token {
+				if err := client.RevokeDevice(device.ID); err != nil {
+					return err
+				}
+
+				isRevoked = true
+
+				break
+			}
+		}
+
+		if !isRevoked {
+			return fmt.Errorf("did not find requested device to revoke")
+		}
+
+		return nil
+	}
+
+	removeAuthFromDB := func(email string) error {
+		return cmd.dbClient.RemoveAuth(db.Authorization{
+			Email: email,
+		})
+	}
+
+
+	fmt.Printf("revoking '%s'...\n", email)
+
+	authorizations, err := cmd.dbClient.GetAuthorizations()
+
+	if err != nil {
+		return cli.Exit(err, 1)
+	}
+
+	index := authorizations.FindIndexByEmail(email)
+	account := authorizations[index]
+
+	client, err := plex.New("", account.PlexToken)
+
+	if err != nil {
+		return cli.Exit(fmt.Errorf("failed creating plex client: %v", err), 1)
+	}
+
+
+	if err := revokeClient(client, account); err != nil {
+		return cli.Exit(fmt.Errorf("revoking credentials failed: %v", err), 1)
+	}
+
+	fmt.Println("revoked credentials")
+
+	if err := removeAuthFromDB(email); err != nil {
+		return cli.Exit(fmt.Errorf("removing saved credentials failed: %v", err), 1)
 	}
 
 	return nil
