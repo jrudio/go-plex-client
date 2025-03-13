@@ -166,8 +166,13 @@ func main() {
 		},
 		{
 			Name:   "playlist",
-			Usage:  "print playlsit items on plex server",
+			Usage:  "print playlist items on plex server",
 			Action: getPlaylist,
+		},
+		{
+			Name:   "playlists",
+			Usage:  "print playlists on plex server",
+			Action: getPlaylists,
 		},
 		{
 			Name:  "delete",
@@ -179,6 +184,11 @@ func main() {
 					Action: deleteMedia,
 				},
 			},
+		},
+		{
+			Name:   "token",
+			Usage:  "sets the plex token to be used for subsequent commands",
+			Action: setToken,
 		},
 	}
 
