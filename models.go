@@ -70,7 +70,7 @@ type Metadata struct {
 	ParentThumb           string       `json:"parentThumb"`
 	ParentTitle           string       `json:"parentTitle"`
 	RatingCount           int          `json:"ratingCount"`
-	Rating                float64      `json:"rating"`
+	Rating                []Rating     `json:"rating"`
 	RatingKey             string       `json:"ratingKey"`
 	SessionKey            string       `json:"sessionKey"`
 	Summary               string       `json:"summary"`
@@ -122,6 +122,13 @@ func (b *boolOrInt) UnmarshalJSON(data []byte) error {
 	b.bool = isBool
 
 	return nil
+}
+
+// Rating ...
+type Rating struct {
+	Image string  `json:"image"`
+	Value float64 `json:"value"`
+	Type  string  `json:"type"`
 }
 
 // Media media info
