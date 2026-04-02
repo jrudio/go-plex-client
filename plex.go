@@ -8,7 +8,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 	"os"
@@ -20,8 +19,11 @@ import (
 	"github.com/google/uuid"
 )
 
+var (
+	plexURL = "https://plex.tv"
+)
+
 const (
-	plexURL         = "https://plex.tv"
 	applicationXml  = "application/xml"
 	applicationJson = "application/json"
 )
@@ -146,7 +148,38 @@ func SignIn(username, password string) (*Plex, error) {
 	return &p, err
 }
 
-// Search your Plex Server for media
+// HubSearch your Plex Server for media using hubs (modern search)
+func (p *Plex) HubSearch(title string) (SearchHubContainer, error) {
+	if title == "" {
+		return SearchHubContainer{}, fmt.Errorf(ErrorCommon, ErrorTitleRequired)
+	}
+
+	title = url.QueryEscape(title)
+	query := p.URL + "/hubs/search?query=" + title
+
+	var results SearchHubContainer
+
+	resp, err := p.get(query, p.Headers)
+
+	if err != nil {
+		return SearchHubContainer{}, err
+	}
+
+	// Unauthorized
+	if resp.StatusCode == http.StatusUnauthorized {
+		return SearchHubContainer{}, errors.New(ErrorNotAuthorized)
+	}
+
+	defer resp.Body.Close()
+
+	if err := json.NewDecoder(resp.Body).Decode(&results); err != nil {
+		return SearchHubContainer{}, err
+	}
+
+	return results, nil
+}
+
+// Search your Plex Server for media (legacy substring search)
 func (p *Plex) Search(title string) (SearchResults, error) {
 	if title == "" {
 		return SearchResults{}, fmt.Errorf(ErrorCommon, ErrorTitleRequired)
@@ -163,12 +196,11 @@ func (p *Plex) Search(title string) (SearchResults, error) {
 		return SearchResults{}, err
 	}
 
-	// Unauthorized
+	defer resp.Body.Close()
+
 	if resp.StatusCode == http.StatusUnauthorized {
 		return SearchResults{}, errors.New(ErrorNotAuthorized)
 	}
-
-	defer resp.Body.Close()
 
 	if err := json.NewDecoder(resp.Body).Decode(&results); err != nil {
 		return SearchResults{}, err
@@ -206,6 +238,55 @@ func (p *Plex) GetMetadata(key string) (MediaMetadata, error) {
 	}
 
 	return results, nil
+}
+
+// GetMetadataProviders returns a list of metadata providers available on the server.
+func (p *Plex) GetMetadataProviders() (MetadataProviderResponse, error) {
+	var results MetadataProviderResponse
+
+	query := fmt.Sprintf("%s/media/providers/metadata", p.URL)
+
+	resp, err := p.get(query, p.Headers)
+
+	if err != nil {
+		return results, err
+	}
+
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return results, errors.New(resp.Status)
+	}
+
+	if err := json.NewDecoder(resp.Body).Decode(&results); err != nil {
+		return results, err
+	}
+
+	return results, nil
+}
+
+// DeleteMetadataElement removes a metadata element (like a tag, or a poster) from a piece of media.
+func (p *Plex) DeleteMetadataElement(key, elementID string) error {
+	if key == "" {
+		return fmt.Errorf(ErrorCommon, ErrorKeyIsRequired)
+	}
+
+	// Example: DELETE /library/metadata/123/elements/456
+	query := fmt.Sprintf("%s/library/metadata/%s/elements/%s", p.URL, key, elementID)
+
+	resp, err := p.delete(query, p.Headers)
+
+	if err != nil {
+		return err
+	}
+
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusNoContent {
+		return fmt.Errorf("%s", resp.Status)
+	}
+
+	return nil
 }
 
 // GetMetadataChildren can get a show's season titles. My use-case would be getting the season titles after using Search()
@@ -568,7 +649,7 @@ func (p *Plex) GetFriends() ([]Friends, error) {
 		return []Friends{}, fmt.Errorf(ErrorServerReplied, resp.StatusCode)
 	}
 
-	respBytes, err := ioutil.ReadAll(resp.Body)
+	respBytes, err := io.ReadAll(resp.Body)
 
 	if err != nil {
 		return []Friends{}, err
@@ -584,9 +665,7 @@ func (p *Plex) GetFriends() ([]Friends, error) {
 
 	plexFriends := make([]Friends, friendCount)
 
-	for ii, f := range plexFriendsResp.User {
-		plexFriends[ii] = f
-	}
+	copy(plexFriends, plexFriendsResp.User)
 
 	return plexFriends, nil
 }

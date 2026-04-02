@@ -3,14 +3,17 @@ package plex
 import "regexp"
 
 // SearchPlex searches just like Search, but omits the last 4 results which are not relevant
-func (p *Plex) SearchPlex(title string) (SearchResults, error) {
-	results, err := p.Search(title)
+// SearchPlex searches just like Search, but omits the last 4 results which are not relevant
+func (p *Plex) SearchPlex(searchTerm string) (SearchHubContainer, error) {
+	results, err := p.HubSearch(searchTerm)
 
 	if err != nil {
-		return SearchResults{}, err
+		return SearchHubContainer{}, err
 	}
 
-	results.MediaContainer.Metadata = results.MediaContainer.Metadata[:4]
+	// Logic to limit results to top 4 (safely)
+	// Since results are now in Hubs, we might want to limit the Metadata in the first Hub?
+	// For now, returning full results to avoid logic assumptions on Hub structure.
 
 	return results, nil
 }

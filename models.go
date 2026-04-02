@@ -19,14 +19,33 @@ type Plex struct {
 	DownloadClient   http.Client
 }
 
-// SearchResults a list of media returned when searching
-// for media via your plex server
-
 // Provider ...
 type Provider struct {
 	Key   string `json:"key"`
 	Title string `json:"title"`
 	Type  string `json:"type"`
+}
+
+// MetadataAgentProvider represents a metadata provider in Plex.
+type MetadataAgentProvider struct {
+	Identifier   string         `json:"identifier"`
+	Title        string         `json:"title"`
+	Type         string         `json:"type"`
+	MetadataType []MetadataType `json:"MetadataType"`
+	Online       bool           `json:"online"`
+}
+
+// MetadataType represents a metadata type supported by a provider.
+type MetadataType struct {
+	Type int `json:"type"`
+}
+
+// MetadataProviderResponse represents the response from the Metadata Providers API.
+type MetadataProviderResponse struct {
+	MediaContainer struct {
+		MediaContainer
+		MetadataAgentProvider []MetadataAgentProvider `json:"MetadataAgentProvider"`
+	} `json:"MediaContainer"`
 }
 
 // SearchMediaContainer ...
@@ -42,11 +61,14 @@ type SearchResults struct {
 
 // Metadata ...
 type Metadata struct {
-	Player                Player       `json:"Player"`
-	Session               Session      `json:"Session"`
-	User                  User         `json:"User"`
-	AddedAt               int          `json:"addedAt"`
+	AddedAt               int64        `json:"addedAt"`
 	Art                   string       `json:"art"`
+	Banner                string       `json:"banner,omitempty"`
+	AudienceRating        float64      `json:"audienceRating,omitempty"`
+	AudienceRatingImage   string       `json:"audienceRatingImage,omitempty"`
+	ChapterSource         string       `json:"chapterSource,omitempty"`
+	ChildCount            int          `json:"childCount,omitempty"`
+	ClearLogo             string       `json:"clearLogo,omitempty"`
 	ContentRating         string       `json:"contentRating"`
 	Duration              int          `json:"duration"`
 	GrandparentArt        string       `json:"grandparentArt"`
@@ -57,35 +79,54 @@ type Metadata struct {
 	GrandparentTitle      string       `json:"grandparentTitle"`
 	GUID                  string       `json:"guid"`
 	AltGUIDs              []AltGUID    `json:"Guid"`
+	Hero                  string       `json:"hero,omitempty"`
 	Index                 int64        `json:"index"`
 	Key                   string       `json:"key"`
-	LastViewedAt          int          `json:"lastViewedAt"`
+	LastViewedAt          int64        `json:"lastViewedAt"`
+	LeafCount             int          `json:"leafCount,omitempty"`
 	LibrarySectionID      json.Number  `json:"librarySectionID"`
 	LibrarySectionKey     string       `json:"librarySectionKey"`
 	LibrarySectionTitle   string       `json:"librarySectionTitle"`
 	OriginallyAvailableAt string       `json:"originallyAvailableAt"`
+	OriginalTitle         string       `json:"originalTitle,omitempty"`
 	ParentIndex           int64        `json:"parentIndex"`
 	ParentKey             string       `json:"parentKey"`
 	ParentRatingKey       string       `json:"parentRatingKey"`
 	ParentThumb           string       `json:"parentThumb"`
 	ParentTitle           string       `json:"parentTitle"`
-	RatingCount           int          `json:"ratingCount"`
+	PrimaryExtraKey       string       `json:"primaryExtraKey,omitempty"`
 	Rating                float64      `json:"rating"`
+	Ratings               []PlexRating `json:"-"` // Populated via UnmarshalJSON
+	RatingCount           int          `json:"ratingCount"`
+	RatingImage           string       `json:"ratingImage,omitempty"`
 	RatingKey             string       `json:"ratingKey"`
 	SessionKey            string       `json:"sessionKey"`
+	SkipChildren          bool         `json:"skipChildren,omitempty"`
+	SkipParent            bool         `json:"skipParent,omitempty"`
+	SquareArt             string       `json:"squareArt,omitempty"`
+	Studio                string       `json:"studio,omitempty"`
 	Summary               string       `json:"summary"`
+	Tagline               string       `json:"tagline,omitempty"`
+	Theme                 string       `json:"theme,omitempty"`
 	Thumb                 string       `json:"thumb"`
-	UserRating            float64      `json:"userRating"`
-	Media                 []Media      `json:"Media"`
 	Title                 string       `json:"title"`
 	TitleSort             string       `json:"titleSort"`
 	Type                  string       `json:"type"`
-	UpdatedAt             int          `json:"updatedAt"`
+	UpdatedAt             int64        `json:"updatedAt"`
+	UserRating            float64      `json:"userRating"`
 	ViewCount             json.Number  `json:"viewCount"`
+	ViewedLeafCount       int          `json:"viewedLeafCount,omitempty"`
 	ViewOffset            int          `json:"viewOffset"`
 	Year                  int          `json:"year"`
+	Media                 []Media      `json:"Media"`
 	Director              []TaggedData `json:"Director"`
 	Writer                []TaggedData `json:"Writer"`
+	Genre                 []TaggedData `json:"Genre"`
+	Country               []TaggedData `json:"Country"`
+	Role                  []Role       `json:"Role"`
+	Player                Player       `json:"Player"`
+	Session               Session      `json:"Session"`
+	User                  User         `json:"User"`
 }
 
 // AltGUID represents a Globally Unique Identifier for a metadata provider that is not actively being used.
@@ -134,17 +175,17 @@ type Media struct {
 	Container             string      `json:"container"`
 	Duration              int         `json:"duration"`
 	Has64bitOffsets       bool        `json:"has64bitOffsets"`
+	HasVoiceActivity      bool        `json:"hasVoiceActivity"`
 	Height                int         `json:"height"`
 	ID                    json.Number `json:"id"`
-	OptimizedForStreaming boolOrInt   `json:"optimizedForStreaming"` // plex can return int (GetMetadata(), GetPlaylist()) or boolean (GetSessions()): 0 or 1; true or false
-
-	Selected        bool   `json:"selected"`
-	VideoCodec      string `json:"videoCodec"`
-	VideoFrameRate  string `json:"videoFrameRate"`
-	VideoProfile    string `json:"videoProfile"`
-	VideoResolution string `json:"videoResolution"`
-	Width           int    `json:"width"`
-	Part            []Part `json:"Part"`
+	OptimizedForStreaming boolOrInt   `json:"optimizedForStreaming"`
+	Selected              bool        `json:"selected"`
+	VideoCodec            string      `json:"videoCodec"`
+	VideoFrameRate        string      `json:"videoFrameRate"`
+	VideoProfile          string      `json:"videoProfile"`
+	VideoResolution       string      `json:"videoResolution"`
+	Width                 int         `json:"width"`
+	Part                  []Part      `json:"Part"`
 }
 
 // MediaContainer contains media info
@@ -306,44 +347,44 @@ type DevicesResponse struct {
 
 // Friends are the plex accounts that have access to your server
 type Friends struct {
-	ID                        int    `xml:"id,attr"`
-	Title                     string `xml:"title,attr"`
-	Thumb                     string `xml:"thumb,attr"`
-	Protected                 string `xml:"protected,attr"`
-	Home                      string `xml:"home,attr"`
-	AllowSync                 string `xml:"allowSync,attr"`
-	AllowCameraUpload         string `xml:"allowCameraUpload,attr"`
-	AllowChannels             string `xml:"allowChannels,attr"`
-	FilterAll                 string `xml:"filterAll,attr"`
-	FilterMovies              string `xml:"filterMovies,attr"`
-	FilterMusic               string `xml:"filterMusic,attr"`
-	FilterPhotos              string `xml:"filterPhotos,attr"`
-	FilterTelevision          string `xml:"filterTelevision,attr"`
-	Restricted                string `xml:"restricted,attr"`
-	Username                  string `xml:"username,attr"`
-	Email                     string `xml:"email,attr"`
-	RecommendationsPlaylistID string `xml:"recommendationsPlaylistId,attr"`
+	ID                        int    `xml:"id,attr" json:"id"`
+	Title                     string `xml:"title,attr" json:"title"`
+	Thumb                     string `xml:"thumb,attr" json:"thumb"`
+	Protected                 string `xml:"protected,attr" json:"protected"`
+	Home                      string `xml:"home,attr" json:"home"`
+	AllowSync                 string `xml:"allowSync,attr" json:"allowSync"`
+	AllowCameraUpload         string `xml:"allowCameraUpload,attr" json:"allowCameraUpload"`
+	AllowChannels             string `xml:"allowChannels,attr" json:"allowChannels"`
+	FilterAll                 string `xml:"filterAll,attr" json:"filterAll"`
+	FilterMovies              string `xml:"filterMovies,attr" json:"filterMovies"`
+	FilterMusic               string `xml:"filterMusic,attr" json:"filterMusic"`
+	FilterPhotos              string `xml:"filterPhotos,attr" json:"filterPhotos"`
+	FilterTelevision          string `xml:"filterTelevision,attr" json:"filterTelevision"`
+	Restricted                string `xml:"restricted,attr" json:"restricted"`
+	Username                  string `xml:"username,attr" json:"username"`
+	Email                     string `xml:"email,attr" json:"email"`
+	RecommendationsPlaylistID string `xml:"recommendationsPlaylistId,attr" json:"recommendationsPlaylistId"`
 	Server                    struct {
-		ID                string `xml:"id,attr"`
-		ServerID          string `xml:"serverId,attr"`
-		MachineIdentifier string `xml:"machineIdentifier,attr"`
-		Name              string `xml:"name,attr"`
-		LastSeenAt        string `xml:"lastSeenAt,attr"`
-		NumLibraries      string `xml:"numLibraries,attr"`
-		AllLibraries      string `xml:"allLibraries,attr"`
-		Owned             string `xml:"owned,attr"`
-		Pending           string `xml:"pending,attr"`
-	} `xml:"Server"`
+		ID                string `xml:"id,attr" json:"id"`
+		ServerID          string `xml:"serverId,attr" json:"serverId"`
+		MachineIdentifier string `xml:"machineIdentifier,attr" json:"machineIdentifier"`
+		Name              string `xml:"name,attr" json:"name"`
+		LastSeenAt        string `xml:"lastSeenAt,attr" json:"lastSeenAt"`
+		NumLibraries      string `xml:"numLibraries,attr" json:"numLibraries"`
+		AllLibraries      string `xml:"allLibraries,attr" json:"allLibraries"`
+		Owned             string `xml:"owned,attr" json:"owned"`
+		Pending           string `xml:"pending,attr" json:"pending"`
+	} `xml:"Server" json:"Server"`
 }
 
 type friendsResponse struct {
-	XMLName           xml.Name  `xml:"MediaContainer"`
-	FriendlyName      string    `xml:"friendlyName,attr"`
-	Identifier        string    `xml:"identifier,attr"`
-	MachineIdentifier string    `xml:"machineIdentifier,attr"`
-	TotalSize         string    `xml:"totalSize,attr"`
-	Size              int       `xml:"size,attr"`
-	User              []Friends `xml:"User"`
+	XMLName           xml.Name  `xml:"MediaContainer" json:"-"`
+	FriendlyName      string    `xml:"friendlyName,attr" json:"friendlyName"`
+	Identifier        string    `xml:"identifier,attr" json:"identifier"`
+	MachineIdentifier string    `xml:"machineIdentifier,attr" json:"machineIdentifier"`
+	TotalSize         string    `xml:"totalSize,attr" json:"totalSize"`
+	Size              int       `xml:"size,attr" json:"size"`
+	User              []Friends `xml:"User" json:"User"`
 }
 
 type resultResponse struct {
@@ -435,28 +476,28 @@ type inviteFriendSettings struct {
 }
 
 type invitedFriendsResponse struct {
-	XMLName           xml.Name        `xml:"MediaContainer"`
-	FriendlyName      string          `xml:"friendlyName,attr"`
-	Identifier        string          `xml:"identifier,attr"`
-	MachineIdentifier string          `xml:"machineIdentifier,attr"`
-	Size              int             `xml:"size,attr"`
-	InvitedFriends    []InvitedFriend `xml:"Invite"`
+	XMLName           xml.Name        `xml:"MediaContainer" json:"-"`
+	FriendlyName      string          `xml:"friendlyName,attr" json:"friendlyName"`
+	Identifier        string          `xml:"identifier,attr" json:"identifier"`
+	MachineIdentifier string          `xml:"machineIdentifier,attr" json:"machineIdentifier"`
+	Size              int             `xml:"size,attr" json:"size"`
+	InvitedFriends    []InvitedFriend `xml:"Invite" json:"Invite"`
 }
 
 type InvitedFriend struct {
-	ID           string `xml:"id,attr"`
-	CreatedAt    string `xml:"createdAt,attr"`
-	IsFriend     bool   `xml:"friend,attr"`
-	IsHome       bool   `xml:"home,attr"`
-	IsServer     bool   `xml:"server,attr"`
-	Username     string `xml:"username,attr"`
-	Email        string `xml:"email,attr"`
-	Thumb        string `xml:"thumb,attr"`
-	FriendlyName string `xml:"friendlyName,attr"`
+	ID           string `xml:"id,attr" json:"id"`
+	CreatedAt    string `xml:"createdAt,attr" json:"createdAt"`
+	IsFriend     bool   `xml:"friend,attr" json:"friend"`
+	IsHome       bool   `xml:"home,attr" json:"home"`
+	IsServer     bool   `xml:"server,attr" json:"server"`
+	Username     string `xml:"username,attr" json:"username"`
+	Email        string `xml:"email,attr" json:"email"`
+	Thumb        string `xml:"thumb,attr" json:"thumb"`
+	FriendlyName string `xml:"friendlyName,attr" json:"friendlyName"`
 	Server       struct {
-		Name         string `xml:"name,attr"`
-		NumLibraries string `xml:"numLibraries,attr"`
-	} `xml:"Server"`
+		Name         string `xml:"name,attr" json:"name"`
+		NumLibraries string `xml:"numLibraries,attr" json:"numLibraries"`
+	} `xml:"Server" json:"Server"`
 }
 
 type resourcesResponse struct {
@@ -718,34 +759,34 @@ type ServerInfo struct {
 // SectionIDResponse the section id (or library id) of your server
 // useful when inviting a user to the server
 type SectionIDResponse struct {
-	XMLName           xml.Name `xml:"MediaContainer"`
-	FriendlyName      string   `xml:"friendlyName,attr"`
-	Identifier        string   `xml:"identifier,attr"`
-	MachineIdentifier string   `xml:"machineIdentifier,attr"`
-	Size              int      `xml:"size,attr"`
+	XMLName           xml.Name `xml:"MediaContainer" json:"-"`
+	FriendlyName      string   `xml:"friendlyName,attr" json:"friendlyName"`
+	Identifier        string   `xml:"identifier,attr" json:"identifier"`
+	MachineIdentifier string   `xml:"machineIdentifier,attr" json:"machineIdentifier"`
+	Size              int      `xml:"size,attr" json:"size"`
 	Server            []struct {
-		Name              string           `xml:"name,attr"`
-		Address           string           `xml:"address,attr"`
-		Port              string           `xml:"port,attr"`
-		Version           string           `xml:"version,attr"`
-		Scheme            string           `xml:"scheme,attr"`
-		Host              string           `xml:"host,attr"`
-		LocalAddresses    string           `xml:"localAddresses,attr"`
-		MachineIdentifier string           `xml:"machineIdentifier,attr"`
-		CreatedAt         int              `xml:"createdAt,attr"`
-		UpdatedAt         int              `xml:"updatedAt,attr"`
-		Owned             int              `xml:"owned,attr"`
-		Synced            string           `xml:"synced,attr"`
-		Section           []ServerSections `xml:"Section"`
-	} `xml:"Server"`
+		Name              string           `xml:"name,attr" json:"name"`
+		Address           string           `xml:"address,attr" json:"address"`
+		Port              string           `xml:"port,attr" json:"port"`
+		Version           string           `xml:"version,attr" json:"version"`
+		Scheme            string           `xml:"scheme,attr" json:"scheme"`
+		Host              string           `xml:"host,attr" json:"host"`
+		LocalAddresses    string           `xml:"localAddresses,attr" json:"localAddresses"`
+		MachineIdentifier string           `xml:"machineIdentifier,attr" json:"machineIdentifier"`
+		CreatedAt         int              `xml:"createdAt,attr" json:"createdAt"`
+		UpdatedAt         int              `xml:"updatedAt,attr" json:"updatedAt"`
+		Owned             int              `xml:"owned,attr" json:"owned"`
+		Synced            string           `xml:"synced,attr" json:"synced"`
+		Section           []ServerSections `xml:"Section" json:"Section"`
+	} `xml:"Server" json:"Server"`
 }
 
 // ServerSections contains information of your library sections
 type ServerSections struct {
-	ID    int    `xml:"id,attr"`
-	Key   string `xml:"key,attr"`
-	Type  string `xml:"type,attr"`
-	Title string `xml:"title,attr"`
+	ID    int    `xml:"id,attr" json:"id"`
+	Key   string `xml:"key,attr" json:"key"`
+	Type  string `xml:"type,attr" json:"type"`
+	Title string `xml:"title,attr" json:"title"`
 }
 
 // LibraryLabels are the existing labels set on your server
@@ -836,7 +877,7 @@ type Stream struct {
 	ColorSpace         string      `json:"colorSpace"`
 	Default            bool        `json:"default"`
 	DisplayTitle       string      `json:"displayTitle"`
-	Duration           string      `json:"duration"`
+	Duration           int         `json:"duration"`
 	FrameRate          float64     `json:"frameRate"`
 	FrameRateMode      string      `json:"frameRateMode"`
 	Gain               string      `json:"gain"`
@@ -876,7 +917,7 @@ type Part struct {
 	Key                   string      `json:"key"`
 	OptimizedForStreaming boolOrInt   `json:"optimizedForStreaming"`
 	Selected              bool        `json:"selected"`
-	Size                  int         `json:"size"`
+	Size                  int64       `json:"size"`
 	Stream                []Stream    `json:"Stream"`
 	VideoProfile          string      `json:"videoProfile"`
 }
@@ -912,5 +953,29 @@ type CurrentSessions struct {
 	MediaContainer struct {
 		Metadata []Metadata `json:"Metadata"`
 		Size     int        `json:"size"`
+	} `json:"MediaContainer"`
+}
+
+// Hub represents a hub in the Plex API (e.g. for search results)
+type Hub struct {
+	Key           string      `json:"key"`
+	Type          string      `json:"type"`
+	Title         string      `json:"title"`
+	HubIdentifier string      `json:"hubIdentifier"`
+	Context       string      `json:"context"`
+	Size          int         `json:"size"`
+	More          bool        `json:"more"`
+	Style         string      `json:"style"`
+	Metadata      []Metadata  `json:"Metadata"`
+	Directory     []Directory `json:"Directory,omitempty"` // Sometimes hubs return directories
+}
+
+// SearchHubContainer is the container for search results from /hubs/search
+type SearchHubContainer struct {
+	MediaContainer struct {
+		Size       int    `json:"size"`
+		AllowSync  bool   `json:"allowSync"`
+		Identifier string `json:"identifier"`
+		Hub        []Hub  `json:"Hub"`
 	} `json:"MediaContainer"`
 }

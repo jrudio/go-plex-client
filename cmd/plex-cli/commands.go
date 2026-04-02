@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/jrudio/go-plex-client"
+	"github.com/jrudio/go-plex-client/v2"
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/urfave/cli"
 )
@@ -284,7 +284,7 @@ func getSessions(c *cli.Context) error {
 			userIsWatching += session.GrandparentTitle + " - " + session.ParentTitle
 			userIsWatching += " - " + session.Title
 		} else {
-			userIsWatching += session.Title + " (" + string(session.Year) + ")"
+			userIsWatching += session.Title + " (" + strconv.Itoa(session.Year) + ")"
 		}
 
 		fmt.Println(userIsWatching)
@@ -357,7 +357,7 @@ func linkApp(c *cli.Context) error {
 		return cli.NewExitError(fmt.Sprintf("could not create headers: %v", err), 1)
 	}
 
-	info, err := plex.RequestPIN(plexConn.Headers)
+	info, err := plex.RequestPIN(plexConn.Headers, nil)
 
 	if err != nil {
 		return cli.NewExitError("request plex pin failed: "+err.Error(), 1)
@@ -376,7 +376,7 @@ func linkApp(c *cli.Context) error {
 	var authToken string
 
 	for {
-		pinInformation, err := plex.CheckPIN(info.ID, plexConn.ClientIdentifier)
+		pinInformation, err := plex.CheckPIN(info.ID, plexConn.ClientIdentifier, nil)
 
 		if err != nil {
 			fmt.Printf("\r%v", err)
@@ -780,7 +780,7 @@ func stopPlayback(c *cli.Context) error {
 			title += session.GrandparentTitle + " - " + session.ParentTitle
 			title += " - " + session.Title
 		} else {
-			title += session.Title + " (" + string(session.Year) + ")"
+			title += session.Title + " (" + strconv.Itoa(session.Year) + ")"
 		}
 
 		fmt.Printf("\t[%d] %s - %s\n", i, session.User.Title, title)
