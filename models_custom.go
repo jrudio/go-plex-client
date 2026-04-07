@@ -7,9 +7,9 @@ import (
 
 // PlexRating represents a rating object in the Plex API (found in GetMetadata responses)
 type PlexRating struct {
-	Image string  `json:"image"`
-	Type  string  `json:"type"`
-	Value float64 `json:"value"`
+	Image string          `json:"image"`
+	Type  string          `json:"type"`
+	Value FlexibleFloat64 `json:"value"`
 }
 
 // UnmarshalJSON implements custom unmarshaling for Metadata to handle polymorphic 'rating' field
@@ -34,7 +34,7 @@ func (m *Metadata) UnmarshalJSON(data []byte) error {
 	if aux.Rating != nil {
 		switch v := aux.Rating.(type) {
 		case float64:
-			m.Rating = v
+			m.Rating = FlexibleFloat64(v)
 		case []interface{}:
 			// It's an array of ratings (GetMetadata response)
 			// We need to parse this manually into PlexRating structs

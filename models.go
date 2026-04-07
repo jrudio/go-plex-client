@@ -8,13 +8,96 @@ import (
 	"time"
 )
 
+// FlexibleBool is a custom type that handles Plex's inconsistent JSON boolean representations.
+// Plex sometimes returns booleans as literals (true/false), strings ("true"/"false"),
+// integers (1/0), or quoted integers ("1"/"0"). This type ensures robust unmarshaling
+// by supporting all representations.
+type FlexibleBool bool
+
+// UnmarshalJSON implements the json.Unmarshaler interface.
+func (fb *FlexibleBool) UnmarshalJSON(data []byte) error {
+	var v interface{}
+	if err := json.Unmarshal(data, &v); err != nil {
+		return err
+	}
+
+	switch val := v.(type) {
+	case bool:
+		*fb = FlexibleBool(val)
+	case float64:
+		// JSON numbers are unmarshaled as float64
+		if val == 1 {
+			*fb = true
+		} else if val == 0 {
+			*fb = false
+		} else {
+			return fmt.Errorf("invalid boolean integer: %v", val)
+		}
+	case string:
+		switch val {
+		case "true", "1":
+			*fb = true
+		case "false", "0":
+			*fb = false
+		default:
+			return fmt.Errorf("invalid boolean string: %q", val)
+		}
+	case nil:
+		*fb = false
+	default:
+		return fmt.Errorf("invalid boolean type: %T", v)
+	}
+
+	return nil
+}
+
+// MarshalJSON implements the json.Marshaler interface.
+func (fb FlexibleBool) MarshalJSON() ([]byte, error) {
+	return json.Marshal(bool(fb))
+}
+
+// FlexibleFloat64 is a custom type that handles Plex's inconsistent JSON numeric representations.
+// Plex sometimes returns numbers as literals, but other times as strings (e.g., "8.5").
+// This type ensures robust unmarshaling by supporting both.
+type FlexibleFloat64 float64
+
+// UnmarshalJSON implements the json.Unmarshaler interface.
+func (ff *FlexibleFloat64) UnmarshalJSON(data []byte) error {
+	var v interface{}
+	if err := json.Unmarshal(data, &v); err != nil {
+		return err
+	}
+
+	switch val := v.(type) {
+	case float64:
+		*ff = FlexibleFloat64(val)
+	case string:
+		var f float64
+		if _, err := fmt.Sscanf(val, "%f", &f); err != nil {
+			return fmt.Errorf("invalid float string: %q", val)
+		}
+		*ff = FlexibleFloat64(f)
+	case nil:
+		*ff = 0
+	default:
+		return fmt.Errorf("invalid float type: %T", v)
+	}
+
+	return nil
+}
+
+// MarshalJSON implements the json.Marshaler interface.
+func (ff FlexibleFloat64) MarshalJSON() ([]byte, error) {
+	return json.Marshal(float64(ff))
+}
+
 // Plex contains fields that are required to make
 // an api call to your plex server
 type Plex struct {
 	URL              string
 	Token            string
 	ClientIdentifier string
-	Headers          headers
+	Headers          Headers
 	HTTPClient       http.Client
 	DownloadClient   http.Client
 }
@@ -64,7 +147,7 @@ type Metadata struct {
 	AddedAt               int64        `json:"addedAt"`
 	Art                   string       `json:"art"`
 	Banner                string       `json:"banner,omitempty"`
-	AudienceRating        float64      `json:"audienceRating,omitempty"`
+	AudienceRating        FlexibleFloat64 `json:"audienceRating,omitempty"`
 	AudienceRatingImage   string       `json:"audienceRatingImage,omitempty"`
 	ChapterSource         string       `json:"chapterSource,omitempty"`
 	ChildCount            int          `json:"childCount,omitempty"`
@@ -95,7 +178,7 @@ type Metadata struct {
 	ParentThumb           string       `json:"parentThumb"`
 	ParentTitle           string       `json:"parentTitle"`
 	PrimaryExtraKey       string       `json:"primaryExtraKey,omitempty"`
-	Rating                float64      `json:"rating"`
+	Rating                FlexibleFloat64 `json:"rating"`
 	Ratings               []PlexRating `json:"-"` // Populated via UnmarshalJSON
 	RatingCount           int          `json:"ratingCount"`
 	RatingImage           string       `json:"ratingImage,omitempty"`
@@ -113,7 +196,7 @@ type Metadata struct {
 	TitleSort             string       `json:"titleSort"`
 	Type                  string       `json:"type"`
 	UpdatedAt             int64        `json:"updatedAt"`
-	UserRating            float64      `json:"userRating"`
+	UserRating            FlexibleFloat64 `json:"userRating"`
 	ViewCount             json.Number  `json:"viewCount"`
 	ViewedLeafCount       int          `json:"viewedLeafCount,omitempty"`
 	ViewOffset            int          `json:"viewOffset"`
@@ -174,12 +257,12 @@ type Media struct {
 	Bitrate               int         `json:"bitrate"`
 	Container             string      `json:"container"`
 	Duration              int         `json:"duration"`
-	Has64bitOffsets       bool        `json:"has64bitOffsets"`
-	HasVoiceActivity      bool        `json:"hasVoiceActivity"`
-	Height                int         `json:"height"`
-	ID                    json.Number `json:"id"`
-	OptimizedForStreaming boolOrInt   `json:"optimizedForStreaming"`
-	Selected              bool        `json:"selected"`
+	Has64bitOffsets       FlexibleBool `json:"has64bitOffsets"`
+	HasVoiceActivity      FlexibleBool `json:"hasVoiceActivity"`
+	Height                int          `json:"height"`
+	ID                    json.Number  `json:"id"`
+	OptimizedForStreaming boolOrInt    `json:"optimizedForStreaming"`
+	Selected              FlexibleBool `json:"selected"`
 	VideoCodec            string      `json:"videoCodec"`
 	VideoFrameRate        string      `json:"videoFrameRate"`
 	VideoProfile          string      `json:"videoProfile"`
@@ -811,7 +894,7 @@ type LibraryLabels struct {
 	} `json:"_children"`
 }
 
-type headers struct {
+type Headers struct {
 	Platform               string
 	PlatformVersion        string
 	Provides               string
@@ -828,7 +911,7 @@ type headers struct {
 }
 
 type request struct {
-	headers
+	Headers
 }
 
 // Sessions
@@ -911,12 +994,12 @@ type Part struct {
 	Decision              string      `json:"decision"`
 	Duration              int         `json:"duration"`
 	File                  string      `json:"file"`
-	Has64bitOffsets       bool        `json:"has64bitOffsets"`
-	HasThumbnail          string      `json:"hasThumbnail"`
-	ID                    json.Number `json:"id"`
-	Key                   string      `json:"key"`
-	OptimizedForStreaming boolOrInt   `json:"optimizedForStreaming"`
-	Selected              bool        `json:"selected"`
+	Has64bitOffsets       FlexibleBool `json:"has64bitOffsets"`
+	HasThumbnail          string       `json:"hasThumbnail"`
+	ID                    json.Number  `json:"id"`
+	Key                   string       `json:"key"`
+	OptimizedForStreaming boolOrInt    `json:"optimizedForStreaming"`
+	Selected              FlexibleBool `json:"selected"`
 	Size                  int64       `json:"size"`
 	Stream                []Stream    `json:"Stream"`
 	VideoProfile          string      `json:"videoProfile"`

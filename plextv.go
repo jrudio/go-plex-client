@@ -98,7 +98,7 @@ func (k *KeyPair) SignJWT(claims jwt.MapClaims) (string, error) {
 }
 
 // RequestPIN will retrieve a code (valid for 15 minutes) from plex.tv to link an app to your plex account
-func RequestPIN(requestHeaders headers, keyPair *KeyPair) (PinResponse, error) {
+func RequestPIN(requestHeaders Headers, keyPair *KeyPair) (PinResponse, error) {
 	endpoint := "/api/v2/pins.json"
 
 	// POST request and returns a 201 status code
@@ -114,7 +114,7 @@ func RequestPIN(requestHeaders headers, keyPair *KeyPair) (PinResponse, error) {
 	var pinInformation PinResponse
 
 	if requestHeaders.ClientIdentifier == "" {
-		requestHeaders = defaultHeaders()
+		requestHeaders = DefaultHeaders()
 	}
 
 	var body []byte
@@ -171,7 +171,7 @@ func CheckPIN(id int, clientIdentifier string, keyPair *KeyPair) (PinResponse, e
 		endpoint += "?deviceJWT=" + token
 	}
 
-	headers := defaultHeaders()
+	headers := DefaultHeaders()
 
 	if clientIdentifier != "" {
 		headers.ClientIdentifier = clientIdentifier

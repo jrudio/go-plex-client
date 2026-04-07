@@ -2,3 +2,6 @@ plex
 vendor/*
 *.sh
 .idea
+main
+.DS_Store
+

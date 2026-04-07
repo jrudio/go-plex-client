@@ -24,7 +24,7 @@ import (
 // 	return resp, nil
 // }
 
-func (p *Plex) grab(query string, h headers) (*http.Response, error) {
+func (p *Plex) grab(query string, h Headers) (*http.Response, error) {
 	client := p.DownloadClient
 
 	req, reqErr := http.NewRequest("GET", query, nil)
@@ -45,7 +45,7 @@ func (p *Plex) grab(query string, h headers) (*http.Response, error) {
 	// req.Header.Add("X-Plex-Container-Start", h.ContainerStart)
 	req.Header.Add("X-Plex-Token", p.Token)
 
-	// optional headers
+	// optional Headers
 	if h.TargetClientIdentifier != "" {
 		req.Header.Add("X-Plex-Target-Identifier", h.TargetClientIdentifier)
 	}
@@ -59,7 +59,7 @@ func (p *Plex) grab(query string, h headers) (*http.Response, error) {
 	return resp, nil
 }
 
-func (p *Plex) get(query string, h headers) (*http.Response, error) {
+func (p *Plex) get(query string, h Headers) (*http.Response, error) {
 	client := p.HTTPClient
 
 	req, reqErr := http.NewRequest("GET", query, nil)
@@ -80,7 +80,7 @@ func (p *Plex) get(query string, h headers) (*http.Response, error) {
 	// req.Header.Add("X-Plex-Container-Start", h.ContainerStart)
 	req.Header.Add("X-Plex-Token", p.Token)
 
-	// optional headers
+	// optional Headers
 	if h.TargetClientIdentifier != "" {
 		req.Header.Add("X-Plex-Target-Identifier", h.TargetClientIdentifier)
 	}
@@ -94,7 +94,7 @@ func (p *Plex) get(query string, h headers) (*http.Response, error) {
 	return resp, nil
 }
 
-func get(query string, h headers) (*http.Response, error) {
+func get(query string, h Headers) (*http.Response, error) {
 	client := http.Client{
 		Timeout: 3 * time.Second,
 	}
@@ -128,7 +128,7 @@ func get(query string, h headers) (*http.Response, error) {
 	return resp, nil
 }
 
-func (p *Plex) delete(query string, h headers) (*http.Response, error) {
+func (p *Plex) delete(query string, h Headers) (*http.Response, error) {
 	client := p.HTTPClient
 
 	req, reqErr := http.NewRequest("DELETE", query, nil)
@@ -149,7 +149,7 @@ func (p *Plex) delete(query string, h headers) (*http.Response, error) {
 	// req.Header.Add("X-Plex-Container-Start", h.ContainerStart)
 	req.Header.Add("X-Plex-Token", p.Token)
 
-	// optional headers
+	// optional Headers
 	if h.TargetClientIdentifier != "" {
 		req.Header.Add("X-Plex-Target-Identifier", h.TargetClientIdentifier)
 	}
@@ -163,7 +163,7 @@ func (p *Plex) delete(query string, h headers) (*http.Response, error) {
 	return resp, nil
 }
 
-func (p *Plex) post(query string, body []byte, h headers) (*http.Response, error) {
+func (p *Plex) post(query string, body []byte, h Headers) (*http.Response, error) {
 	client := p.HTTPClient
 
 	req, err := http.NewRequest("POST", query, bytes.NewBuffer(body))
@@ -186,7 +186,7 @@ func (p *Plex) post(query string, body []byte, h headers) (*http.Response, error
 	req.Header.Add("X-Plex-Token", p.Token)
 	req.Header.Add("Content-Type", h.ContentType)
 
-	// optional headers
+	// optional Headers
 	if h.TargetClientIdentifier != "" {
 		req.Header.Add("X-Plex-Target-Identifier", h.TargetClientIdentifier)
 	}
@@ -201,7 +201,7 @@ func (p *Plex) post(query string, body []byte, h headers) (*http.Response, error
 }
 
 // post sends a POST request and is the same as plex.post while omitting the plex token header
-func post(query string, body []byte, h headers) (*http.Response, error) {
+func post(query string, body []byte, h Headers) (*http.Response, error) {
 	client := http.Client{
 		Timeout: 3 * time.Second,
 	}
@@ -236,7 +236,7 @@ func post(query string, body []byte, h headers) (*http.Response, error) {
 	return resp, nil
 }
 
-func (p *Plex) put(query string, body []byte, h headers) (*http.Response, error) {
+func (p *Plex) put(query string, body []byte, h Headers) (*http.Response, error) {
 	client := p.HTTPClient
 
 	req, reqErr := http.NewRequest("PUT", query, bytes.NewBuffer(body))
@@ -258,7 +258,7 @@ func (p *Plex) put(query string, body []byte, h headers) (*http.Response, error)
 	// req.Header.Add("X-Plex-Container-Start", h.ContainerStart)
 	req.Header.Add("X-Plex-Token", p.Token)
 
-	// optional headers
+	// optional Headers
 	if h.TargetClientIdentifier != "" {
 		req.Header.Add("X-Plex-Target-Identifier", h.TargetClientIdentifier)
 	}

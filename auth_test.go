@@ -73,7 +73,7 @@ func TestJWTAuthFlow(t *testing.T) {
 	}
 
 	// Test RequestPIN
-	headers := defaultHeaders()
+	headers := DefaultHeaders()
 	pin, err := RequestPIN(headers, kp)
 	if err != nil {
 		t.Fatalf("RequestPIN failed: %v", err)

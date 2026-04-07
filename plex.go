@@ -28,10 +28,11 @@ const (
 	applicationJson = "application/json"
 )
 
-func defaultHeaders() headers {
+// DefaultHeaders returns the default headers for used when making requests to Plex
+func DefaultHeaders() Headers {
 	version := "0.0.1"
 
-	return headers{
+	return Headers{
 		Platform:         runtime.GOOS,
 		PlatformVersion:  "0.0.0",
 		Product:          "Go Plex Client",
@@ -62,7 +63,7 @@ func New(baseURL, token string) (*Plex, error) {
 
 	p.DownloadClient = http.Client{}
 
-	p.Headers = defaultHeaders()
+	p.Headers = DefaultHeaders()
 	// id, err := uuid.NewRandom()
 
 	// if err != nil {
