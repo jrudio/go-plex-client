@@ -16,6 +16,51 @@ Major changes include:
 
 You can tinker with this library using the command-line over [here](./cmd/plex-cli)
 
+### Get a Plex Token
+
+To interact with the Plex API, you often need an authentication token. You can obtain one by using the `plex.tv/link` flow, which allows a user to authorize your application using a 4-character code.
+
+```go
+import (
+	"fmt"
+	"time"
+
+	"github.com/jrudio/go-plex-client/v2"
+)
+
+func getToken() {
+	// 1. Get a PIN code from plex.tv
+	// Note: It is recommended to provide your own Headers with a unique ClientIdentifier
+	pin, err := plex.RequestPIN(plex.DefaultHeaders(), nil)
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Printf("Go to https://plex.tv/link and enter the code: %s\n", pin.Code)
+
+	// 2. Poll plex.tv to see if the user has authorized the code
+	for {
+		// Use the ID from the pin request and your client identifier
+		auth, err := plex.CheckPIN(pin.ID, "your-client-id", nil)
+		if err != nil {
+			// Check if it's just waiting for authorization
+			if err.Error() == plex.ErrorPINNotAuthorized {
+				time.Sleep(2 * time.Second)
+				continue
+			}
+			panic(err)
+		}
+
+		if auth.AuthToken != "" {
+			fmt.Printf("Success! Your Plex token is: %s\n", auth.AuthToken)
+			break
+		}
+
+		time.Sleep(2 * time.Second)
+	}
+}
+```
+
 ### Usage
 
 For comprehensive examples, please check the [`example/`](./example) directory. It contains code for connecting to a Plex server, utilizing the webhook receiver, interacting with search hubs, and setting up WebSocket notifications.
