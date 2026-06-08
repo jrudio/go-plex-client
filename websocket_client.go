@@ -197,7 +197,11 @@ func (p *Plex) SubscribeToNotifications(events *NotificationEvents, interrupt <-
 	c, resp, err := websocket.DefaultDialer.Dial(websocketURL.String(), headers)
 
 	if err != nil {
-		fmt.Println("websocket dial error: ", resp.Status)
+		if resp != nil {
+			fmt.Println("websocket dial error: ", resp.Status)
+		} else {
+			fmt.Println("websocket dial error: ", err)
+		}
 		fn(err)
 		return
 	}
