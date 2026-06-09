@@ -1,6 +1,6 @@
 # Plex.tv and Plex Media Server client written in Go
 
-[![godoc](http://img.shields.io/badge/godoc-reference-blue.svg?style=flat)](https://godoc.org/github.com/jrudio/go-plex-client)
+[![Go Reference](https://pkg.go.dev/badge/github.com/jrudio/go-plex-client/v2.svg)](https://pkg.go.dev/github.com/jrudio/go-plex-client/v2)
 
 `go get -u github.com/jrudio/go-plex-client/v2`
 
