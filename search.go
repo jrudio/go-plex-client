@@ -3,7 +3,6 @@ package plex
 import "regexp"
 
 // SearchPlex searches just like Search, but omits the last 4 results which are not relevant
-// SearchPlex searches just like Search, but omits the last 4 results which are not relevant
 func (p *Plex) SearchPlex(searchTerm string) (SearchHubContainer, error) {
 	results, err := p.HubSearch(searchTerm)
 

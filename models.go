@@ -183,6 +183,7 @@ type Metadata struct {
 	RatingCount           int          `json:"ratingCount"`
 	RatingImage           string       `json:"ratingImage,omitempty"`
 	RatingKey             string       `json:"ratingKey"`
+	PlaylistItemID        string       `json:"playlistItemId,omitempty"`
 	SessionKey            string       `json:"sessionKey"`
 	SkipChildren          bool         `json:"skipChildren,omitempty"`
 	SkipParent            bool         `json:"skipParent,omitempty"`

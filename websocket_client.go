@@ -69,6 +69,12 @@ type BackgroundProcessingQueueEventNotification struct {
 	QueueID int64  `json:"queueID"`
 }
 
+// ProgressNotification ...
+type ProgressNotification struct {
+	Message string `json:"message"`
+}
+
+
 // TranscodeSession ...
 type TranscodeSession struct {
 	AudioChannels        int64   `json:"audioChannels"`
@@ -122,6 +128,8 @@ type NotificationContainer struct {
 
 	Setting []Setting `json:"Setting"`
 
+	ProgressNotification []ProgressNotification `json:"ProgressNotification"`
+
 	Size int64 `json:"size"`
 	// Type can be one of:
 	// playing,
@@ -160,6 +168,7 @@ func NewNotificationEvents() *NotificationEvents {
 			"update.statechange":        func(n NotificationContainer) {},
 			"activity":                  func(n NotificationContainer) {},
 			"backgroundProcessingQueue": func(n NotificationContainer) {},
+			"progress":                  func(n NotificationContainer) {},
 		},
 	}
 }
@@ -177,6 +186,17 @@ func (e *NotificationEvents) OnTranscodeUpdate(fn func(n NotificationContainer))
 // OnTranscodeStart is called when a new transcode session begins
 func (e *NotificationEvents) OnTranscodeStart(fn func(n NotificationContainer)) {
 	e.events["transcodeSession.start"] = fn
+}
+
+// OnTranscodeEnd is called when a transcode session ends
+func (e *NotificationEvents) OnTranscodeEnd(fn func(n NotificationContainer)) {
+	e.events["transcodeSession.end"] = fn
+	e.events["transcode.end"] = fn
+}
+
+// OnProgress shows background activities/scans progress information
+func (e *NotificationEvents) OnProgress(fn func(n NotificationContainer)) {
+	e.events["progress"] = fn
 }
 
 // SubscribeToNotifications connects to your server via websockets listening for events
