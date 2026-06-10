@@ -11,6 +11,8 @@ Version 2 brings the library into alignment with the Plex **OpenAPI specificatio
 Major changes include:
 - **`HubSearch`**: Switched from legacy `/search` to the modern `/hubs/search` endpoint. Use `plexConnection.HubSearch("Title")` to retrieve results categorized by hubs (Movies, Shows, etc). Legacy search points are still accessible via `Search()`.
 - **Accurate Data Models**: Models now properly account for the dynamic and polymophic nature of Plex API payloads (e.g. `rating` values changing from `float` on searches to array of `PlexRating` evaluation objects on metadata requests).
+- **Playlists & Watched Status**: Added native support for retrieving lists of custom playlists (`GetPlaylists`) and toggling watched status (`Scrobble` and `Unscrobble`) via the REST API.
+- **Season Downloads**: Enabled season downloading in `plex-cli` by traversing child elements.
 
 ## Key Features
 
