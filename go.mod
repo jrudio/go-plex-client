@@ -1,6 +1,6 @@
 module github.com/jrudio/go-plex-client/v2
 
-go 1.21
+go 1.23.0
 
 require (
 	github.com/dgraph-io/badger/v3 v3.2103.2
@@ -28,7 +28,7 @@ require (
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	go.opencensus.io v0.22.5 // indirect
-	golang.org/x/net v0.0.0-20201021035429-f5854403a974 // indirect
-	golang.org/x/sys v0.0.0-20210124154548-22da62e12c0c // indirect
+	golang.org/x/net v0.38.0 // indirect
+	golang.org/x/sys v0.31.0 // indirect
 	gopkg.in/yaml.v2 v2.2.2 // indirect
 )
