@@ -84,3 +84,79 @@ func TestFlexibleFloat64_UnmarshalJSON(t *testing.T) {
 		})
 	}
 }
+
+func TestUserPlexTV_Anonymous(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    string
+		expected bool
+	}{
+		{
+			name:     "anonymous boolean false",
+			input:    `{"id": 123, "anonymous": false}`,
+			expected: false,
+		},
+		{
+			name:     "anonymous boolean true",
+			input:    `{"id": 123, "anonymous": true}`,
+			expected: true,
+		},
+		{
+			name:     "anonymous string true",
+			input:    `{"id": 123, "anonymous": "true"}`,
+			expected: true,
+		},
+		{
+			name:     "anonymous null",
+			input:    `{"id": 123, "anonymous": null}`,
+			expected: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var user UserPlexTV
+			err := json.Unmarshal([]byte(tt.input), &user)
+			assert.NoError(t, err)
+			assert.Equal(t, tt.expected, bool(user.Anonymous))
+		})
+	}
+}
+
+func TestSetting_Unmarshal(t *testing.T) {
+	tests := []struct {
+		name          string
+		input         string
+		expectedDef   interface{}
+		expectedValue interface{}
+	}{
+		{
+			name:          "integer preference value and default",
+			input:         `{"id": "LastAutomaticMappedPort", "default": 0, "value": 25018}`,
+			expectedDef:   0.0, // json numbers unmarshal to float64 for interface{}
+			expectedValue: 25018.0,
+		},
+		{
+			name:          "string preference value and default",
+			input:         `{"id": "some_pref", "default": "hello", "value": "world"}`,
+			expectedDef:   "hello",
+			expectedValue: "world",
+		},
+		{
+			name:          "boolean preference value and default",
+			input:         `{"id": "bool_pref", "default": false, "value": true}`,
+			expectedDef:   false,
+			expectedValue: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var s Setting
+			err := json.Unmarshal([]byte(tt.input), &s)
+			assert.NoError(t, err)
+			assert.Equal(t, tt.expectedDef, s.Default)
+			assert.Equal(t, tt.expectedValue, s.Value)
+		})
+	}
+}

@@ -715,7 +715,7 @@ type UserPlexTV struct {
 	} `json:"subscription"`
 	SubscriptionDescription string `json:"subscriptionDescription"` // can be null
 	Restricted              bool   `json:"restricted"`
-	Anonymous               string `json:"anonymous"` // can be null
+	Anonymous               FlexibleBool `json:"anonymous"` // can be null
 	Home                    bool   `json:"home"`
 	Guest                   bool   `json:"guest"`
 	HomeSize                int64  `json:"homeSize"` // type may be wrong
