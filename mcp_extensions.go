@@ -327,10 +327,16 @@ type PlaylistMetadata struct {
 	} `json:"MediaContainer"`
 }
 
-// GetPlaylists retrieves all custom playlists from the Plex server
-func (p *Plex) GetPlaylists() (PlaylistMetadata, error) {
+// GetPlaylists retrieves custom playlists from the Plex server, optionally filtered by playlistType
+func (p *Plex) GetPlaylists(playlistType string) (PlaylistMetadata, error) {
 	var results PlaylistMetadata
-	query := p.URL + "/playlists"
+	plType := url.QueryEscape(playlistType)
+	var query string
+	if plType != "" {
+		query = fmt.Sprintf("%s/playlists?playlistType=%s", p.URL, plType)
+	} else {
+		query = p.URL + "/playlists"
+	}
 	resp, err := p.get(query, p.Headers)
 	if err != nil {
 		return results, err

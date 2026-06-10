@@ -1394,3 +1394,46 @@ func (p *Plex) TerminateSession(sessionID string, reason string) error {
 
 	return nil
 }
+
+
+// Scrobble sets the watched status of a media item to watched
+func (p *Plex) Scrobble(key string) error {
+	keyNumber := p.ExtractKeyFromRatingKeyRegex(key)
+
+	query := fmt.Sprintf("%s/:/scrobble?identifier=com.plexapp.plugins.library&key=%s", p.URL, keyNumber)
+
+	resp, err := p.get(query, p.Headers)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode == http.StatusUnauthorized {
+		return errors.New(ErrorNotAuthorized)
+	} else if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf(ErrorServer, resp.Status)
+	}
+
+	return nil
+}
+
+// Unscrobble sets the watched status of a media item to unwatched
+func (p *Plex) Unscrobble(key string) error {
+	keyNumber := p.ExtractKeyFromRatingKeyRegex(key)
+
+	query := fmt.Sprintf("%s/:/unscrobble?identifier=com.plexapp.plugins.library&key=%s", p.URL, keyNumber)
+
+	resp, err := p.get(query, p.Headers)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode == http.StatusUnauthorized {
+		return errors.New(ErrorNotAuthorized)
+	} else if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf(ErrorServer, resp.Status)
+	}
+
+	return nil
+}

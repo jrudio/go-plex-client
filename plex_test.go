@@ -317,3 +317,59 @@ func TestGetLibraryLabels(t *testing.T) {
 	assert.Equal(t, "some_label", labels.MediaContainer.Directory[0].Key)
 	assert.Equal(t, "Some Label", labels.MediaContainer.Directory[0].Title)
 }
+
+func TestGetPlaylists(t *testing.T) {
+	testData := `{
+		"MediaContainer": {
+			"size": 1,
+			"Metadata": [
+				{
+					"ratingKey": "123",
+					"title": "My Favorite Playlist"
+				}
+			]
+		}
+	}`
+
+	server, _plex := newTestServer(200, testData)
+	defer server.Close()
+
+	playlists, err := _plex.GetPlaylists("video")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	assert.Equal(t, 1, playlists.MediaContainer.Size)
+	if len(playlists.MediaContainer.Metadata) != 1 {
+		t.Fatalf("expected 1 playlist, got %d", len(playlists.MediaContainer.Metadata))
+	}
+	assert.Equal(t, "123", playlists.MediaContainer.Metadata[0].RatingKey)
+	assert.Equal(t, "My Favorite Playlist", playlists.MediaContainer.Metadata[0].Title)
+}
+
+func TestScrobbleUnscrobble(t *testing.T) {
+	var requestedURI string
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		requestedURI = r.URL.String()
+		w.WriteHeader(200)
+	}))
+	defer server.Close()
+
+	transport := &http.Transport{
+		Proxy: func(req *http.Request) (*url.URL, error) {
+			return url.Parse(server.URL)
+		},
+	}
+	httpClient := http.Client{Transport: transport}
+	_plex := &Plex{URL: server.URL, Token: "mockToken", HTTPClient: httpClient}
+
+	err := _plex.Scrobble("12345")
+	assert.NoError(t, err)
+	assert.Contains(t, requestedURI, "/:/scrobble")
+	assert.Contains(t, requestedURI, "key=12345")
+
+	err = _plex.Unscrobble("/library/metadata/67890")
+	assert.NoError(t, err)
+	assert.Contains(t, requestedURI, "/:/unscrobble")
+	assert.Contains(t, requestedURI, "key=67890")
+}

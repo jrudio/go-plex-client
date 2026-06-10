@@ -207,6 +207,7 @@ type Metadata struct {
 	Writer                []TaggedData `json:"Writer"`
 	Genre                 []TaggedData `json:"Genre"`
 	Country               []TaggedData `json:"Country"`
+	Producer              []TaggedData `json:"Producer"`
 	Role                  []Role       `json:"Role"`
 	Player                Player       `json:"Player"`
 	Session               Session      `json:"Session"`

@@ -170,6 +170,11 @@ func main() {
 			Action: getPlaylist,
 		},
 		{
+			Name:   "playlists",
+			Usage:  "list playlists on plex server",
+			Action: getPlaylists,
+		},
+		{
 			Name:  "delete",
 			Usage: "delete a resource from your plex server",
 			Subcommands: []cli.Command{
