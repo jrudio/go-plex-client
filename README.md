@@ -12,6 +12,13 @@ Major changes include:
 - **`HubSearch`**: Switched from legacy `/search` to the modern `/hubs/search` endpoint. Use `plexConnection.HubSearch("Title")` to retrieve results categorized by hubs (Movies, Shows, etc). Legacy search points are still accessible via `Search()`.
 - **Accurate Data Models**: Models now properly account for the dynamic and polymophic nature of Plex API payloads (e.g. `rating` values changing from `float` on searches to array of `PlexRating` evaluation objects on metadata requests).
 
+## Key Features
+
+* **OpenAPI Compliant**: Structured Go models aligned with modern Plex Media Server JSON responses.
+* **Real-time Notifications**: Native support for subscribing to Plex WebSocket event streams (playing, progress, preference changes, and transcode status).
+* **Media & Library Control**: Comprehensive endpoints for content discovery, metadata retrieval, media deletion, and playback controls.
+* **Watched Status & Playlists**: Native methods for scrobbling, unscrobbling, and playlist curation.
+
 ### CLI
 
 You can tinker with this library using the command-line over [here](./cmd/plex-cli)
@@ -65,9 +72,9 @@ func getToken() {
 
 For comprehensive examples, please check the [`example/`](./example) directory. It contains code for connecting to a Plex server, utilizing the webhook receiver, interacting with search hubs, and setting up WebSocket notifications.
 
-**Basic Initialization:**
+**Basic Operations:**
 
-```Go
+```go
 import "github.com/jrudio/go-plex-client/v2"
 
 plexConnection, err := plex.New("http://192.168.1.2:32400", "myPlexToken")
@@ -81,7 +88,26 @@ result, err := plexConnection.Test()
 // Search for media in your plex server using the modern Hubs endpoint
 results, err := plexConnection.HubSearch("The Walking Dead")
 
-// ... Please checkout plex.go or the example folder for more methods
+// Mark a media item as watched (scrobble)
+err = plexConnection.Scrobble("12345")
+```
+
+**Real-time WebSocket Events:**
+
+```go
+// Initialize events callbacks
+events := plex.NewNotificationEvents()
+events.OnPlaying(func(n plex.NotificationContainer) {
+	if len(n.PlaySessionStateNotification) > 0 {
+		fmt.Printf("Session updated: %s\n", n.PlaySessionStateNotification[0].SessionKey)
+	}
+})
+
+// Subscribe to event stream
+interrupt := make(chan os.Signal, 1)
+plexConnection.SubscribeToNotifications(events, interrupt, func(err error) {
+	fmt.Printf("WebSocket error: %v\n", err)
+})
 ```
 
 ---
