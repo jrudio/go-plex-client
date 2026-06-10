@@ -83,3 +83,9 @@ results, err := plexConnection.HubSearch("The Walking Dead")
 
 // ... Please checkout plex.go or the example folder for more methods
 ```
+
+---
+
+## Projects Using `go-plex-client`
+
+* **[Synapse Plex MCP](https://github.com/jrudio/synapse-plex-mcp)**: An interactive, conversational Discord agent for Plex Media Server. Synapse is built as a Go-native multi-agent service communicating with local MCP child processes, utilizing `go-plex-client` under the hood.
