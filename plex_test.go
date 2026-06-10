@@ -10,6 +10,8 @@ import (
 	"net/url"
 	"os"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 var (
@@ -277,4 +279,41 @@ func TestPlex_RemoveInvitedFriend(t *testing.T) {
 		// expect a 404
 		t.Errorf("success: %v, error: %v", success, err)
 	}
+}
+
+func TestGetLibraryLabels(t *testing.T) {
+	testData := `{
+		"MediaContainer": {
+			"size": 1,
+			"allowSync": true,
+			"identifier": "com.plexapp.plugins.library",
+			"mediaTagPrefix": "/system/bundle/media/providers/",
+			"mediaTagVersion": 1421060938,
+			"title1": "Library Name",
+			"Directory": [
+				{
+					"key": "some_label",
+					"title": "Some Label",
+					"fastKey": "/library/sections/1/label/some_label"
+				}
+			]
+		}
+	}`
+
+	server, _plex := newTestServer(200, testData)
+	defer server.Close()
+
+	labels, err := _plex.GetLibraryLabels("1", "1")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	assert.Equal(t, "com.plexapp.plugins.library", labels.MediaContainer.Identifier)
+	assert.True(t, labels.MediaContainer.AllowSync)
+	assert.Equal(t, 1421060938, labels.MediaContainer.MediaTagVersion)
+	if len(labels.MediaContainer.Directory) != 1 {
+		t.Fatalf("expected 1 label, got %d", len(labels.MediaContainer.Directory))
+	}
+	assert.Equal(t, "some_label", labels.MediaContainer.Directory[0].Key)
+	assert.Equal(t, "Some Label", labels.MediaContainer.Directory[0].Title)
 }
