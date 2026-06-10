@@ -1245,7 +1245,7 @@ func (p *Plex) GetLibraryLabels(sectionKey, sectionIndex string) (LibraryLabels,
 		sectionIndex = "1"
 	}
 
-	query := fmt.Sprintf("%s/library/sections/%s/labels?type=%s", p.URL, sectionKey, sectionIndex)
+	query := fmt.Sprintf("%s/library/sections/%s/label?type=%s", p.URL, sectionKey, sectionIndex)
 
 	resp, err := p.get(query, p.Headers)
 
