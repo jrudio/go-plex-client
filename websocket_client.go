@@ -241,8 +241,6 @@ func (p *Plex) SubscribeToNotifications(events *NotificationEvents, interrupt <-
 				return
 			}
 
-			fmt.Printf("%s\n", message)
-
 			var notif WebsocketNotification
 
 			if err := json.Unmarshal(message, &notif); err != nil {
@@ -250,7 +248,6 @@ func (p *Plex) SubscribeToNotifications(events *NotificationEvents, interrupt <-
 				continue
 			}
 
-			// fmt.Println(notif.Type)
 			fn, ok := events.events[notif.Type]
 
 			if !ok {
