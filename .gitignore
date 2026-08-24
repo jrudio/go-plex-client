@@ -1,7 +1,35 @@
+# Binaries and build artifacts
 plex
-vendor/*
-*.sh
-.idea
 main
-.DS_Store
+bin/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.sh
 
+# Test and coverage artifacts
+*.test
+coverage.out
+coverage.html
+*.prof
+
+# Dependencies
+vendor/
+
+# OS Artifacts
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDEs and Editors
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
